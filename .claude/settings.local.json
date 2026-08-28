@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava)",
+      "Bash(rtk grep *)",
+      "Bash(rtk read *)",
+      "Bash(./gradlew run *)",
+      "Bash(rtk find *)",
+      "Bash(rtk gradlew *)",
+      "Bash(pkill -f \"Simulador Solar\")",
+      "Bash(./gradlew :app:run --console=plain)",
+      "Bash(./gradlew :app:run --no-configuration-cache)"
+    ]
+  }
+}
