@@ -1,5 +1,7 @@
 package org.example.game.cuerpo;
 
+import org.example.game.simulacion.ConfiguracionSimulacion;
+
 /**
  * Tipos de cuerpos celestes con propiedades físicas y de juego distintas.
  */
@@ -142,6 +144,6 @@ public enum TipoCuerpo {
     }
 
     /** Factor de multiplicación de masa (para sliders UI) */
-    public double getMasaMin() { return masaBase * 0.1; }
-    public double getMasaMax() { return masaBase * 10.0; }
+    public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }
+    public double getMasaMax() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MAX; }
 }

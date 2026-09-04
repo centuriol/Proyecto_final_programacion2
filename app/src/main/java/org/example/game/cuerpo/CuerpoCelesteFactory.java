@@ -6,6 +6,7 @@ import org.example.Planeta;
 import org.example.AgujeroNegro;
 import org.example.game.motor.Vector2D;
 import org.example.game.motor.ConstantesFisicas;
+import org.example.game.simulacion.ConfiguracionSimulacion;
 
 /**
  * Factory para creación dinámica de cuerpos celestes.
@@ -37,6 +38,12 @@ public final class CuerpoCelesteFactory {
     public static Planeta crearPlanetaRocoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
         double masa = TipoCuerpo.PLANETA_ROCOSO.masaBase * factorMasa;
         Planeta p = new Planeta(generarNombre("Planeta"), masa, x, y, TipoCuerpo.PLANETA_ROCOSO);
+        p.setVelocidad(velocidadInicial);
+        return p;
+    }
+
+    public static Planeta crearPlanetaPersonalizado(String nombre, double masa, double x, double y, TipoCuerpo tipo, Vector2D velocidadInicial) {
+        Planeta p = new Planeta(nombre, masa, x, y, tipo);
         p.setVelocidad(velocidadInicial);
         return p;
     }
@@ -89,6 +96,12 @@ public final class CuerpoCelesteFactory {
     public static Luna crearLuna(double x, double y, double factorMasa, Vector2D velocidadInicial) {
         double masa = TipoCuerpo.LUNA.masaBase * factorMasa;
         Luna l = new Luna(generarNombre("Luna"), masa, x, y);
+        l.setVelocidad(velocidadInicial);
+        return l;
+    }
+
+    public static Luna crearLunaPersonalizada(String nombre, double masa, double x, double y, Vector2D velocidadInicial) {
+        Luna l = new Luna(nombre, masa, x, y);
         l.setVelocidad(velocidadInicial);
         return l;
     }
@@ -165,6 +178,41 @@ public final class CuerpoCelesteFactory {
             generarNombre("Meteorito"),
             TipoCuerpo.METEORITO.masaBase * 0.1,
             xFisica, yFisica, velocidadFisica, 300, true
+        );
+    }
+
+    /**
+     * Crea un fragmento de escombro (meteorito) producto de una colisión destructiva.
+     * No pasa por el inventario ni cuesta recursos: es una consecuencia física, no una compra.
+     */
+    public static Meteorito crearFragmentoEscombro(double xFisica, double yFisica,
+                                                    Vector2D velocidadBase, double masaFragmento) {
+        // Dispersión angular aleatoria alrededor de la velocidad base del cuerpo original
+        double anguloExtra = (Math.random() - 0.5) * Math.PI; // +/- 90°
+        double velBase = velocidadBase != null ? velocidadBase.magnitud() : 0.0;
+        double velEyeccion = ConfiguracionSimulacion.VELOCIDAD_EYECCION_FRAGMENTOS
+                * (0.5 + Math.random());
+
+        double anguloFinal;
+        if (velBase > 1e-3 && velocidadBase != null) {
+            double anguloBase = Math.atan2(velocidadBase.y, velocidadBase.x);
+            anguloFinal = anguloBase + anguloExtra;
+        } else {
+            anguloFinal = Math.random() * 2.0 * Math.PI;
+        }
+
+        Vector2D velFragmento = new Vector2D(
+                Math.cos(anguloFinal) * (velBase * 0.3 + velEyeccion),
+                Math.sin(anguloFinal) * (velBase * 0.3 + velEyeccion)
+        );
+
+        return new Meteorito(
+                generarNombre("Escombro"),
+                masaFragmento,
+                xFisica, yFisica,
+                velFragmento,
+                250, // ticksVida — desaparecen solos, no acumulan objetos para siempre
+                false
         );
     }
 

@@ -11,7 +11,7 @@ import org.example.game.cuerpo.TipoCuerpo;
  * Ahora implementa CuerpoFisico para simulación newtoniana real.
  */
 public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.CuerpoFisico {
-    private final String nombre;
+    private String nombre;
     private double masa;
     private double posicionX;
     private double posicionY;
@@ -93,6 +93,12 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
 
     public String getNombre() {
         return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        if (nombre != null && !nombre.isBlank()) {
+            this.nombre = nombre.trim();
+        }
     }
 
     public double getPosicionX() {
@@ -185,6 +191,25 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     @Override
     public double getRadioFisico() {
         return tipoCuerpo.radioFisicoBase;
+    }
+
+    @Override
+    public double getRadioAtraccion() {
+        double factorMasa = 1.0;
+        if (tipoCuerpo != null && tipoCuerpo.masaBase > 0) {
+            factorMasa = Math.max(0.01, masa / tipoCuerpo.masaBase);
+        }
+        if (tipoCuerpo == TipoCuerpo.ESTRELLA) {
+            return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
+        } else if (tipoCuerpo == TipoCuerpo.PLANETA_ROCOSO || tipoCuerpo == TipoCuerpo.PLANETA_GASEOSO || tipoCuerpo == TipoCuerpo.PLANETA_HELADO) {
+            return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
+        } else if (tipoCuerpo == TipoCuerpo.LUNA) {
+            return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
+        } else if (tipoCuerpo == TipoCuerpo.AGUJERO_NEGRO || tipoCuerpo == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+            return Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
+        } else {
+            return Math.max(20.0, 35.0 * Math.sqrt(factorMasa));
+        }
     }
 
     // ===== Métodos abstractos para vista =====

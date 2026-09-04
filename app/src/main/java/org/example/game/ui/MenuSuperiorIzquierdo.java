@@ -31,37 +31,31 @@ public class MenuSuperiorIzquierdo extends HBox {
         setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
         // Título del juego
-        Label lblTitulo = new Label("ÓRBITA");
+        Label lblTitulo = new Label("ORBITA");
         lblTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
         lblTitulo.setTextFill(Color.web("#5be3ff"));
 
         // Botón Presets
-        MenuButton btnPresets = new MenuButton("🌌 Presets");
+        MenuButton btnPresets = new MenuButton("Presets");
         configurarMenuButton(btnPresets);
 
-        MenuItem itemBasico = new MenuItem("☀️ Sistema Solar Básico");
+        MenuItem itemBasico = new MenuItem("Sistema Solar Basico");
         itemBasico.setOnAction(e -> cargarPresetBasico());
 
-        MenuItem itemBinaria = new MenuItem("✨ Estrella Binaria");
-        itemBinaria.setOnAction(e -> cargarPresetBinaria());
-
-        MenuItem itemAgujero = new MenuItem("🕳️ Vórtice con Agujero Negro");
-        itemAgujero.setOnAction(e -> cargarPresetAgujero());
-
-        btnPresets.getItems().addAll(itemBasico, itemBinaria, itemAgujero);
+        btnPresets.getItems().addAll(itemBasico);
 
         // Botón Grilla / Visual
-        Button btnGrilla = new Button("📐 Grilla");
+        Button btnGrilla = new Button("Grilla");
         configurarBoton(btnGrilla, "Alternar Grilla (G)", renderizador::toggleGrilla);
 
-        Button btnZonas = new Button("🌱 Habitable");
-        configurarBoton(btnZonas, "Alternar Zona Habitable (H)", renderizador::toggleZonasHabitables);
+        Button btnZonas = new Button("Órbitas");
+        configurarBoton(btnZonas, "Alternar Órbitas de Referencia (H)", renderizador::toggleZonasHabitables);
 
-        Button btnEstelas = new Button("💫 Estelas");
+        Button btnEstelas = new Button("Estelas");
         configurarBoton(btnEstelas, "Alternar Estelas Orbitales (T)", renderizador::toggleEstelas);
 
         // Botón Limpiar
-        Button btnLimpiar = new Button("🗑️ Limpiar");
+        Button btnLimpiar = new Button("Limpiar");
         configurarBoton(btnLimpiar, "Eliminar todos los cuerpos celestes", this::confirmarLimpieza);
         btnLimpiar.setStyle("-fx-background-color: #3b2028; -fx-text-fill: #ff6b6b; -fx-border-color: #000000; -fx-border-width: 1px; -fx-cursor: hand;");
 

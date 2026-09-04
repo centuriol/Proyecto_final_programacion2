@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.SimulacionSolar;
 
 import java.util.ArrayList;
@@ -30,16 +31,11 @@ public class BarraInventarioHotbar extends HBox {
     private static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
             TipoCuerpo.PLANETA_ROCOSO,
-            TipoCuerpo.PLANETA_GASEOSO,
-            TipoCuerpo.LUNA,
-            TipoCuerpo.SATELITE,
-            TipoCuerpo.ESCUDO_DOME,
-            TipoCuerpo.METEORITO,
-            TipoCuerpo.AGUJERO_NEGRO
+            TipoCuerpo.LUNA
     };
 
     private static final String[] ICONOS_HOTBAR = {
-            "⭐", "🪨", "🪐", "🌙", "🛰️", "🛡️", "☄️", "🕳️"
+            "[EST]", "[ROC]", "[LUN]"
     };
 
     public BarraInventarioHotbar(SimulacionSolar simulacion) {
@@ -72,14 +68,18 @@ public class BarraInventarioHotbar extends HBox {
         box.setPadding(new Insets(2, 8, 2, 8));
         box.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 1px;");
 
-        Label lblMasaTitulo = new Label("⚖️ MASA");
+        Label lblMasaTitulo = new Label("MASA");
         lblMasaTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblMasaTitulo.setTextFill(Color.web("#e8e4d8"));
 
         lblMasaVal.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
         lblMasaVal.setTextFill(Color.web("#5be3ff"));
 
-        Slider slider = new Slider(0.1, 5.0, 1.0);
+        Slider slider = new Slider(
+                ConfiguracionSimulacion.MASA_FACTOR_MIN,
+                ConfiguracionSimulacion.MASA_FACTOR_MAX,
+                ConfiguracionSimulacion.MASA_FACTOR_MIN
+        );
         slider.setPrefWidth(75);
         slider.valueProperty().addListener((obs, old, neu) -> {
             double v = neu.doubleValue();
@@ -92,24 +92,50 @@ public class BarraInventarioHotbar extends HBox {
     }
 
     private VBox crearSlot(TipoCuerpo tipo, String icono, int hotkey) {
-        VBox slot = new VBox(1);
+        VBox slot = new VBox(2);
         slot.setAlignment(Pos.CENTER);
-        slot.setPrefSize(68, 54);
+        slot.setPrefSize(145, 78);
+        slot.setPadding(new Insets(3, 6, 3, 6));
         slot.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 2px; -fx-cursor: hand;");
 
+        // Cabecera: [1] ESTRELLA
+        HBox header = new HBox(4);
+        header.setAlignment(Pos.CENTER);
+
         Label lblKey = new Label("[" + hotkey + "]");
-        lblKey.setFont(Font.font("Monospace", FontWeight.NORMAL, 9));
+        lblKey.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
         lblKey.setTextFill(Color.web("#8c92a4"));
 
-        Label lblIcon = new Label(icono);
-        lblIcon.setFont(Font.font(16));
+        Label lblNom = new Label(tipo.nombre.toUpperCase());
+        lblNom.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        lblNom.setTextFill(Color.web(tipo.getColorHexString()));
 
-        Label lblNom = new Label(tipo.nombre);
-        lblNom.setFont(Font.font("System", FontWeight.BOLD, 9));
-        lblNom.setTextFill(Color.web("#e8e4d8"));
+        header.getChildren().addAll(lblKey, lblNom);
 
-        slot.getChildren().addAll(lblKey, lblIcon, lblNom);
-        Tooltip.install(slot, new Tooltip(tipo.nombre + " - Tecla " + hotkey + "\nClick para colocar con órbita estable\nArrastrar para lanzar"));
+        // Necesitas (Costo para colocarlo)
+        String textoCosto = formatearResumenCosto(tipo);
+        Label lblCosto = new Label(textoCosto);
+        lblCosto.setFont(Font.font("System", FontWeight.NORMAL, 9));
+        lblCosto.setTextFill(Color.web("#ffd700"));
+
+        // Da por tick (Producción)
+        String textoProd = formatearResumenProduccion(tipo);
+        Label lblProd = new Label(textoProd);
+        lblProd.setFont(Font.font("System", FontWeight.NORMAL, 9));
+        lblProd.setTextFill(Color.web("#50fa7b"));
+
+        // Hint click
+        Label lblInfo = new Label("[Click: Configurar]");
+        lblInfo.setFont(Font.font("Monospace", FontWeight.NORMAL, 8));
+        lblInfo.setTextFill(Color.web("#718096"));
+
+        slot.getChildren().addAll(header, lblCosto, lblProd, lblInfo);
+
+        // Tooltip con especificación detallada
+        String tooltipTexto = formatearTooltipDetallado(tipo, hotkey);
+        Tooltip tooltip = new Tooltip(tooltipTexto);
+        tooltip.setShowDelay(javafx.util.Duration.millis(150));
+        Tooltip.install(slot, tooltip);
 
         // Hover y Click
         slot.setOnMouseEntered(e -> {
@@ -124,15 +150,76 @@ public class BarraInventarioHotbar extends HBox {
             }
         });
 
-        slot.setOnMouseClicked(e -> seleccionarTipo(tipo));
+        slot.setOnMouseClicked(e -> {
+            abrirVentanaColocacion(tipo);
+        });
 
         return slot;
     }
 
-    public void seleccionarTipo(TipoCuerpo tipo) {
+    public static String formatearResumenCosto(TipoCuerpo tipo) {
+        java.util.Map<org.example.game.jugador.TipoRecurso, Double> costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
+        if (costos.isEmpty()) return "Costo: Gratis";
+        StringBuilder sb = new StringBuilder("Requiere: ");
+        int i = 0;
+        for (var e : costos.entrySet()) {
+            if (i > 0) sb.append(", ");
+            sb.append(String.format("%.0f ", e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
+            i++;
+        }
+        return sb.toString();
+    }
+
+    public static String formatearResumenProduccion(TipoCuerpo tipo) {
+        java.util.Map<org.example.game.jugador.TipoRecurso, Double> prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
+        if (prod.isEmpty()) return "Da/t: Ninguno";
+        StringBuilder sb = new StringBuilder("Da/t: ");
+        int i = 0;
+        for (var e : prod.entrySet()) {
+            if (i > 0) sb.append(", ");
+            sb.append(String.format("+%.2f ", e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
+            i++;
+        }
+        return sb.toString();
+    }
+
+    public static String formatearTooltipDetallado(TipoCuerpo tipo, int hotkey) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("========================================\n");
+        sb.append(tipo.nombre.toUpperCase()).append(" [Tecla ").append(hotkey).append("]\n");
+        sb.append("========================================\n");
+        sb.append("MATERIALES NECESARIOS PARA PONERLO:\n");
+        var costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
+        for (var e : costos.entrySet()) {
+            sb.append("  • ").append(e.getKey().nombre).append(": ").append(String.format("%.0f", e.getValue())).append("\n");
+        }
+        sb.append("\nMATERIALES QUE TE DA POR TICK:\n");
+        var prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
+        for (var e : prod.entrySet()) {
+            sb.append("  • ").append(e.getKey().nombre).append(": +").append(String.format("%.2f", e.getValue())).append(" / tick\n");
+        }
+        sb.append("========================================\n");
+        sb.append("• Click: Abrir ventana de configuración y colocación\n");
+        sb.append("  (Personalizar nombre, masa, costos y producción)\n");
+        sb.append("========================================");
+        return sb.toString();
+    }
+
+    public void abrirVentanaColocacion(TipoCuerpo tipo) {
+        if (tipo == null) return;
+        javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+        VentanaDescripcionCuerpo.mostrarParaColocar(tipo, simulacion, owner, () -> {
+            marcarSeleccionado(tipo);
+        });
+    }
+
+    public void marcarSeleccionado(TipoCuerpo tipo) {
         this.tipoSeleccionado = tipo;
-        simulacion.entrarModoColocacion(tipo, simulacion.getFactorMasaColocacion());
         actualizarEstilos();
+    }
+
+    public void seleccionarTipo(TipoCuerpo tipo) {
+        abrirVentanaColocacion(tipo);
     }
 
     public void deseleccionar() {

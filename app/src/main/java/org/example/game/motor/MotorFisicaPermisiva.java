@@ -9,6 +9,8 @@ import org.example.game.cuerpo.Luna;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.Satelite;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.simulacion.ConfiguracionSimulacion;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,6 +33,8 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
     private double asistenciaOrbital = 0.015; // 1.5% de corrección sutil hacia estabilidad por tick
     private double velocidadMaxima = 1200.0;
     private final List<Runnable> listenersColision = new ArrayList<>();
+    private java.util.function.Consumer<String> listenerMensaje;
+    private Runnable listenerDefensaEscudo;
 
     public MotorFisicaPermisiva(double radioMundo) {
         this.radioMundo = radioMundo;
@@ -89,10 +93,12 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                 CuerpoCeleste cj = cuerpos.get(j);
 
                 Vector2D r = cj.getPosicion().restar(ci.getPosicion());
-                double r2 = r.magnitudCuadrado() + softeningCuadrado;
+                double distReal = r.magnitud();
+                double distSegura = Math.max(0.1, distReal);
+                double r2 = distSegura * distSegura + softeningCuadrado;
                 double rMag = Math.sqrt(r2);
 
-                // F = G * m1 * m2 / (r² + eps²)
+                // 1. Gravedad newtoniana base F = G * m1 * m2 / (r² + eps²)
                 double fuerzaMag = G * ci.getMasa() * cj.getMasa() / r2;
 
                 Vector2D dir = r.dividir(rMag);
@@ -101,6 +107,110 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
                 ci.aplicarFuerza(fuerzaSobreI);
                 cj.aplicarFuerza(fuerzaSobreJ);
+
+                // 2. Interacción especial Luna - Planeta (Órbita de Luna)
+                Luna luna = (ci instanceof Luna) ? (Luna) ci : ((cj instanceof Luna) ? (Luna) cj : null);
+                CuerpoCeleste otro = (luna == ci) ? cj : ci;
+                boolean esLunaYPlaneta = (luna != null && otro != null && otro.getTipoCuerpo() != null &&
+                        (otro.getTipoCuerpo() == TipoCuerpo.PLANETA_ROCOSO ||
+                         otro.getTipoCuerpo() == TipoCuerpo.PLANETA_GASEOSO ||
+                         otro.getTipoCuerpo() == TipoCuerpo.PLANETA_HELADO));
+
+                if (esLunaYPlaneta) {
+                    double radioCapturaLuna = luna.getRadioAtraccion();
+
+                    // Captura orbital si el planeta está dentro del área de la luna
+                    if (distReal <= radioCapturaLuna) {
+                        if (!luna.estaOrbitando(otro)) {
+                            luna.setCuerpoOrbitado(otro);
+                            if (listenerMensaje != null) {
+                                listenerMensaje.accept(luna.getNombre() + " esta orbitando " + otro.getNombre());
+                            }
+
+                            // Asignar velocidad orbital circular tangencial inicial
+                            Vector2D rPlanetToMoon = luna.getPosicion().restar(otro.getPosicion());
+                            double dOrb = rPlanetToMoon.magnitud();
+                            double contactoMin = otro.getRadio() + luna.getRadio() + 5.0;
+                            if (dOrb < contactoMin) {
+                                dOrb = contactoMin;
+                                Vector2D norm = (rPlanetToMoon.magnitud() > 0.001) ? rPlanetToMoon.normalizar() : new Vector2D(1, 0);
+                                luna.setPosicion(otro.getPosicion().sumar(norm.multiplicar(dOrb)));
+                                rPlanetToMoon = norm.multiplicar(dOrb);
+                            }
+
+                            Vector2D uRadial = rPlanetToMoon.dividir(Math.max(0.1, dOrb));
+                            Vector2D vRel = luna.getVelocidad().restar(otro.getVelocidad());
+                            double cross = rPlanetToMoon.x * vRel.y - rPlanetToMoon.y * vRel.x;
+                            boolean horario = cross < 0;
+                            Vector2D uTangencial = horario
+                                    ? new Vector2D(uRadial.y, -uRadial.x)
+                                    : new Vector2D(-uRadial.y, uRadial.x);
+
+                            double factorMasaPlaneta = otro.getTipoCuerpo().masaBase > 0
+                                    ? Math.max(0.2, otro.getMasa() / otro.getTipoCuerpo().masaBase)
+                                    : 1.0;
+                            double vOrb = Math.sqrt(300.0 * factorMasaPlaneta / Math.max(10.0, dOrb));
+                            Vector2D vFinal = otro.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
+                            luna.setVelocidad(vFinal);
+                        }
+                    }
+
+                    // Si está orbitando, mantener la órbita con fuerza centrípeta y evitar colapso
+                    if (luna.estaOrbitando(otro)) {
+                        if (distReal > radioCapturaLuna * 2.5) {
+                            luna.setCuerpoOrbitado(null);
+                        } else {
+                            Vector2D rPlanetToMoon = luna.getPosicion().restar(otro.getPosicion());
+                            double dOrb = Math.max(5.0, rPlanetToMoon.magnitud());
+                            Vector2D uRadial = rPlanetToMoon.dividir(dOrb);
+
+                            double factorMasaPlaneta = otro.getTipoCuerpo().masaBase > 0
+                                    ? Math.max(0.2, otro.getMasa() / otro.getTipoCuerpo().masaBase)
+                                    : 1.0;
+                            double vOrbIdeal = Math.sqrt(300.0 * factorMasaPlaneta / dOrb);
+                            double aCentripeta = (vOrbIdeal * vOrbIdeal) / dOrb;
+
+                            Vector2D fCentripeta = uRadial.multiplicar(-1.0 * luna.getMasa() * aCentripeta);
+                            luna.aplicarFuerza(fCentripeta);
+
+                            // Arrastre en el sistema de referencia del planeta si este está acelerando
+                            if (otro.getMasa() > 0) {
+                                Vector2D aPlaneta = otro.getFuerza().dividir(otro.getMasa());
+                                luna.aplicarFuerza(aPlaneta.multiplicar(luna.getMasa()));
+                            }
+                            continue; // No aplicar atracción de colapso entre la luna y su planeta orbitado
+                        }
+                    }
+                }
+
+                // 3. Atracción arcade hacia el colapso para cuerpos dentro del área de atracción
+                CuerpoCeleste mayor = ci.getMasa() >= cj.getMasa() ? ci : cj;
+                CuerpoCeleste menor = (mayor == ci) ? cj : ci;
+
+                double radioColapso = mayor.getRadioAtraccion();
+                if (distReal < radioColapso) {
+                    double penetracion = Math.max(0.0, Math.min(1.0, 1.0 - (distReal / radioColapso)));
+                    Vector2D dirHaciaMayor = mayor.getPosicion().restar(menor.getPosicion()).normalizar();
+
+                    double factorMasaMayor = 1.0;
+                    if (mayor.getTipoCuerpo() != null && mayor.getTipoCuerpo().masaBase > 0) {
+                        factorMasaMayor = Math.max(0.1, mayor.getMasa() / mayor.getTipoCuerpo().masaBase);
+                    }
+
+                    double aMenor;
+                    if (mayor.getTipoCuerpo() == TipoCuerpo.ESTRELLA || mayor.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO || mayor.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+                        aMenor = (0.5 + 3.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor);
+                    } else {
+                        aMenor = (0.35 + 2.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor);
+                    }
+
+                    double fuerzaColapsoMag = menor.getMasa() * aMenor;
+                    Vector2D fSobreMenor = dirHaciaMayor.multiplicar(fuerzaColapsoMag);
+                    Vector2D fSobreMayor = fSobreMenor.multiplicar(-1.0);
+
+                    menor.aplicarFuerza(fSobreMenor);
+                    mayor.aplicarFuerza(fSobreMayor);
+                }
             }
         }
     }
@@ -110,6 +220,8 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
      * Si un planeta/luna/satélite está cerca de un cuerpo primario masivo (estrella o gigante),
      * aplica una sutil aceleración tangencial para suavizar la excentricidad excesiva y evitar
      * que órbitas casuales colapsen de inmediato en caos.
+     * La fuerza de corrección se atenúa logarítmicamente según la masa del cuerpo (menor asistencia a mayor masa),
+     * cumpliendo el diseño de juego donde cuerpos pesados resultan más caóticos y desafiantes de controlar.
      */
     private void aplicarAsistenciaOrbital(List<CuerpoCeleste> cuerpos) {
         if (asistenciaOrbital <= 0) return;
@@ -117,6 +229,9 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
         for (CuerpoCeleste c : cuerpos) {
             // Solo asistir a cuerpos no anclas (planetas, lunas, satélites)
             if (c.getTipoCuerpo().esMasivo && c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
+                continue;
+            }
+            if (c instanceof Luna && ((Luna) c).estaOrbitando()) {
                 continue;
             }
 
@@ -144,13 +259,29 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
                         Vector2D vObjetivo = unitTangencial.multiplicar(vIdeal);
 
+                        // Asistencia efectiva dependiente de la masa relativa
+                        double asistenciaEfectiva = calcularAsistenciaEfectiva(c.getMasa());
+
                         // Aplicar una fuerza de ajuste sutil
-                        Vector2D correccion = vObjetivo.restar(vRel).multiplicar(c.getMasa() * asistenciaOrbital);
+                        Vector2D correccion = vObjetivo.restar(vRel).multiplicar(c.getMasa() * asistenciaEfectiva);
                         c.aplicarFuerza(correccion);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Calcula la asistencia orbital efectiva con atenuación logarítmica proporcional a la masa del cuerpo.
+     * Con masa = PLANETA_ROCOSO.masaBase (1.0x), asistenciaEfectiva == asistenciaOrbital.
+     * Con masa mayor, la asistencia disminuye, exigiendo mayor precisión al jugador.
+     *
+     * @param masa Masa en kg del cuerpo a estabilizar.
+     * @return Multiplicador de corrección efectivo.
+     */
+    public double calcularAsistenciaEfectiva(double masa) {
+        double factorMasaCuerpo = masa / TipoCuerpo.PLANETA_ROCOSO.masaBase;
+        return asistenciaOrbital / (1.0 + Math.log10(Math.max(1.0, factorMasaCuerpo)));
     }
 
     private CuerpoCeleste encontrarCuerpoDominante(CuerpoCeleste cuerpo, List<CuerpoCeleste> todos) {
@@ -175,7 +306,9 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
     private void integrarMovimiento(List<CuerpoCeleste> cuerpos) {
         for (CuerpoCeleste c : cuerpos) {
-            Vector2D aceleracion = c.getFuerza().dividir(c.getMasa());
+            // Protección contra masa <= 0 para prevenir división por cero o NaN
+            double masaValida = Math.max(1e-3, c.getMasa());
+            Vector2D aceleracion = c.getFuerza().dividir(masaValida);
 
             // Limitar aceleración extrema para estabilidad
             double aMag = aceleracion.magnitud();
@@ -208,6 +341,7 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
     private void manejarColisiones(List<CuerpoCeleste> todos, List<CuerpoCeleste> simulados) {
         List<CuerpoCeleste> aEliminar = new ArrayList<>();
+        List<CuerpoCeleste> aAgregar = new ArrayList<>();
 
         for (int i = 0; i < simulados.size(); i++) {
             CuerpoCeleste a = simulados.get(i);
@@ -216,9 +350,6 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
             for (int j = i + 1; j < simulados.size(); j++) {
                 CuerpoCeleste b = simulados.get(j);
                 if (aEliminar.contains(b)) continue;
-
-                double dist = a.getPosicion().distanciaA(b.getPosicion());
-                double radioContacto = a.getRadio() + b.getRadio();
 
                 // 1. Interacción con Cúpula de Escudo
                 if (a instanceof EscudoProtector && b instanceof Meteorito) {
@@ -229,15 +360,49 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                     interactuarEscudoMeteorito((EscudoProtector) b, (Meteorito) a, aEliminar);
                     continue;
                 }
+                // Escudo protector no interactúa de forma destructiva con cuerpos celestes normales (no meteorito, no agujero negro)
+                if ((a instanceof EscudoProtector || b instanceof EscudoProtector) &&
+                        a.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO && a.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO &&
+                        b.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO && b.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+                    continue;
+                }
+
+                double dist = a.getPosicion().distanciaA(b.getPosicion());
+                double radioContacto = a.getRadio() + b.getRadio();
 
                 // 2. Colisión física
                 if (dist < radioContacto) {
-                    procesarColision(a, b, aEliminar);
+                    if (a instanceof Luna && ((Luna) a).estaOrbitando(b)) {
+                        double minOrb = b.getRadio() + a.getRadio() + 4.0;
+                        Vector2D norm = dist > 0.001 ? a.getPosicion().restar(b.getPosicion()).normalizar() : new Vector2D(1, 0);
+                        a.setPosicion(b.getPosicion().sumar(norm.multiplicar(minOrb)));
+                        continue;
+                    }
+                    if (b instanceof Luna && ((Luna) b).estaOrbitando(a)) {
+                        double minOrb = a.getRadio() + b.getRadio() + 4.0;
+                        Vector2D norm = dist > 0.001 ? b.getPosicion().restar(a.getPosicion()).normalizar() : new Vector2D(1, 0);
+                        b.setPosicion(a.getPosicion().sumar(norm.multiplicar(minOrb)));
+                        continue;
+                    }
+
+                    procesarColision(a, b, aEliminar, aAgregar);
                 }
             }
         }
 
         todos.removeAll(aEliminar);
+        todos.addAll(aAgregar);
+
+        // Limpiar referencias a cuerpos eliminados que estaban siendo orbitados
+        for (CuerpoCeleste c : todos) {
+            if (c instanceof Luna) {
+                Luna l = (Luna) c;
+                if (l.getCuerpoOrbitado() != null && (aEliminar.contains(l.getCuerpoOrbitado()) || !todos.contains(l.getCuerpoOrbitado()))) {
+                    l.setCuerpoOrbitado(null);
+                }
+            }
+        }
+
         for (CuerpoCeleste c : aEliminar) {
             notificarColision(c);
         }
@@ -250,36 +415,68 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                 escudo.absorberDano(25.0);
                 // Reflejar y desintegrar meteorito
                 aEliminar.add(meteorito);
-                System.out.println("🛡️ Escudo desvió y vaporizó meteorito!");
+                if (listenerDefensaEscudo != null) {
+                    try { listenerDefensaEscudo.run(); } catch (Exception ignored) {}
+                }
+                if (listenerMensaje != null) {
+                    listenerMensaje.accept("Escudo defensivo desvio y vaporizo meteorito.");
+                } else {
+                    System.out.println("Escudo defensivo desvio y vaporizo meteorito.");
+                }
             }
         }
     }
 
-    private void procesarColision(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar) {
+    private void procesarColision(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         TipoCuerpo tipoA = a.getTipoCuerpo();
         TipoCuerpo tipoB = b.getTipoCuerpo();
 
-        // Agujero negro devora todo
-        if (tipoA == TipoCuerpo.AGUJERO_NEGRO || tipoA == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+        // 1. Agujero negro devora todo (el mayor devora al menor si ambos son agujeros negros)
+        boolean aEsBH = (tipoA == TipoCuerpo.AGUJERO_NEGRO || tipoA == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO);
+        boolean bEsBH = (tipoB == TipoCuerpo.AGUJERO_NEGRO || tipoB == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO);
+
+        if (aEsBH && bEsBH) {
+            CuerpoCeleste mayor = a.getMasa() >= b.getMasa() ? a : b;
+            CuerpoCeleste menor = (mayor == a) ? b : a;
+            absorber(mayor, menor, aEliminar);
+            return;
+        }
+        if (aEsBH) {
             absorber(a, b, aEliminar);
             return;
         }
-        if (tipoB == TipoCuerpo.AGUJERO_NEGRO || tipoB == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+        if (bEsBH) {
             absorber(b, a, aEliminar);
             return;
         }
 
-        // Estrella devora meteoritos o satélites
+        // 2. Estrella devora meteoritos o satélites (caso especial)
         if (tipoA == TipoCuerpo.ESTRELLA && (b instanceof Meteorito || b instanceof Satelite)) {
             aEliminar.add(b);
+            if (listenerMensaje != null) {
+                listenerMensaje.accept(a.getNombre() + " desintegró a " + b.getNombre() + " en su corona.");
+            }
             return;
         }
         if (tipoB == TipoCuerpo.ESTRELLA && (a instanceof Meteorito || a instanceof Satelite)) {
             aEliminar.add(a);
+            if (listenerMensaje != null) {
+                listenerMensaje.accept(b.getNombre() + " desintegró a " + a.getNombre() + " en su corona.");
+            }
             return;
         }
 
-        // Meteorito impacta planeta o luna
+        // 3. Dos meteoritos colisionando entre sí: destrucción mutua simple, sin fragmentación infinita
+        if (a instanceof Meteorito && b instanceof Meteorito) {
+            aEliminar.add(a);
+            aEliminar.add(b);
+            if (listenerMensaje != null) {
+                listenerMensaje.accept("Destrucción mutua de meteoritos por impacto directo.");
+            }
+            return;
+        }
+
+        // 4. Meteorito impacta un cuerpo no-meteorito: comportamiento de impacto y momento
         if (a instanceof Meteorito && !(b instanceof Meteorito)) {
             impactarMeteorito((Meteorito) a, b, aEliminar);
             return;
@@ -289,20 +486,105 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
             return;
         }
 
-        // Fusión o rebote elástico suave
-        reboteElastico(a, b);
+        // Caso de protección: EscudoProtector no participa en colisiones planetarias
+        if (a instanceof EscudoProtector || b instanceof EscudoProtector) {
+            return;
+        }
+
+        // A partir de acá, ambos son cuerpos no-meteoritos
+        double masaA = Math.max(1e-9, a.getMasa());
+        double masaB = Math.max(1e-9, b.getMasa());
+        double masaMayor = Math.max(masaA, masaB);
+        double masaMenor = Math.min(masaA, masaB);
+        double ratioMasa = masaMayor / masaMenor;
+        CuerpoCeleste mayor = a.getMasa() >= b.getMasa() ? a : b;
+        CuerpoCeleste menor = (mayor == a) ? b : a;
+
+        // 5. Proporción de masa extrema (>= RATIO_ABSORCION_MASA): absorción total
+        if (ratioMasa >= ConfiguracionSimulacion.RATIO_ABSORCION_MASA) {
+            absorber(mayor, menor, aEliminar);
+            if (listenerMensaje != null) {
+                listenerMensaje.accept(mayor.getNombre() + " absorbió por gravedad a " + menor.getNombre() + ".");
+            }
+            return;
+        }
+
+        // 6. Masas aproximadamente iguales (<= RATIO_COLISION_COLAPSO): colapso mutuo en fragmentos
+        if (ratioMasa <= ConfiguracionSimulacion.RATIO_COLISION_COLAPSO) {
+            generarEscombros(a, aEliminar, aAgregar);
+            generarEscombros(b, aEliminar, aAgregar);
+            if (listenerMensaje != null) {
+                listenerMensaje.accept("Colisión catastrófica mutua: " + a.getNombre() + " y " + b.getNombre() + " colapsaron en escombros.");
+            }
+            return;
+        }
+
+        // 7. Cualquier otro caso (masas distintas pero no extremas): colisión destructiva asimétrica
+        // El menor se destruye por completo generando escombros proporcionales a su masa
+        // El mayor sobrevive perdiendo la masa equivalente del menor
+        generarEscombros(menor, aEliminar, aAgregar);
+        double masaBaseMayor = mayor.getTipoCuerpo() != null ? mayor.getTipoCuerpo().masaBase : 1.0;
+        double pisoMinimo = Math.max(1.0, masaBaseMayor * ConfiguracionSimulacion.FRACCION_MASA_MINIMA_SOBREVIVIENTE);
+        double nuevaMasaMayor = Math.max(pisoMinimo, mayor.getMasa() - menor.getMasa());
+        mayor.setMasa(nuevaMasaMayor);
+
+        if (mayor instanceof Planeta) {
+            Planeta p = (Planeta) mayor;
+            if (p.tieneCivilizacion()) {
+                p.getCivilizacion().recibirImpactoMeteorito();
+            }
+        }
+
+        if (listenerMensaje != null) {
+            listenerMensaje.accept("Impacto destructivo asimétrico: " + menor.getNombre() + " destruido al colisionar con " + mayor.getNombre() + ".");
+        }
+    }
+
+    private void generarEscombros(CuerpoCeleste destruido, List<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
+        if (!aEliminar.contains(destruido)) {
+            aEliminar.add(destruido);
+        }
+
+        // No generar escombros a partir de meteoritos (evita fragmentación infinita)
+        if (destruido instanceof Meteorito) {
+            return;
+        }
+
+        double masaTotalFragmentos = destruido.getMasa() * (1.0 - ConfiguracionSimulacion.FRACCION_MASA_DISIPADA);
+        if (masaTotalFragmentos <= 0) {
+            return;
+        }
+
+        int numFragmentos = ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO;
+        // Control de límite para evitar degradación de rendimiento por O(n²)
+        if (aAgregar.size() >= ConfiguracionSimulacion.MAX_METEORITOS_SIMULTANEOS) {
+            numFragmentos = 1;
+        }
+
+        double masaPorFragmento = masaTotalFragmentos / numFragmentos;
+
+        for (int i = 0; i < numFragmentos; i++) {
+            Meteorito fragmento = CuerpoCelesteFactory.crearFragmentoEscombro(
+                    destruido.getPosicionX(), destruido.getPosicionY(),
+                    destruido.getVelocidad(), masaPorFragmento
+            );
+            aAgregar.add(fragmento);
+        }
     }
 
     private void absorber(CuerpoCeleste absorbente, CuerpoCeleste victima, List<CuerpoCeleste> aEliminar) {
-        double nuevaMasa = absorbente.getMasa() + victima.getMasa();
+        double masaAnterior = absorbente.getMasa();
+        double nuevaMasa = masaAnterior + victima.getMasa();
         absorbente.setMasa(nuevaMasa);
 
-        // Conservar momento
-        Vector2D momento = absorbente.getVelocidad().multiplicar(absorbente.getMasa() - victima.getMasa())
+        // Conservar momento lineal
+        Vector2D momento = absorbente.getVelocidad().multiplicar(masaAnterior)
                 .sumar(victima.getVelocidad().multiplicar(victima.getMasa()));
         absorbente.setVelocidad(momento.dividir(nuevaMasa));
 
-        aEliminar.add(victima);
+        if (!aEliminar.contains(victima)) {
+            aEliminar.add(victima);
+        }
     }
 
     private void impactarMeteorito(Meteorito meteorito, CuerpoCeleste objetivo, List<CuerpoCeleste> aEliminar) {
@@ -370,6 +652,14 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
         for (Runnable l : listenersColision) {
             try { l.run(); } catch (Exception ignored) {}
         }
+    }
+
+    public void setListenerMensaje(java.util.function.Consumer<String> listener) {
+        this.listenerMensaje = listener;
+    }
+
+    public void setListenerDefensaEscudo(Runnable listener) {
+        this.listenerDefensaEscudo = listener;
     }
 
     public double getAsistenciaOrbital() {

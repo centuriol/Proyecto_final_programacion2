@@ -36,6 +36,9 @@ public interface CuerpoFisico {
     // Radio físico (para colisiones, distinto del radio visual)
     double getRadioFisico();
 
+    // Radio de influencia gravitacional / colapso arcade
+    double getRadioAtraccion();
+
     // Posición (común con CuerpoCeleste)
     Vector2D getPosicion();
     void setPosicion(Vector2D pos);

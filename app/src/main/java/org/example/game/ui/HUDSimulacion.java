@@ -23,10 +23,10 @@ public class HUDSimulacion extends HBox {
     private final SimulacionSolar simulacion;
 
     private final Button btnTick = new Button("Tick: 0");
-    private final Label lblPoblacion = new Label("👥 Pop: 0");
-    private final Label lblCuerpos = new Label("🪐 Cuerpos: 0");
-    private final Button btnEstado = new Button("⏸ PAUSADO");
-    private final Label lblVelocidad = new Label("⚡ 1.0x");
+    private final Label lblPoblacion = new Label("Pop: 0");
+    private final Label lblCuerpos = new Label("Cuerpos: 0");
+    private final Button btnEstado = new Button("[PAUSADO]");
+    private final Label lblVelocidad = new Label("1.0x");
     private final Label lblAlertas = new Label("");
 
     public HUDSimulacion(SimulacionSolar simulacion) {
@@ -88,7 +88,7 @@ public class HUDSimulacion extends HBox {
                 .filter(Planeta::tieneCivilizacion)
                 .mapToLong(p -> (long) p.getCivilizacion().getPoblacion())
                 .sum();
-        lblPoblacion.setText("👥 Pop: " + formatNumber(popTotal));
+        lblPoblacion.setText("Pop: " + formatNumber(popTotal));
 
         // Cuenta de cuerpos por tipo
         long estrellas = simulacion.getSistemaSolar().getCuerpos().stream()
@@ -101,14 +101,14 @@ public class HUDSimulacion extends HBox {
         long meteoritos = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c instanceof org.example.game.cuerpo.Meteorito).count();
 
-        lblCuerpos.setText(String.format("🪐 ★%d 🪨%d 🕳%d ☄%d", estrellas, planetas, agujeros, meteoritos));
+        lblCuerpos.setText(String.format("Cuerpos: Est:%d Plan:%d Aguj:%d Met:%d", estrellas, planetas, agujeros, meteoritos));
 
         // Estado simulación
-        btnEstado.setText(simulacion.isEnPausa() ? "⏸ PAUSADO" : "▶ EJECUTANDO");
+        btnEstado.setText(simulacion.isEnPausa() ? "[PAUSADO]" : "[EJECUTANDO]");
         btnEstado.setTextFill(simulacion.isEnPausa() ? Color.web("#ffa500") : Color.web("#32cd32"));
 
         // Velocidad
-        lblVelocidad.setText(String.format("⚡ %.1fx", simulacion.getVelocidadSimulacion()));
+        lblVelocidad.setText(String.format("Vel: %.1fx", simulacion.getVelocidadSimulacion()));
 
         // Alertas
         StringBuilder alertas = new StringBuilder();
@@ -119,7 +119,7 @@ public class HUDSimulacion extends HBox {
                     var estado = p.getCivilizacion().getEstado();
                     if (estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.EN_PELIGRO
                             || estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.LUCHANDO) {
-                        alertas.append("⚠ ").append(p.getNombre()).append(": ").append(estado.nombre).append("  ");
+                        alertas.append("[!] ").append(p.getNombre()).append(": ").append(estado.nombre).append("  ");
                     }
                 }
             }

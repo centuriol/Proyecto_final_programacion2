@@ -13,21 +13,20 @@ import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
- * Contador de recursos (arriba-derecha) estilo RimWorld UI.
- * SRP: Muestra readouts compactos de los recursos del jugador y el estado general.
+ * Contador de recursos superior estilo interfaz de gestion espacial.
+ * SRP: Muestra los recursos del jugador y la poblacion con identificadores claros.
+ * OCP: Se adapta automaticamente si se agregan mas TipoRecurso en el futuro.
  */
 public class HUDRecursosTop extends HBox {
 
     private final SimulacionSolar simulacion;
     private final InventarioJugador inventario;
-
-    private final Label lblMasa = new Label("⭐ 0");
-    private final Label lblMateria = new Label("🪨 0");
-    private final Label lblMinerales = new Label("⛏ 0");
-    private final Label lblEnergia = new Label("⚡ 0");
-    private final Label lblCiencia = new Label("🔬 0");
-    private final Label lblPop = new Label("👥 0");
+    private final Map<TipoRecurso, ItemRecursoWidget> itemsRecursos = new LinkedHashMap<>();
+    private final ItemPoblacionWidget itemPoblacion;
 
     public HUDRecursosTop(SimulacionSolar simulacion) {
         this.simulacion = simulacion;
@@ -35,40 +34,30 @@ public class HUDRecursosTop extends HBox {
 
         setAlignment(Pos.CENTER_RIGHT);
         setPadding(new Insets(6, 12, 6, 12));
-        setSpacing(12);
+        setSpacing(14);
         setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
-        configurarItem(lblMasa, "#ffd700");
-        configurarItem(lblMateria, "#63b3ed");
-        configurarItem(lblMinerales, "#ffb86c");
-        configurarItem(lblEnergia, "#5be3ff");
-        configurarItem(lblCiencia, "#ff79c6");
-        configurarItem(lblPop, "#50fa7b");
+        // Generar items dinamicamente para los 4 recursos
+        for (TipoRecurso tipo : TipoRecurso.values()) {
+            ItemRecursoWidget item = new ItemRecursoWidget(tipo);
+            itemsRecursos.put(tipo, item);
+            getChildren().add(item);
+        }
 
-        getChildren().addAll(lblMasa, lblMateria, lblMinerales, lblEnergia, lblCiencia, lblPop);
+        this.itemPoblacion = new ItemPoblacionWidget();
+        // Nota: no se agrega itemPoblacion a getChildren() para no duplicar el contador de POBLACION
+
         actualizar();
     }
 
-    private void configurarItem(Label lbl, String colorHex) {
-        lbl.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-        lbl.setTextFill(Color.web(colorHex));
+    public void actualizar() {
+        for (Map.Entry<TipoRecurso, ItemRecursoWidget> entry : itemsRecursos.entrySet()) {
+            entry.getValue().actualizar(inventario.getRecurso(entry.getKey()));
+        }
     }
 
-    public void actualizar() {
-        lblMasa.setText(String.format("⭐ %.0f", inventario.getRecurso(TipoRecurso.MASA_ESTELAR)));
-        lblMateria.setText(String.format("🪨 %.0f", inventario.getRecurso(TipoRecurso.MATERIA_PLANETARIA)));
-        lblMinerales.setText(String.format("⛏ %.0f", inventario.getRecurso(TipoRecurso.MINERALES)));
-        lblEnergia.setText(String.format("⚡ %.0f", inventario.getRecurso(TipoRecurso.ENERGIA)));
-        lblCiencia.setText(String.format("🔬 %.0f", inventario.getRecurso(TipoRecurso.CIENCIA)));
-
-        long popTotal = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c instanceof Planeta)
-                .map(c -> (Planeta) c)
-                .filter(Planeta::tieneCivilizacion)
-                .mapToLong(p -> (long) p.getCivilizacion().getPoblacion())
-                .sum();
-
-        lblPop.setText("👥 " + formatPop(popTotal));
+    public Map<TipoRecurso, ItemRecursoWidget> getItemsRecursos() {
+        return itemsRecursos;
     }
 
     private String formatPop(long n) {
@@ -76,5 +65,83 @@ public class HUDRecursosTop extends HBox {
         if (n >= 1_000_000) return String.format("%.1fM", n / 1e6);
         if (n >= 1_000) return String.format("%.1fK", n / 1e3);
         return String.valueOf(n);
+    }
+
+    /**
+     * Componente reutilizable que representa el contador de un recurso individual.
+     */
+    public static class ItemRecursoWidget extends VBox {
+        private final TipoRecurso tipo;
+        private final Label lblNombre;
+        private final Label lblValor;
+
+        public ItemRecursoWidget(TipoRecurso tipo) {
+            this.tipo = tipo;
+            setAlignment(Pos.CENTER);
+            setSpacing(1);
+
+            lblNombre = new Label(tipo.nombre.toUpperCase());
+            lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
+            lblNombre.setTextFill(Color.web("#8c92a4"));
+
+            lblValor = new Label("0");
+            lblValor.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+            lblValor.setTextFill(Color.web(tipo.getColorHex()));
+
+            getChildren().addAll(lblNombre, lblValor);
+        }
+
+        public void actualizar(double cantidad) {
+            if (cantidad >= 1_000_000_000) {
+                lblValor.setText(String.format("%.1fB", cantidad / 1e9));
+            } else if (cantidad >= 1_000_000) {
+                lblValor.setText(String.format("%.1fM", cantidad / 1e6));
+            } else if (cantidad >= 10_000) {
+                lblValor.setText(String.format("%.1fK", cantidad / 1e3));
+            } else if (cantidad < 100) {
+                lblValor.setText(String.format("%.1f", cantidad));
+            } else {
+                lblValor.setText(String.format("%.0f", cantidad));
+            }
+        }
+
+        public TipoRecurso getTipo() {
+            return tipo;
+        }
+
+        public String getNombreLabelText() {
+            return lblNombre.getText();
+        }
+
+        public String getValorLabelText() {
+            return lblValor.getText();
+        }
+    }
+
+    /**
+     * Componente reutilizable para el contador de poblacion galactica.
+     */
+    public static class ItemPoblacionWidget extends VBox {
+        private final Label lblNombre;
+        private final Label lblValor;
+
+        public ItemPoblacionWidget() {
+            setAlignment(Pos.CENTER);
+            setSpacing(1);
+
+            lblNombre = new Label("POBLACION");
+            lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
+            lblNombre.setTextFill(Color.web("#8c92a4"));
+
+            lblValor = new Label("0");
+            lblValor.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+            lblValor.setTextFill(Color.web("#50fa7b"));
+
+            getChildren().addAll(lblNombre, lblValor);
+        }
+
+        public void actualizar(String textoPoblacion) {
+            lblValor.setText(textoPoblacion);
+        }
     }
 }
