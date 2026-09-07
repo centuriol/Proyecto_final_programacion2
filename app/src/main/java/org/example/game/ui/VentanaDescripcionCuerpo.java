@@ -125,7 +125,7 @@ public class VentanaDescripcionCuerpo {
                     Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, simulacion.getFactorMasaColocacion()));
         }
 
-        Label lblMasaVal = new Label(String.format("%.1fx (%.2e kg)", masaInicial, tipo.masaBase * masaInicial));
+        Label lblMasaVal = new Label(String.format("%.1fx (%s)", masaInicial, TipoCuerpo.formatearMasa(tipo.masaBase * masaInicial)));
         lblMasaVal.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
         lblMasaVal.setTextFill(Color.web("#ffd700"));
 
@@ -199,7 +199,7 @@ public class VentanaDescripcionCuerpo {
         // Lógica de Actualización Dinámica
         Runnable actualizarDatosDinamicos = () -> {
             double factorMasa = sliderMasa.getValue();
-            lblMasaVal.setText(String.format("%.1fx (%.2e kg)", factorMasa, tipo.masaBase * factorMasa));
+            lblMasaVal.setText(String.format("%.1fx (%s)", factorMasa, TipoCuerpo.formatearMasa(tipo.masaBase * factorMasa)));
 
             // Actualizar lista de costos
             listaCostos.getChildren().clear();
@@ -296,9 +296,17 @@ public class VentanaDescripcionCuerpo {
 
     /**
      * Muestra la ventana de información y descripción completa para un cuerpo celeste existente en el juego.
-     * Se abre al hacer click derecho sobre un planeta, estrella o luna en el lienzo de simulación.
+     * Se abre al hacer clic sobre un planeta, estrella o luna en el lienzo de simulación.
      */
     public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, Window owner) {
+        mostrarParaInspeccionar(cuerpo, null, owner);
+    }
+
+    /**
+     * Muestra la ventana de información y descripción interactiva de un cuerpo existente,
+     * permitiendo eliminarlo y recuperar el 50% de los materiales requeridos para colocarlo.
+     */
+    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
         if (cuerpo == null) return;
         TipoCuerpo tipo = cuerpo.getTipoCuerpo();
         if (tipo == null) return;
@@ -357,7 +365,7 @@ public class VentanaDescripcionCuerpo {
         lblDatosTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblDatosTitulo.setTextFill(Color.web("#ffd700"));
 
-        Label lblMasa = new Label(String.format("• Masa: %.2e kg", cuerpo.getMasa()));
+        Label lblMasa = new Label("• Masa: " + TipoCuerpo.formatearMasa(cuerpo.getMasa()));
         lblMasa.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lblMasa.setTextFill(Color.web("#d1d5db"));
 
@@ -419,18 +427,87 @@ public class VentanaDescripcionCuerpo {
             datosFisicos.getChildren().add(civBox);
         }
 
-        // Botón Cerrar
-        HBox footer = new HBox();
+        // Sección de Reembolso / Reciclaje por Eliminación (50% de los materiales requeridos para colocarlo)
+        Map<TipoRecurso, Double> costosOriginales = InventarioJugador.getCostosEscalados(tipo, factorMasa);
+
+        VBox refundBox = new VBox(4);
+        refundBox.setPadding(new Insets(10));
+        refundBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #ff4757; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+
+        Label lblRefundTitulo = new Label("REEMBOLSO POR ELIMINAR CUERPO (50% DE MATERIALES)");
+        lblRefundTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        lblRefundTitulo.setTextFill(Color.web("#ff6b81"));
+        refundBox.getChildren().add(lblRefundTitulo);
+
+        StringBuilder sbReembolso = new StringBuilder();
+        if (costosOriginales.isEmpty()) {
+            Label lblSinCostos = new Label("• No reembolsa recursos.");
+            lblSinCostos.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+            lblSinCostos.setTextFill(Color.web("#8c92a4"));
+            refundBox.getChildren().add(lblSinCostos);
+        } else {
+            for (Map.Entry<TipoRecurso, Double> e : costosOriginales.entrySet()) {
+                double mitad = e.getValue() * 0.5;
+                if (mitad > 0) {
+                    Label lblItem = new Label(String.format("• %s: +%.1f (50%% de %.1f)", e.getKey().nombre, mitad, e.getValue()));
+                    lblItem.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+                    lblItem.setTextFill(Color.web(e.getKey().getColorHex()));
+                    refundBox.getChildren().add(lblItem);
+                    if (!sbReembolso.isEmpty()) sbReembolso.append(", ");
+                    sbReembolso.append(String.format("+%.1f %s", mitad, e.getKey().nombre));
+                }
+            }
+        }
+
+        // Footer: Botón Eliminar (50% de reembolso) y Botón Cerrar
+        HBox footer = new HBox(12);
         footer.setAlignment(Pos.CENTER_RIGHT);
+
+        if (simulacion != null) {
+            Button btnEliminar = new Button("Eliminar Cuerpo (+50% Reembolso)");
+            btnEliminar.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+            btnEliminar.setStyle("-fx-background-color: #5a1e28; -fx-text-fill: #ff6b81; -fx-border-color: #ff4757; -fx-border-width: 1.5px; -fx-cursor: hand; -fx-padding: 6 14 6 14; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+
+            btnEliminar.setOnAction(e -> {
+                // 1. Reembolsar el 50% de los materiales al inventario
+                for (Map.Entry<TipoRecurso, Double> entry : costosOriginales.entrySet()) {
+                    double mitad = entry.getValue() * 0.5;
+                    if (mitad > 0) {
+                        simulacion.getInventario().agregarRecurso(entry.getKey(), mitad);
+                    }
+                }
+
+                // 2. Eliminar cuerpo de la simulación
+                simulacion.eliminarCuerpo(cuerpo);
+                simulacion.notificarEvento(
+                        "Cuerpo eliminado: " + cuerpo.getNombre() + ". Reembolsado 50%: " + (sbReembolso.isEmpty() ? "Sin materiales" : sbReembolso.toString()),
+                        org.example.game.simulacion.MensajeEvento.TipoMensaje.INFO
+                );
+
+                // 3. Cerrar ventana
+                stage.close();
+            });
+
+            footer.getChildren().add(btnEliminar);
+        }
+
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        footer.getChildren().add(spacer);
+
         Button btnCerrar = new Button("Cerrar");
         btnCerrar.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-        btnCerrar.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #e8e4d8; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 6 18 6 18;");
+        btnCerrar.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #e8e4d8; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 6 18 6 18; -fx-background-radius: 4px; -fx-border-radius: 4px;");
         btnCerrar.setOnAction(e -> stage.close());
         footer.getChildren().add(btnCerrar);
 
-        root.getChildren().addAll(header, new Separator(), descBox, datosFisicos, prodBox, new Separator(), footer);
+        root.getChildren().addAll(header, new Separator(), descBox, datosFisicos, prodBox, refundBox, new Separator(), footer);
 
-        Scene scene = new Scene(root, 520, 520);
+        javafx.scene.control.ScrollPane scroll = new javafx.scene.control.ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: #13151f; -fx-background-color: #13151f;");
+
+        Scene scene = new Scene(scroll, 540, 580);
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 stage.close();

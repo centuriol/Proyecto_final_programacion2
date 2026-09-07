@@ -20,7 +20,7 @@ public class AgujeroNegro extends CuerpoCeleste {
 
     @Override
     public String describir() {
-        return "Agujero Negro " + getNombre() + " [" + subTipo.nombre + "] (masa: " + String.format("%.2e", getMasa()) + " kg)";
+        return "Agujero Negro " + getNombre() + " [" + subTipo.nombre + "] (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
     }
 
     @Override

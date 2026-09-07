@@ -98,7 +98,71 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                 double r2 = distSegura * distSegura + softeningCuadrado;
                 double rMag = Math.sqrt(r2);
 
-                // 1. Gravedad newtoniana base F = G * m1 * m2 / (r² + eps²)
+                // 1. Interacción orbital especial: determinar si ya orbitan o si se captura en órbita asistida
+                CuerpoCeleste orbitando = null;
+                CuerpoCeleste anfitrion = null;
+
+                if (ci.estaOrbitando(cj)) {
+                    orbitando = ci;
+                    anfitrion = cj;
+                } else if (cj.estaOrbitando(ci)) {
+                    orbitando = cj;
+                    anfitrion = ci;
+                } else {
+                    // Caso A: Luna y Planeta (captura automática si entra en el área de la luna)
+                    Luna luna = (ci instanceof Luna) ? (Luna) ci : ((cj instanceof Luna) ? (Luna) cj : null);
+                    CuerpoCeleste otroLuna = (luna == ci) ? cj : ci;
+                    boolean esLunaYPlaneta = (luna != null && otroLuna != null && otroLuna.getTipoCuerpo() != null &&
+                            (otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_ROCOSO ||
+                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_GASEOSO ||
+                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_HELADO));
+
+                    if (esLunaYPlaneta) {
+                        double radioCapturaLuna = luna.getRadioAtraccion();
+                        if (distReal <= radioCapturaLuna && !luna.estaOrbitando()) {
+                            luna.setCuerpoOrbitado(otroLuna);
+                            luna.setRadioOrbita(distReal);
+                            if (listenerMensaje != null) {
+                                listenerMensaje.accept(luna.getNombre() + " esta orbitando " + otroLuna.getNombre());
+                            }
+                            inicializarVelocidadOrbital(luna, otroLuna, distReal);
+                            orbitando = luna;
+                            anfitrion = otroLuna;
+                        }
+                    }
+
+                    // Caso B: Planeta y Estrella / Agujero Negro (captura automática en órbitas de la estrella)
+                    Planeta planeta = (ci instanceof Planeta) ? (Planeta) ci : ((cj instanceof Planeta) ? (Planeta) cj : null);
+                    CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
+                    boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getTipoCuerpo() != null &&
+                            (estrella.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
+                             estrella.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
+                             estrella.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO));
+
+                    if (esPlanetaYEstrella && orbitando == null) {
+                        double radioCapturaPlaneta = 600.0;
+                        double radioMinimoCaptura = estrella.getRadio() + planeta.getRadio() + 5.0;
+
+                        if (!planeta.estaOrbitando() && distReal > radioMinimoCaptura && distReal <= radioCapturaPlaneta) {
+                            planeta.setCuerpoOrbitado(estrella);
+                            planeta.setRadioOrbita(distReal);
+                            if (listenerMensaje != null) {
+                                listenerMensaje.accept(planeta.getNombre() + " esta orbitando " + estrella.getNombre());
+                            }
+                            inicializarVelocidadOrbital(planeta, estrella, distReal);
+                            orbitando = planeta;
+                            anfitrion = estrella;
+                        }
+                    }
+                }
+
+                // 2. Si están orbitando, aplicar dinámica orbital activa estabilizada y omitir colapso
+                if (orbitando != null && anfitrion != null) {
+                    aplicarDinamicaOrbitalEstable(orbitando, anfitrion, distReal);
+                    continue;
+                }
+
+                // 3. Gravedad newtoniana base para cuerpos no enlazados en órbita
                 double fuerzaMag = G * ci.getMasa() * cj.getMasa() / r2;
 
                 Vector2D dir = r.dividir(rMag);
@@ -108,82 +172,7 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                 ci.aplicarFuerza(fuerzaSobreI);
                 cj.aplicarFuerza(fuerzaSobreJ);
 
-                // 2. Interacción especial Luna - Planeta (Órbita de Luna)
-                Luna luna = (ci instanceof Luna) ? (Luna) ci : ((cj instanceof Luna) ? (Luna) cj : null);
-                CuerpoCeleste otro = (luna == ci) ? cj : ci;
-                boolean esLunaYPlaneta = (luna != null && otro != null && otro.getTipoCuerpo() != null &&
-                        (otro.getTipoCuerpo() == TipoCuerpo.PLANETA_ROCOSO ||
-                         otro.getTipoCuerpo() == TipoCuerpo.PLANETA_GASEOSO ||
-                         otro.getTipoCuerpo() == TipoCuerpo.PLANETA_HELADO));
-
-                if (esLunaYPlaneta) {
-                    double radioCapturaLuna = luna.getRadioAtraccion();
-
-                    // Captura orbital si el planeta está dentro del área de la luna
-                    if (distReal <= radioCapturaLuna) {
-                        if (!luna.estaOrbitando(otro)) {
-                            luna.setCuerpoOrbitado(otro);
-                            if (listenerMensaje != null) {
-                                listenerMensaje.accept(luna.getNombre() + " esta orbitando " + otro.getNombre());
-                            }
-
-                            // Asignar velocidad orbital circular tangencial inicial
-                            Vector2D rPlanetToMoon = luna.getPosicion().restar(otro.getPosicion());
-                            double dOrb = rPlanetToMoon.magnitud();
-                            double contactoMin = otro.getRadio() + luna.getRadio() + 5.0;
-                            if (dOrb < contactoMin) {
-                                dOrb = contactoMin;
-                                Vector2D norm = (rPlanetToMoon.magnitud() > 0.001) ? rPlanetToMoon.normalizar() : new Vector2D(1, 0);
-                                luna.setPosicion(otro.getPosicion().sumar(norm.multiplicar(dOrb)));
-                                rPlanetToMoon = norm.multiplicar(dOrb);
-                            }
-
-                            Vector2D uRadial = rPlanetToMoon.dividir(Math.max(0.1, dOrb));
-                            Vector2D vRel = luna.getVelocidad().restar(otro.getVelocidad());
-                            double cross = rPlanetToMoon.x * vRel.y - rPlanetToMoon.y * vRel.x;
-                            boolean horario = cross < 0;
-                            Vector2D uTangencial = horario
-                                    ? new Vector2D(uRadial.y, -uRadial.x)
-                                    : new Vector2D(-uRadial.y, uRadial.x);
-
-                            double factorMasaPlaneta = otro.getTipoCuerpo().masaBase > 0
-                                    ? Math.max(0.2, otro.getMasa() / otro.getTipoCuerpo().masaBase)
-                                    : 1.0;
-                            double vOrb = Math.sqrt(300.0 * factorMasaPlaneta / Math.max(10.0, dOrb));
-                            Vector2D vFinal = otro.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
-                            luna.setVelocidad(vFinal);
-                        }
-                    }
-
-                    // Si está orbitando, mantener la órbita con fuerza centrípeta y evitar colapso
-                    if (luna.estaOrbitando(otro)) {
-                        if (distReal > radioCapturaLuna * 2.5) {
-                            luna.setCuerpoOrbitado(null);
-                        } else {
-                            Vector2D rPlanetToMoon = luna.getPosicion().restar(otro.getPosicion());
-                            double dOrb = Math.max(5.0, rPlanetToMoon.magnitud());
-                            Vector2D uRadial = rPlanetToMoon.dividir(dOrb);
-
-                            double factorMasaPlaneta = otro.getTipoCuerpo().masaBase > 0
-                                    ? Math.max(0.2, otro.getMasa() / otro.getTipoCuerpo().masaBase)
-                                    : 1.0;
-                            double vOrbIdeal = Math.sqrt(300.0 * factorMasaPlaneta / dOrb);
-                            double aCentripeta = (vOrbIdeal * vOrbIdeal) / dOrb;
-
-                            Vector2D fCentripeta = uRadial.multiplicar(-1.0 * luna.getMasa() * aCentripeta);
-                            luna.aplicarFuerza(fCentripeta);
-
-                            // Arrastre en el sistema de referencia del planeta si este está acelerando
-                            if (otro.getMasa() > 0) {
-                                Vector2D aPlaneta = otro.getFuerza().dividir(otro.getMasa());
-                                luna.aplicarFuerza(aPlaneta.multiplicar(luna.getMasa()));
-                            }
-                            continue; // No aplicar atracción de colapso entre la luna y su planeta orbitado
-                        }
-                    }
-                }
-
-                // 3. Atracción arcade hacia el colapso para cuerpos dentro del área de atracción
+                // 4. Atracción arcade hacia el colapso para cuerpos no orbitantes dentro del área de atracción
                 CuerpoCeleste mayor = ci.getMasa() >= cj.getMasa() ? ci : cj;
                 CuerpoCeleste menor = (mayor == ci) ? cj : ci;
 
@@ -215,6 +204,111 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
         }
     }
 
+    private double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
+        double d = Math.max(10.0, rOrb);
+        if (orbitando instanceof Luna && !(anfitrion.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
+                anfitrion.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
+                anfitrion.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO)) {
+            double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
+                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)
+                    : 1.0;
+            // Órbita de la luna calibrada para velocidad más suave y disfrutable
+            return Math.sqrt(75.0 * factorMasa / d);
+        }
+        return Math.sqrt(G * anfitrion.getMasa() / d);
+    }
+
+    private void inicializarVelocidadOrbital(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
+        Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
+        double d = r.magnitud();
+        double minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        if (d < minOrb) {
+            d = minOrb;
+            Vector2D norm = (r.magnitud() > 0.001) ? r.normalizar() : new Vector2D(1, 0);
+            orbitando.setPosicion(anfitrion.getPosicion().sumar(norm.multiplicar(d)));
+            r = norm.multiplicar(d);
+        }
+
+        orbitando.setRadioOrbita(d);
+
+        Vector2D uRadial = r.dividir(Math.max(0.1, d));
+        Vector2D vRel = orbitando.getVelocidad().restar(anfitrion.getVelocidad());
+        double cross = r.x * vRel.y - r.y * vRel.x;
+        boolean horario = cross < -1e-4;
+        Vector2D uTangencial = horario
+                ? new Vector2D(uRadial.y, -uRadial.x)
+                : new Vector2D(-uRadial.y, uRadial.x);
+
+        double vOrb = calcularVelocidadOrbitalIdeal(orbitando, anfitrion, d);
+        Vector2D vFinal = anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
+        orbitando.setVelocidad(vFinal);
+    }
+
+    private void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
+        // Desenganche si se aleja demasiado por colisión o perturbación externa extrema
+        double limiteEscape;
+        if (orbitando instanceof Luna && !(anfitrion.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
+                anfitrion.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
+                anfitrion.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO)) {
+            limiteEscape = orbitando.getRadioAtraccion() * 3.5;
+        } else {
+            limiteEscape = 1500.0;
+        }
+
+        if (distReal > limiteEscape) {
+            orbitando.setCuerpoOrbitado(null);
+            return;
+        }
+
+        Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
+        double d = Math.max(0.1, r.magnitud());
+        Vector2D uRadial = r.dividir(d);
+
+        double rDeseado = orbitando.getRadioOrbita();
+        if (rDeseado <= 0) {
+            rDeseado = d;
+            orbitando.setRadioOrbita(rDeseado);
+        }
+
+        // Proteger contra radio menor al contacto físico
+        double minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        if (rDeseado < minOrb) {
+            rDeseado = minOrb;
+            orbitando.setRadioOrbita(rDeseado);
+        }
+
+        // Suave corrección geométrica para evitar acumulación de error por integración de Euler
+        if (Math.abs(d - rDeseado) > 0.01) {
+            double dAjustado = d + (rDeseado - d) * 0.15;
+            orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(dAjustado)));
+            d = dAjustado;
+        }
+
+        Vector2D vRel = orbitando.getVelocidad().restar(anfitrion.getVelocidad());
+        double cross = r.x * vRel.y - r.y * vRel.x;
+        boolean horario = cross < -1e-4;
+        Vector2D uTangencial = horario
+                ? new Vector2D(uRadial.y, -uRadial.x)
+                : new Vector2D(-uRadial.y, uRadial.x);
+
+        double vOrbIdeal = calcularVelocidadOrbitalIdeal(orbitando, anfitrion, rDeseado);
+
+        // Regularizar suavemente la velocidad tangencial al valor ideal de la órbita
+        Vector2D vDeseada = anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vOrbIdeal));
+        orbitando.setVelocidad(orbitando.getVelocidad().sumar(vDeseada.restar(orbitando.getVelocidad()).multiplicar(0.15)));
+
+        // Fuerza centrípeta física hacia el centro
+        double aCentripeta = (vOrbIdeal * vOrbIdeal) / Math.max(1.0, d);
+        Vector2D fCentripeta = uRadial.multiplicar(-1.0 * orbitando.getMasa() * aCentripeta);
+        orbitando.aplicarFuerza(fCentripeta);
+
+        // Compensación por aceleración inercial del anfitrión (ej. Luna acompañando planeta en movimiento)
+        if (anfitrion.getMasa() > 0) {
+            Vector2D aAnfitrion = anfitrion.getFuerza().dividir(anfitrion.getMasa());
+            orbitando.aplicarFuerza(aAnfitrion.multiplicar(orbitando.getMasa()));
+        }
+    }
+
     /**
      * Asistencia Orbital Permisiva:
      * Si un planeta/luna/satélite está cerca de un cuerpo primario masivo (estrella o gigante),
@@ -231,7 +325,7 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
             if (c.getTipoCuerpo().esMasivo && c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
                 continue;
             }
-            if (c instanceof Luna && ((Luna) c).estaOrbitando()) {
+            if (c.estaOrbitando()) {
                 continue;
             }
 
@@ -372,13 +466,13 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
                 // 2. Colisión física
                 if (dist < radioContacto) {
-                    if (a instanceof Luna && ((Luna) a).estaOrbitando(b)) {
+                    if (a.estaOrbitando(b)) {
                         double minOrb = b.getRadio() + a.getRadio() + 4.0;
                         Vector2D norm = dist > 0.001 ? a.getPosicion().restar(b.getPosicion()).normalizar() : new Vector2D(1, 0);
                         a.setPosicion(b.getPosicion().sumar(norm.multiplicar(minOrb)));
                         continue;
                     }
-                    if (b instanceof Luna && ((Luna) b).estaOrbitando(a)) {
+                    if (b.estaOrbitando(a)) {
                         double minOrb = a.getRadio() + b.getRadio() + 4.0;
                         Vector2D norm = dist > 0.001 ? b.getPosicion().restar(a.getPosicion()).normalizar() : new Vector2D(1, 0);
                         b.setPosicion(a.getPosicion().sumar(norm.multiplicar(minOrb)));
@@ -395,11 +489,8 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
 
         // Limpiar referencias a cuerpos eliminados que estaban siendo orbitados
         for (CuerpoCeleste c : todos) {
-            if (c instanceof Luna) {
-                Luna l = (Luna) c;
-                if (l.getCuerpoOrbitado() != null && (aEliminar.contains(l.getCuerpoOrbitado()) || !todos.contains(l.getCuerpoOrbitado()))) {
-                    l.setCuerpoOrbitado(null);
-                }
+            if (c.getCuerpoOrbitado() != null && (aEliminar.contains(c.getCuerpoOrbitado()) || !todos.contains(c.getCuerpoOrbitado()))) {
+                c.setCuerpoOrbitado(null);
             }
         }
 

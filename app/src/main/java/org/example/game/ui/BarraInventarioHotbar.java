@@ -25,7 +25,6 @@ public class BarraInventarioHotbar extends HBox {
 
     private final SimulacionSolar simulacion;
     private final List<VBox> slotCards = new ArrayList<>();
-    private final Label lblMasaVal = new Label("1.0x");
     private TipoCuerpo tipoSeleccionado = null;
 
     private static final TipoCuerpo[] CUERPOS_HOTBAR = {
@@ -46,11 +45,7 @@ public class BarraInventarioHotbar extends HBox {
         setSpacing(8);
         setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
-        // 1. Pestaña de control de masa a la izquierda
-        VBox tabMasa = crearTabMasa();
-        getChildren().add(tabMasa);
-
-        // 2. 8 Slots de inventario
+        // Slots de inventario
         for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
             TipoCuerpo tipo = CUERPOS_HOTBAR[i];
             String icono = ICONOS_HOTBAR[i];
@@ -60,35 +55,6 @@ public class BarraInventarioHotbar extends HBox {
             slotCards.add(slot);
             getChildren().add(slot);
         }
-    }
-
-    private VBox crearTabMasa() {
-        VBox box = new VBox(2);
-        box.setAlignment(Pos.CENTER);
-        box.setPadding(new Insets(2, 8, 2, 8));
-        box.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 1px;");
-
-        Label lblMasaTitulo = new Label("MASA");
-        lblMasaTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
-        lblMasaTitulo.setTextFill(Color.web("#e8e4d8"));
-
-        lblMasaVal.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-        lblMasaVal.setTextFill(Color.web("#5be3ff"));
-
-        Slider slider = new Slider(
-                ConfiguracionSimulacion.MASA_FACTOR_MIN,
-                ConfiguracionSimulacion.MASA_FACTOR_MAX,
-                ConfiguracionSimulacion.MASA_FACTOR_MIN
-        );
-        slider.setPrefWidth(75);
-        slider.valueProperty().addListener((obs, old, neu) -> {
-            double v = neu.doubleValue();
-            simulacion.setFactorMasaColocacion(v);
-            lblMasaVal.setText(String.format("%.1fx", v));
-        });
-
-        box.getChildren().addAll(lblMasaTitulo, lblMasaVal, slider);
-        return box;
     }
 
     private VBox crearSlot(TipoCuerpo tipo, String icono, int hotkey) {
@@ -131,11 +97,7 @@ public class BarraInventarioHotbar extends HBox {
 
         slot.getChildren().addAll(header, lblCosto, lblProd, lblInfo);
 
-        // Tooltip con especificación detallada
-        String tooltipTexto = formatearTooltipDetallado(tipo, hotkey);
-        Tooltip tooltip = new Tooltip(tooltipTexto);
-        tooltip.setShowDelay(javafx.util.Duration.millis(150));
-        Tooltip.install(slot, tooltip);
+        // Sin tooltip al pasar el cursor (solo se abre la descripción al hacer click)
 
         // Hover y Click
         slot.setOnMouseEntered(e -> {

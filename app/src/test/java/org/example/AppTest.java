@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,11 +39,27 @@ class AppTest {
 
     @Test
     void testInventarioRecursosIniciales() {
-        assertTrue(inventario.getRecurso(TipoRecurso.MINERALES) > 0);
-        assertTrue(inventario.getRecurso(TipoRecurso.ENERGIA) > 0);
-        assertTrue(inventario.getRecurso(TipoRecurso.POBLACION) > 0);
-        assertTrue(inventario.getRecurso(TipoRecurso.CIENCIA) > 0);
+        assertEquals(400.0, inventario.getRecurso(TipoRecurso.MINERALES));
+        assertEquals(200.0, inventario.getRecurso(TipoRecurso.ENERGIA));
+        assertEquals(50.0, inventario.getRecurso(TipoRecurso.CIENCIA));
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.POBLACION));
+
+        // Permite crear 1 Sol y 1 Planeta Rocoso exactamente
+        assertTrue(inventario.puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
         assertTrue(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+
+        // Al gastar para ambos, los recursos se agotan a cero
+        assertTrue(inventario.gastarParaCrear(TipoCuerpo.ESTRELLA, 1.0));
+        assertTrue(inventario.gastarParaCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.MINERALES));
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.ENERGIA));
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.CIENCIA));
+
+        // Ya no alcanza para poner ningún otro cuerpo
+        assertFalse(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.LUNA, 1.0));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
     }
 
     @Test
@@ -594,32 +611,42 @@ class AppTest {
     }
 
     @Test
-    void testSistemaInicialSoloEstrellaPlanetaRocosoYLuna() {
+    void testSistemaInicialVacioYPresetOpcional() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
         List<CuerpoCeleste> cuerpos = sim.getSistemaSolar().getCuerpos();
 
-        // Debe haber exactamente 3 cuerpos
-        assertEquals(3, cuerpos.size(), "El sistema inicial debe contener unicamente 3 cuerpos");
+        // Al comenzar la simulación no debe haber nada puesto
+        assertTrue(cuerpos.isEmpty(), "Al comenzar la simulacion no debe haber nada puesto");
 
-        boolean tieneEstrella = false;
-        boolean tienePlanetaRocoso = false;
-        boolean tieneLuna = false;
+        // Al cargar el preset básico explícitamente, se configuran estrella, planeta y luna
+        sim.cargarPresetSistemaBasico();
+        assertEquals(3, sim.getSistemaSolar().getCuerpos().size(), "El preset basico contiene 3 cuerpos");
+    }
 
-        for (CuerpoCeleste c : cuerpos) {
-            if (c instanceof Estrella && c.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
-                tieneEstrella = true;
-            } else if (c instanceof Planeta && c.getTipoCuerpo() == TipoCuerpo.PLANETA_ROCOSO) {
-                tienePlanetaRocoso = true;
-            } else if (c instanceof Luna && c.getTipoCuerpo() == TipoCuerpo.LUNA) {
-                tieneLuna = true;
-            } else {
-                fail("No debe haber otros cuerpos en el sistema inicial: " + c.getTipoCuerpo());
-            }
+    @Test
+    void testEliminarCuerpoReembolsaMitadDeMateriales() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        // Colocar 1 Planeta Rocoso (cuesta 100 Min, 50 Ene)
+        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "TierraTest");
+        sim.actualizarPosicionPreview(1120, 540);
+        sim.confirmarColocacionAutoOrbita();
+
+        assertEquals(300.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES));
+        assertEquals(150.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA));
+
+        CuerpoCeleste planeta = sim.getSistemaSolar().getCuerpos().get(0);
+        assertNotNull(planeta);
+
+        // Al eliminarlo, debe reembolsar el 50% de los materiales requeridos para colocarlo (50 Min, 25 Ene)
+        Map<TipoRecurso, Double> costos = InventarioJugador.getCostosEscalados(planeta.getTipoCuerpo(), 1.0);
+        for (Map.Entry<TipoRecurso, Double> e : costos.entrySet()) {
+            sim.getInventario().agregarRecurso(e.getKey(), e.getValue() * 0.5);
         }
+        sim.eliminarCuerpo(planeta);
 
-        assertTrue(tieneEstrella, "Debe estar presente la estrella");
-        assertTrue(tienePlanetaRocoso, "Debe estar presente el planeta rocoso");
-        assertTrue(tieneLuna, "Debe estar presente la luna");
+        assertFalse(sim.getSistemaSolar().getCuerpos().contains(planeta), "El planeta debe ser eliminado del sistema solar");
+        assertEquals(350.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "Debe haberse reembolsado 50 minerales (300 + 50)");
+        assertEquals(175.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), "Debe haberse reembolsado 25 energia (150 + 25)");
     }
 
     @Test
@@ -917,6 +944,228 @@ class AppTest {
         // A masa 10.0x los costos escalan exponencialmente (10^1.5 ≈ 31.6x) superando los recursos disponibles
         assertFalse(inv.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 10.0),
                 "No debe permitir crear con masa extrema si no alcanzan los recursos");
+    }
+
+    @Test
+    void testHotbarSinMasaYSinTooltipsHover() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
+        org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
+
+        // La hotbar solo debe contener los 3 slots de cuerpos (Estrella, Planeta, Luna), sin pestaña de masa
+        assertEquals(3, hotbar.getChildren().size(), "La hotbar debe contener exactamente 3 slots de cuerpos celestes sin la pestaña de masa");
+
+        // Ningún slot debe tener un tooltip instalado en hover
+        for (javafx.scene.Node node : hotbar.getChildren()) {
+            assertNull(node.getProperties().get("javafx.scene.control.Tooltip"),
+                    "El slot no debe tener un tooltip que aparezca al pasar el cursor");
+        }
+    }
+
+    @Test
+    void testFormatoMasaMTEnLugarDeNotacionCientifica1e() {
+        // Tierra base: 5.97e24 kg -> 5.97 MT
+        String masaTierra = TipoCuerpo.formatearMasa(TipoCuerpo.PLANETA_ROCOSO.masaBase);
+        assertTrue(masaTierra.contains("MT"), "Debe usar unidad MT");
+        assertFalse(masaTierra.contains("1e"), "No debe contener notación científica 1e");
+        assertTrue(masaTierra.startsWith("5.97"), "Debe formatear a 5.97 MT");
+
+        // Sol base: 1.989e30 kg -> 1.99M MT
+        String masaSol = TipoCuerpo.formatearMasa(TipoCuerpo.ESTRELLA.masaBase);
+        assertTrue(masaSol.contains("MT"));
+        assertTrue(masaSol.contains("1.99M MT"));
+
+        // Luna base: 7.34e22 kg -> 0.07 MT
+        String masaLuna = TipoCuerpo.formatearMasa(TipoCuerpo.LUNA.masaBase);
+        assertTrue(masaLuna.contains("MT"));
+        assertFalse(masaLuna.contains("1e"));
+
+        // Describir de los cuerpos no debe contener '1e'
+        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        assertFalse(sol.describir().contains("1e"));
+        assertTrue(sol.describir().contains("MT"));
+
+        Luna luna = CuerpoCelesteFactory.crearLuna(0, 0, 1.0, Vector2D.cero());
+        assertFalse(luna.describir().contains("1e"));
+        assertTrue(luna.describir().contains("MT"));
+    }
+
+    @Test
+    void testPlanetaOrbitaSolComoLaLuna() {
+        List<CuerpoCeleste> cuerpos = new ArrayList<>();
+        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Planeta planeta = CuerpoCelesteFactory.crearPlanetaPersonalizado("tierra1", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        cuerpos.add(sol);
+        cuerpos.add(planeta);
+
+        List<String> mensajes = new ArrayList<>();
+        motorFisica.setListenerMensaje(mensajes::add);
+
+        // Avanzar 1 paso: debe capturarse en órbita alrededor del sol igual que la luna
+        motorFisica.avanzarPaso(cuerpos);
+
+        assertTrue(planeta.estaOrbitando(sol), "El planeta debe entrar en órbita del sol como la luna");
+        assertTrue(mensajes.contains("tierra1 esta orbitando " + sol.getNombre()),
+                "Debe emitir mensaje de órbita para el planeta");
+
+        // Avanzar múltiples pasos y verificar estabilidad (sin colapsar al sol)
+        for (int i = 0; i < 40; i++) {
+            motorFisica.avanzarPaso(cuerpos);
+        }
+        assertTrue(cuerpos.contains(planeta), "El planeta debe mantenerse en órbita estable");
+        assertTrue(cuerpos.contains(sol), "El sol debe seguir existiendo");
+    }
+
+    @Test
+    void testLunaOrbitaMasLentoYPresetActualizado() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
+        sim.cargarPresetSistemaBasico();
+
+        CuerpoCeleste tierra = sim.getSistemaSolar().getCuerpos().stream()
+                .filter(c -> c instanceof Planeta).findFirst().orElse(null);
+        CuerpoCeleste luna = sim.getSistemaSolar().getCuerpos().stream()
+                .filter(c -> c instanceof Luna).findFirst().orElse(null);
+        CuerpoCeleste sol = sim.getSistemaSolar().getCuerpos().stream()
+                .filter(c -> c instanceof Estrella).findFirst().orElse(null);
+
+        assertNotNull(tierra);
+        assertNotNull(luna);
+        assertNotNull(sol);
+
+        // Tierra debe estar orbitando al sol
+        assertTrue(tierra.estaOrbitando(sol), "La Tierra debe estar orbitando al Sol en el preset básico");
+
+        // Luna debe estar orbitando a la Tierra
+        assertTrue(luna.estaOrbitando(tierra), "La Luna debe estar orbitando a la Tierra en el preset básico");
+
+        // Velocidad relativa de la luna respecto a la tierra debe ser más lenta (~1.7 en lugar de ~3.4)
+        Vector2D vRelLuna = luna.getVelocidad().restar(tierra.getVelocidad());
+        assertTrue(vRelLuna.magnitud() < 2.5, "La velocidad orbital de la luna debe ser más lenta (< 2.5)");
+    }
+
+    @Test
+    void testPlanetaEnOrbitaDelSolNoDecaeNiEsAbsorbidoALargoPlazo() {
+        List<CuerpoCeleste> cuerpos = new ArrayList<>();
+        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Planeta tierra = CuerpoCelesteFactory.crearPlanetaPersonalizado("tierra", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        Planeta marte = CuerpoCelesteFactory.crearPlanetaPersonalizado("marte", TipoCuerpo.PLANETA_ROCOSO.masaBase, 280, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        cuerpos.add(sol);
+        cuerpos.add(tierra);
+        cuerpos.add(marte);
+
+        // Simular 400 ticks (más de una órbita completa para ambos planetas)
+        for (int i = 0; i < 400; i++) {
+            motorFisica.avanzarPaso(cuerpos);
+        }
+
+        // Ambos planetas deben sobrevivir sin haber sido absorbidos por el sol
+        assertTrue(cuerpos.contains(tierra), "La Tierra debe seguir existiendo y no ser absorbida por el sol");
+        assertTrue(cuerpos.contains(marte), "Marte debe seguir existiendo y no ser absorbido por el sol");
+        assertTrue(cuerpos.contains(sol), "El sol debe seguir existiendo");
+
+        assertTrue(tierra.estaOrbitando(sol), "La Tierra debe permanecer orbitando al sol");
+        assertTrue(marte.estaOrbitando(sol), "Marte debe permanecer orbitando al sol");
+
+        // Los radios orbitales deben mantenerse estables (con un margen menor al 3%)
+        double distFinalTierra = tierra.getPosicion().distanciaA(sol.getPosicion());
+        double distFinalMarte = marte.getPosicion().distanciaA(sol.getPosicion());
+
+        assertEquals(160.0, distFinalTierra, 5.0, "El radio orbital de la Tierra no debe decaer con el tiempo");
+        assertEquals(280.0, distFinalMarte, 5.0, "El radio orbital de Marte no debe decaer con el tiempo");
+    }
+
+    @Test
+    void testColocacionPlanetaEnOrbitasDelSolAutoOrbitaYEstabilidad() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.limpiarCuerpos();
+
+        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        sim.agregarCuerpo(sol);
+
+        sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 5000);
+        sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 5000);
+
+        // Colocar un planeta en la primera órbita del sol (x = 160 px en coordenadas físicas)
+        // 1920/2 + 160 = 1120 en JavaFX, 1080/2 = 540
+        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "NuevoPlaneta");
+        sim.actualizarPosicionPreview(1120, 540);
+        sim.confirmarColocacionAutoOrbita();
+
+        CuerpoCeleste nuevoPlaneta = sim.getSistemaSolar().getCuerpos().stream()
+                .filter(c -> "NuevoPlaneta".equals(c.getNombre()))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(nuevoPlaneta, "El planeta colocado debe existir en el sistema");
+        assertTrue(nuevoPlaneta.estaOrbitando(sol), "El planeta colocado en las órbitas del sol debe quedar orbitando automáticamente");
+        assertEquals(160.0, nuevoPlaneta.getRadioOrbita(), 1.0, "El radio de la órbita debe registrarse en 160px");
+
+        // Simular 200 ticks
+        for (int i = 0; i < 200; i++) {
+            sim.avanzarTick();
+        }
+
+        assertTrue(sim.getSistemaSolar().getCuerpos().contains(nuevoPlaneta),
+                "El planeta colocado dentro de las órbitas del sol no debe ser absorbido por el paso del tiempo");
+        double distFinal = nuevoPlaneta.getPosicion().distanciaA(sol.getPosicion());
+        assertEquals(160.0, distFinal, 5.0, "La distancia debe permanecer estable en torno a 160px");
+    }
+
+    @Test
+    void testPresupuestoInicialAlcanzaSoloParaUnSolYUnPlaneta() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        assertTrue(sim.getSistemaSolar().getCuerpos().isEmpty(), "El juego debe arrancar sin ningún cuerpo puesto");
+
+        // Colocar 1 Sol
+        sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, 1.0, "SolInicial");
+        sim.actualizarPosicionPreview(960, 540); // Centro
+        sim.confirmarColocacionAutoOrbita();
+
+        assertEquals(1, sim.getSistemaSolar().getCuerpos().size(), "Debe haberse colocado el Sol");
+        assertEquals(100.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES));
+        assertEquals(50.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA));
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA));
+
+        // Ya no alcanza para otro Sol
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
+
+        // Colocar 1 Planeta Rocoso
+        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaInicial");
+        sim.actualizarPosicionPreview(1120, 540);
+        sim.confirmarColocacionAutoOrbita();
+
+        assertEquals(2, sim.getSistemaSolar().getCuerpos().size(), "Debe haberse colocado el Planeta");
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES));
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA));
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA));
+
+        // Los recursos quedan en cero absoluto: no alcanza para ningún otro cuerpo
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.LUNA, 1.0));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
+    }
+
+    @Test
+    void testEliminarEstrellaReembolsa50PorCiento() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        // Colocar 1 Sol
+        sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, 1.0, "SolTest");
+        sim.actualizarPosicionPreview(960, 540);
+        sim.confirmarColocacionAutoOrbita();
+
+        CuerpoCeleste estrella = sim.getSistemaSolar().getCuerpos().get(0);
+
+        // Costo base de estrella: 300 Min, 150 Ene, 50 Cie
+        // Reembolso 50%: 150 Min, 75 Ene, 25 Cie
+        Map<TipoRecurso, Double> costos = InventarioJugador.getCostosEscalados(estrella.getTipoCuerpo(), 1.0);
+        for (Map.Entry<TipoRecurso, Double> e : costos.entrySet()) {
+            sim.getInventario().agregarRecurso(e.getKey(), e.getValue() * 0.5);
+        }
+        sim.eliminarCuerpo(estrella);
+
+        assertFalse(sim.getSistemaSolar().getCuerpos().contains(estrella));
+        assertEquals(250.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "100 restantes + 150 reembolsados = 250");
+        assertEquals(125.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), "50 restantes + 75 reembolsados = 125");
+        assertEquals(25.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), "0 restantes + 25 reembolsados = 25");
     }
 }
 

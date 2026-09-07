@@ -67,8 +67,7 @@ public class SimulacionSolar {
         motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
         motorFisica.setListenerDefensaEscudo(this::procesarDefensaEscudo);
 
-        // Cargar preset básico inicial por defecto para que el juego arranque vivo
-        cargarPresetSistemaBasico();
+        // El sistema solar comienza vacío para que el jugador coloque su propio sol y planetas
 
         // Listener de colisiones
         motorFisica.agregarListenerColision(() -> {
@@ -275,6 +274,11 @@ public class SimulacionSolar {
     public void eliminarCuerpo(CuerpoCeleste cuerpo) {
         sistemaSolar.getCuerpos().remove(cuerpo);
         vista.removerCuerpo(cuerpo);
+        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            if (c.getCuerpoOrbitado() == cuerpo) {
+                c.setCuerpoOrbitado(null);
+            }
+        }
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
     }
 
@@ -297,12 +301,13 @@ public class SimulacionSolar {
         Vector2D posTierra = new Vector2D(160, 0);
         Vector2D velTierra = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posTierra, false);
         Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x, posTierra.y, 1.0, velTierra);
+        tierra.setCuerpoOrbitado(sol);
         tierra.desarrollarCivilizacion();
         agregarCuerpo(tierra);
 
-        // 3. Luna orbitando a la Tierra
+        // 3. Luna orbitando a la Tierra (velocidad más lenta)
         Vector2D posLuna = new Vector2D(160 + 26, 0);
-        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -3.4));
+        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -1.7));
         Luna luna = CuerpoCelesteFactory.crearLuna(posLuna.x, posLuna.y, 0.8, velLuna);
         luna.setCuerpoOrbitado(tierra);
         agregarCuerpo(luna);
@@ -365,6 +370,17 @@ public class SimulacionSolar {
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica) {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica);
         if (cuerpoCercano != null) {
+            if (tipoColocacion == TipoCuerpo.LUNA && cuerpoCercano instanceof Planeta) {
+                Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
+                double dist = Math.max(1.0, r.magnitud());
+                double factorMasa = (cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().masaBase > 0)
+                        ? Math.max(0.2, cuerpoCercano.getMasa() / cuerpoCercano.getTipoCuerpo().masaBase)
+                        : 1.0;
+                double vOrb = Math.sqrt(75.0 * factorMasa / dist);
+                Vector2D uRadial = r.dividir(dist);
+                Vector2D uTangencial = new Vector2D(-uRadial.y, uRadial.x);
+                return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
+            }
             return CuerpoCelesteFactory.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
         }
         return Vector2D.cero();
@@ -372,8 +388,24 @@ public class SimulacionSolar {
 
     public void confirmarColocacionAutoOrbita() {
         if (modoColocacion == ModoColocacion.COLOCANDO && posicionPreview != null && tipoColocacion != null) {
-            Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posicionPreview);
-            spawnCuerpo(tipoColocacion, nombreColocacion, posicionPreview.x, posicionPreview.y, factorMasaColocacion, velOrbital);
+            Vector2D posPreviewLocal = posicionPreview;
+            Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreviewLocal);
+            CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreviewLocal);
+            boolean spawned = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
+            if (spawned && cuerpoCercano != null && !sistemaSolar.getCuerpos().isEmpty()) {
+                CuerpoCeleste recienCreado = sistemaSolar.getCuerpos().get(sistemaSolar.getCuerpos().size() - 1);
+                double dist = posPreviewLocal.distanciaA(cuerpoCercano.getPosicion());
+                if (recienCreado instanceof Luna && cuerpoCercano instanceof Planeta) {
+                    recienCreado.setCuerpoOrbitado(cuerpoCercano);
+                    recienCreado.setRadioOrbita(dist);
+                } else if (recienCreado instanceof Planeta && (cuerpoCercano instanceof Estrella ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO)) {
+                    recienCreado.setCuerpoOrbitado(cuerpoCercano);
+                    recienCreado.setRadioOrbita(dist);
+                }
+            }
         }
     }
 
@@ -404,7 +436,11 @@ public class SimulacionSolar {
         double maxFuerza = 0;
 
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
-            if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e25) continue;
+            if (c.getTipoCuerpo() == TipoCuerpo.LUNA || c.getTipoCuerpo() == TipoCuerpo.SATELITE ||
+                c.getTipoCuerpo() == TipoCuerpo.METEORITO || c.getTipoCuerpo() == TipoCuerpo.ESCUDO_DOME) {
+                continue;
+            }
+            if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e22) continue;
 
             double dist = pos.distanciaA(c.getPosicion());
             if (dist < 10.0) continue;

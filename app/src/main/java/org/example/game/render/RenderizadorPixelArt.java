@@ -197,8 +197,8 @@ public class RenderizadorPixelArt {
                 }
                 double escala = Math.sqrt(factorMasa);
 
-                // Múltiples líneas de referencia orbitales casi transparentes para planetas
-                double[] radiosReferencia = { 120.0, 160.0, 210.0, 270.0, 340.0, 420.0 };
+                // Líneas de referencia orbitales casi transparentes para planetas (reducidas a 2 órbitas)
+                double[] radiosReferencia = { 160.0, 280.0 };
 
                 gc.setLineWidth(1.0);
                 gc.setLineDashes(3, 5);
@@ -667,7 +667,7 @@ public class RenderizadorPixelArt {
         // Si se está colocando una Estrella, mostrar también las líneas de referencia orbitales casi transparentes
         if (tipo == TipoCuerpo.ESTRELLA) {
             double escala = Math.sqrt(Math.max(0.1, factorMasa));
-            double[] radiosReferencia = { 120.0, 160.0, 210.0, 270.0, 340.0, 420.0 };
+            double[] radiosReferencia = { 160.0, 280.0 };
             gc.setStroke(Color.rgb(91, 227, 255, 0.12));
             for (double rBase : radiosReferencia) {
                 double rOrbita = rBase * escala;

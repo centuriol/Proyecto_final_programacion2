@@ -22,7 +22,6 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
 import org.example.game.ui.HUDRecursosTop;
-import org.example.game.ui.MenuSuperiorIzquierdo;
 import org.example.game.ui.PanelNotificaciones;
 
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ public class App extends Application {
     private HUDRecursosTop hudRecursos;
     private BarraInventarioHotbar hotbar;
     private ControlTiempoWidget controlTiempo;
-    private MenuSuperiorIzquierdo menuSuperior;
     private PanelNotificaciones panelNotificaciones;
 
     // Estado interactivo de mouse
@@ -76,20 +74,15 @@ public class App extends Application {
         hotbar = new BarraInventarioHotbar(simulacion);
         controlTiempo = new ControlTiempoWidget(simulacion);
         panelNotificaciones = new PanelNotificaciones(simulacion);
-        menuSuperior = new MenuSuperiorIzquierdo(simulacion, renderizador, () -> {
-            cuerpoSeleccionado = null;
-            hudRecursos.actualizar();
-            controlTiempo.actualizarTick();
-        });
 
         // 5. Layout Superpuesto (HUD sobre Canvas)
         BorderPane overlayUI = new BorderPane();
         overlayUI.setPadding(new Insets(12));
         overlayUI.setPickOnBounds(false); // Permite click-through al canvas
 
-        // Barra Superior: Menu Izq + Spacer + Recursos Der
-        HBox topBar = new HBox(menuSuperior, crearSpacer(), hudRecursos);
-        topBar.setAlignment(Pos.CENTER);
+        // Barra Superior: Recursos Der (barra de arriba a la izquierda eliminada)
+        HBox topBar = new HBox(crearSpacer(), hudRecursos);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPickOnBounds(false);
         overlayUI.setTop(topBar);
 
@@ -178,12 +171,16 @@ public class App extends Application {
             if (e.getButton() == MouseButton.PRIMARY) {
                 if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
                     // Colocación directa asistida (sin lanzamientos)
+                    simulacion.actualizarPosicionPreview(e.getX(), e.getY());
                     simulacion.confirmarColocacionAutoOrbita();
                     trayectoriaPreview.clear();
                     hotbar.deseleccionar();
                 } else {
-                    // Seleccionar cuerpo bajo el cursor
+                    // Seleccionar cuerpo bajo el cursor y abrir descripción para inspección/eliminación
                     seleccionarCuerpoBajoCursor(e.getX(), e.getY());
+                    if (cuerpoSeleccionado != null) {
+                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
+                    }
                 }
             } else if (e.getButton() == MouseButton.SECONDARY) {
                 if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
@@ -196,7 +193,7 @@ public class App extends Application {
                     // Click derecho sobre un cuerpo abre ventana de descripción e inspección del ítem
                     seleccionarCuerpoBajoCursor(e.getX(), e.getY());
                     if (cuerpoSeleccionado != null) {
-                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, stage);
+                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
                     }
                 }
             }
@@ -243,12 +240,13 @@ public class App extends Application {
         Vector2D clickPos = new Vector2D(xFisica, yFisica);
 
         CuerpoCeleste masCercano = null;
-        double distMin = 35.0; // Umbral de selección en px
+        double menorDistancia = Double.MAX_VALUE;
 
         for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
             double d = clickPos.distanciaA(c.getPosicion());
-            if (d < distMin) {
-                distMin = d;
+            double radioTolerancia = Math.max(28.0, c.getRadio() + 10.0);
+            if (d <= radioTolerancia && d < menorDistancia) {
+                menorDistancia = d;
                 masCercano = c;
             }
         }

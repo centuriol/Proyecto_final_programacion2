@@ -62,11 +62,17 @@ public class InventarioJugador {
     }
 
     private void darRecursosIniciales() {
-        // Recursos iniciales equilibrados para empezar el sistema
-        agregarRecurso(TipoRecurso.MINERALES, 500);
-        agregarRecurso(TipoRecurso.ENERGIA, 300);
-        agregarRecurso(TipoRecurso.POBLACION, 100);
-        agregarRecurso(TipoRecurso.CIENCIA, 50);
+        // Recursos iniciales exactos para colocar únicamente 1 Sol (Estrella) y 1 Planeta Rocoso (a masa 1.0x)
+        double minInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES
+                + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES; // 300 + 100 = 400.0
+        double eneInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA
+                + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA;   // 150 + 50 = 200.0
+        double cieInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA; // 50.0
+
+        agregarRecurso(TipoRecurso.MINERALES, minInicial);
+        agregarRecurso(TipoRecurso.ENERGIA, eneInicial);
+        agregarRecurso(TipoRecurso.POBLACION, 0.0);
+        agregarRecurso(TipoRecurso.CIENCIA, cieInicial);
     }
 
     /**
@@ -81,13 +87,30 @@ public class InventarioJugador {
                 map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA);
                 map.put(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA);
             }
-            case PLANETA_ROCOSO, PLANETA_GASEOSO, PLANETA_HELADO -> {
+            case PLANETA_ROCOSO, PLANETA_HELADO -> {
                 map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES);
                 map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA);
+            }
+            case PLANETA_GASEOSO -> {
+                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * 2);
+                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA * 2);
             }
             case LUNA -> {
                 map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_MINERALES);
                 map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_ENERGIA);
+            }
+            case SATELITE -> {
+                map.put(TipoRecurso.MINERALES, 40.0);
+                map.put(TipoRecurso.ENERGIA, 30.0);
+                map.put(TipoRecurso.CIENCIA, 10.0);
+            }
+            case ESCUDO_DOME -> {
+                map.put(TipoRecurso.ENERGIA, 150.0);
+                map.put(TipoRecurso.CIENCIA, 50.0);
+            }
+            case METEORITO -> {
+                map.put(TipoRecurso.MINERALES, 10.0);
+                map.put(TipoRecurso.ENERGIA, 5.0);
             }
             default -> {}
         }

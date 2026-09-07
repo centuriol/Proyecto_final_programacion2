@@ -9,7 +9,7 @@ public class Estrella extends CuerpoCeleste {
 
     @Override
     public String describir() {
-        return "Estrella " + getNombre() + " (masa: " + String.format("%.2e", getMasa()) + " kg)";
+        return "Estrella " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
     }
 
     @Override

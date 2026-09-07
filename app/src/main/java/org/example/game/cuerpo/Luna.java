@@ -8,31 +8,13 @@ import org.example.CuerpoCeleste;
  */
 public class Luna extends CuerpoCeleste {
 
-    private CuerpoCeleste cuerpoOrbitado;
-
     public Luna(String nombre, double masa, double x, double y) {
         super(nombre, masa, x, y, TipoCuerpo.LUNA);
     }
 
-    public CuerpoCeleste getCuerpoOrbitado() {
-        return cuerpoOrbitado;
-    }
-
-    public void setCuerpoOrbitado(CuerpoCeleste cuerpoOrbitado) {
-        this.cuerpoOrbitado = cuerpoOrbitado;
-    }
-
-    public boolean estaOrbitando() {
-        return cuerpoOrbitado != null;
-    }
-
-    public boolean estaOrbitando(CuerpoCeleste cuerpo) {
-        return cuerpoOrbitado != null && cuerpoOrbitado == cuerpo;
-    }
-
     @Override
     public String describir() {
-        return "Luna " + getNombre() + " (masa: " + String.format("%.2e", getMasa()) + " kg)";
+        return "Luna " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
     }
 
     @Override

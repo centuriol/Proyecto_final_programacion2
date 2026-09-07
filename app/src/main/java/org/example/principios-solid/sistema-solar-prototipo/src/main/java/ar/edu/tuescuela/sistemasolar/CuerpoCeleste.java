@@ -25,6 +25,7 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
 
     // Tipo de cuerpo para lógica especial
     private final TipoCuerpo tipoCuerpo;
+    private CuerpoCeleste cuerpoOrbitado;
 
     // Datos legacy para compatibilidad (órbitas circulares simples)
     @Deprecated
@@ -231,5 +232,31 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     public void setPosicion(Vector2D pos) {
         this.posicionX = pos.x;
         this.posicionY = pos.y;
+    }
+
+    // ===== Estado Orbital =====
+
+    public CuerpoCeleste getCuerpoOrbitado() {
+        return cuerpoOrbitado;
+    }
+
+    public void setCuerpoOrbitado(CuerpoCeleste cuerpoOrbitado) {
+        this.cuerpoOrbitado = cuerpoOrbitado;
+    }
+
+    public boolean estaOrbitando() {
+        return cuerpoOrbitado != null;
+    }
+
+    public boolean estaOrbitando(CuerpoCeleste cuerpo) {
+        return cuerpoOrbitado != null && cuerpoOrbitado == cuerpo;
+    }
+
+    public double getRadioOrbita() {
+        return radioOrbita;
+    }
+
+    public void setRadioOrbita(double radioOrbita) {
+        this.radioOrbita = radioOrbita;
     }
 }
