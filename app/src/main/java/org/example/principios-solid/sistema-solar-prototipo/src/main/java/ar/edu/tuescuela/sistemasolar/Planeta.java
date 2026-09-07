@@ -55,7 +55,17 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
 
     @Override
     public double getRadio() {
-        return 15;
+        double radioBase;
+        if (subTipo == TipoCuerpo.PLANETA_GASEOSO) {
+            radioBase = 22.0;
+        } else if (subTipo == TipoCuerpo.PLANETA_HELADO) {
+            radioBase = 12.0;
+        } else {
+            radioBase = 15.0;
+        }
+        double factor = getMasa() / (subTipo != null ? subTipo.masaBase : TipoCuerpo.PLANETA_ROCOSO.masaBase);
+        if (factor <= 0) return 3.0;
+        return Math.max(3.0, radioBase * Math.cbrt(factor));
     }
 
     @Override

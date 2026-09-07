@@ -2,12 +2,13 @@ package org.example.game.civilizacion;
 
 import org.example.Planeta;
 import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.MensajeEvento;
 import org.example.game.motor.Vector2D;
 import org.example.CuerpoCeleste;
-import org.example.Planeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Componente de civilización para planetas.
@@ -21,6 +22,8 @@ public class CivilizacionComponent {
     private double estabilidad; // 0.0 - 1.0
     private double felicidad; // 0.0 - 1.0
     private EstadoCivilizacion estado;
+    private int ticksEfectoEventoReciente = 0;
+    private Consumer<MensajeEvento> emisorEventos;
 
     // Historial para gráficas
     private final List<Double> historialPoblacion = new ArrayList<>();
@@ -60,6 +63,10 @@ public class CivilizacionComponent {
     public void actualizar(List<CuerpoCeleste> todosLosCuerpos) {
         if (estado == EstadoCivilizacion.EXTINGUIDA) return;
 
+        if (ticksEfectoEventoReciente > 0) {
+            ticksEfectoEventoReciente--;
+        }
+
         // 1. Calcular condiciones de habitabilidad
         CondicionesHabitabilidad condiciones = evaluarHabitabilidad(todosLosCuerpos);
 
@@ -88,7 +95,7 @@ public class CivilizacionComponent {
         }
 
         // 7. Verificar extinción
-        if (poblacion < 1000) {
+        if (poblacion < 10) {
             extinguir();
         }
     }
@@ -211,7 +218,7 @@ public class CivilizacionComponent {
     }
 
     private EstadoCivilizacion determinarEstado() {
-        if (poblacion < 1000) return EstadoCivilizacion.EXTINGUIDA;
+        if (poblacion < 10) return EstadoCivilizacion.EXTINGUIDA;
         if (estabilidad < 0.3) return EstadoCivilizacion.EN_PELIGRO;
         if (estabilidad < 0.6 || felicidad < 0.4) return EstadoCivilizacion.LUCHANDO;
         if (estabilidad > 0.8 && felicidad > 0.7) return EstadoCivilizacion.PRÓSPERA;
@@ -224,15 +231,19 @@ public class CivilizacionComponent {
         // Eventos positivos (más probables si próspera)
         if (estado == EstadoCivilizacion.PRÓSPERA && rand < 0.001) {
             // Avance tecnológico
-            if (nivelTecnologico < 10) nivelTecnologico++;
-            System.out.println("🔬 " + planeta.getNombre() + " alcanzó nivel tecnológico " + nivelTecnologico);
+            if (nivelTecnologico < 10) {
+                nivelTecnologico++;
+                recalcularPoblacionMaxima();
+                emitirEvento(planeta.getNombre() + " alcanzo nivel tecnologico " + nivelTecnologico, MensajeEvento.TipoMensaje.EXITO);
+            }
         }
 
         // Eventos negativos (más probables si en peligro)
         if (estado == EstadoCivilizacion.EN_PELIGRO && rand < 0.005) {
-            // Catástrofe: pérdida poblacional
+            // Catástrofe: pérdida poblacional y penalización temporal de producción
             poblacion *= 0.7;
-            System.out.println("☠ Catástrofe en " + planeta.getNombre() + "! Población: " + (int)poblacion);
+            ticksEfectoEventoReciente = ConfiguracionSimulacion.DURACION_TICKS_EFECTO_EVENTO;
+            emitirEvento("Catastrofe en " + planeta.getNombre() + "! Poblacion reducida a " + (int)poblacion, MensajeEvento.TipoMensaje.PELIGRO);
         }
 
         // Migración (futuro: entre planetas)
@@ -249,15 +260,59 @@ public class CivilizacionComponent {
         this.poblacion *= 0.75; // Pérdida del 25% de población
         this.estabilidad = Math.max(0.1, this.estabilidad - 0.3);
         this.felicidad = Math.max(0.1, this.felicidad - 0.4);
+        this.ticksEfectoEventoReciente = ConfiguracionSimulacion.DURACION_TICKS_EFECTO_EVENTO;
         this.estado = determinarEstado();
-        System.out.println("💥 ¡Catástrofe meteórica en " + planeta.getNombre() + "! Población restante: " + (int)poblacion);
+        emitirEvento("Catastrofe meteorica en " + planeta.getNombre() + "! Poblacion restante: " + (int)poblacion, MensajeEvento.TipoMensaje.PELIGRO);
     }
 
     private void extinguir() {
         estado = EstadoCivilizacion.EXTINGUIDA;
         poblacion = 0;
         planeta.setSimulado(false); // El planeta sigue ahí pero sin civ
-        System.out.println("💀 Civilización en " + planeta.getNombre() + " se ha extinguido.");
+        emitirEvento("Civilizacion en " + planeta.getNombre() + " se ha extinguido.", MensajeEvento.TipoMensaje.PELIGRO);
+    }
+
+    private void emitirEvento(String mensaje, MensajeEvento.TipoMensaje tipo) {
+        if (emisorEventos != null) {
+            emisorEventos.accept(new MensajeEvento(mensaje, tipo, 0));
+        } else {
+            System.out.println("[" + tipo.name() + "] " + mensaje);
+        }
+    }
+
+    /**
+     * Calcula el multiplicador dinamico de produccion de recursos para la civilizacion.
+     * Incorpora estabilidad, felicidad, nivel tecnologico y penalizaciones de eventos recientes.
+     *
+     * @return Factor multiplicador de produccion.
+     */
+    public double calcularMultiplicadorProduccion() {
+        if (estado == EstadoCivilizacion.EXTINGUIDA) return 0.0;
+        double base = (estabilidad * 0.6) + (felicidad * 0.4);
+        double techBonus = 1.0 + (nivelTecnologico * ConfiguracionSimulacion.MULTIPLICADOR_TECNOLOGIA_CIV);
+        double factor = base * techBonus;
+        if (ticksEfectoEventoReciente > 0) {
+            factor *= (1.0 - ConfiguracionSimulacion.PENALIZACION_EVENTO_CATASTROFE);
+        }
+        return Math.max(0.1, factor);
+    }
+
+    // ===== Getters y Setters =====
+
+    public void setEmisorEventos(Consumer<MensajeEvento> emisorEventos) {
+        this.emisorEventos = emisorEventos;
+    }
+
+    public Consumer<MensajeEvento> getEmisorEventos() {
+        return emisorEventos;
+    }
+
+    public int getTicksEfectoEventoReciente() {
+        return ticksEfectoEventoReciente;
+    }
+
+    public void setTicksEfectoEventoReciente(int ticks) {
+        this.ticksEfectoEventoReciente = Math.max(0, ticks);
     }
 
     // ===== Getters =====

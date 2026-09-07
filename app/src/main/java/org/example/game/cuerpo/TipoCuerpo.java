@@ -1,5 +1,7 @@
 package org.example.game.cuerpo;
 
+import org.example.game.simulacion.ConfiguracionSimulacion;
+
 /**
  * Tipos de cuerpos celestes con propiedades físicas y de juego distintas.
  */
@@ -142,6 +144,27 @@ public enum TipoCuerpo {
     }
 
     /** Factor de multiplicación de masa (para sliders UI) */
-    public double getMasaMin() { return masaBase * 0.1; }
-    public double getMasaMax() { return masaBase * 10.0; }
+    public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }
+    public double getMasaMax() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MAX; }
+
+    /**
+     * Formatea la masa en unidades de Masas Terrestres (MT), donde 1e24 kg = 1 MT,
+     * reemplazando la notación científica '1e'.
+     */
+    public static String formatearMasa(double masaKg) {
+        double mt = masaKg / 1e24;
+        if (mt >= 1_000_000_000.0) {
+            return String.format(java.util.Locale.US, "%.2fB MT", mt / 1e9);
+        } else if (mt >= 1_000_000.0) {
+            return String.format(java.util.Locale.US, "%.2fM MT", mt / 1e6);
+        } else if (mt >= 1_000.0) {
+            return String.format(java.util.Locale.US, "%.2fk MT", mt / 1e3);
+        } else if (mt >= 0.01) {
+            return String.format(java.util.Locale.US, "%.2f MT", mt);
+        } else if (mt >= 0.0001) {
+            return String.format(java.util.Locale.US, "%.4f MT", mt);
+        } else {
+            return String.format(java.util.Locale.US, "%.6f MT", mt);
+        }
+    }
 }

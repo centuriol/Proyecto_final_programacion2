@@ -19,6 +19,7 @@ import org.example.RenderizadorCircular;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -44,14 +45,16 @@ public class SimulacionSolar {
     private ModoColocacion modoColocacion = ModoColocacion.NINGUNO;
     private TipoCuerpo tipoColocacion = null;
     private double factorMasaColocacion = 1.0;
+    private String nombreColocacion = null;
     private Vector2D posicionPreview = null;
 
     // Eventos cósmicos
     private int ticksUltimoMeteorito = 0;
 
-    // Callbacks para UI
+    // Callbacks y listeners para UI y eventos
     private Runnable onTickCallback;
     private Runnable onCambioEstadoCallback;
+    private final List<java.util.function.Consumer<MensajeEvento>> listenersEvento = new ArrayList<>();
 
     public SimulacionSolar(double anchoMundo, double altoMundo) {
         this.motorFisica = new MotorFisicaPermisiva(Math.max(anchoMundo, altoMundo));
@@ -60,13 +63,41 @@ public class SimulacionSolar {
         this.vista = new VistaSistemaSolar(new RenderizadorCircular(anchoMundo, altoMundo));
         this.predictor = new TrayectoriaPredictor();
 
-        // Cargar preset básico inicial por defecto para que el juego arranque vivo
-        cargarPresetSistemaBasico();
+        // Conectar eventos fisicos
+        motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
+        motorFisica.setListenerDefensaEscudo(this::procesarDefensaEscudo);
+
+        // El sistema solar comienza vacío para que el jugador coloque su propio sol y planetas
 
         // Listener de colisiones
         motorFisica.agregarListenerColision(() -> {
             if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
         });
+    }
+
+    private void procesarDefensaEscudo() {
+        inventario.gastarRecurso(TipoRecurso.ENERGIA, ConfiguracionSimulacion.CONSUMO_ENERGIA_ESCUDO_IMPACTO);
+        inventario.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.RECOMPENSA_CIENCIA_ESCUDO_IMPACTO);
+        notificarEvento("Escudo intercepto impacto. Consumo: " + (int)ConfiguracionSimulacion.CONSUMO_ENERGIA_ESCUDO_IMPACTO + " Energia | +" + (int)ConfiguracionSimulacion.RECOMPENSA_CIENCIA_ESCUDO_IMPACTO + " Ciencia", MensajeEvento.TipoMensaje.EXITO);
+    }
+
+    public void agregarListenerEvento(java.util.function.Consumer<MensajeEvento> listener) {
+        if (listener != null) {
+            this.listenersEvento.add(listener);
+        }
+    }
+
+    public void notificarEvento(MensajeEvento evento) {
+        for (var listener : listenersEvento) {
+            try {
+                listener.accept(evento);
+            } catch (Exception ignored) {}
+        }
+        System.out.println("[Tick " + tickActual + "] [" + evento.tipo().name() + "] " + evento.mensaje());
+    }
+
+    public void notificarEvento(String mensaje, MensajeEvento.TipoMensaje tipo) {
+        notificarEvento(new MensajeEvento(mensaje, tipo, tickActual));
     }
 
     // ===== API Principal de Ticks =====
@@ -84,9 +115,10 @@ public class SimulacionSolar {
 
         // 3. Economía pasiva y satélites
         actualizarEconomia();
+        actualizarGeneracionPorMasa();
 
-        // 4. Eventos cósmicos aleatorios (meteoritos)
-        generarEventosCosmicos();
+        // 4. Eventos cósmicos aleatorios (desactivados para mantener solo estrella, planeta rocoso y luna)
+        // generarEventosCosmicos();
 
         // 5. Actualizar vista legacy
         vista.actualizar();
@@ -108,43 +140,46 @@ public class SimulacionSolar {
         List<CuerpoCeleste> cuerpos = new ArrayList<>(sistemaSolar.getCuerpos());
         for (CuerpoCeleste c : cuerpos) {
             if (c instanceof Planeta) {
-                ((Planeta) c).actualizarCivilizacion(cuerpos);
+                Planeta p = (Planeta) c;
+                if (p.getCivilizacion() != null && p.getCivilizacion().getEmisorEventos() == null) {
+                    p.getCivilizacion().setEmisorEventos(this::notificarEvento);
+                }
+                p.actualizarCivilizacion(cuerpos);
             }
         }
     }
 
     private void actualizarEconomia() {
-        // Ganancia pasiva
-        inventario.agregarRecurso(TipoRecurso.MATERIA_PLANETARIA, ConfiguracionSimulacion.GANANCIA_PASIVA_POR_TICK);
-        inventario.agregarRecurso(TipoRecurso.ENERGIA, 0.2);
-
-        // Ganancias por satélites
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
-            if (c instanceof Satelite) {
-                inventario.agregarRecurso(TipoRecurso.CIENCIA, 0.08);
-                inventario.agregarRecurso(TipoRecurso.ENERGIA, 0.15);
+            if (c == null || !c.esSimulado()) continue;
+            TipoCuerpo tipo = c.getTipoCuerpo();
+            if (tipo == null) continue;
+
+            double factorMasa = 1.0;
+            if (tipo.masaBase > 0) {
+                factorMasa = Math.max(0.1, c.getMasa() / tipo.masaBase);
             }
-        }
 
-        // Bonus por civilizaciones prósperas
-        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            Map<TipoRecurso, Double> produccionEscalada = InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
+            if (produccionEscalada.isEmpty()) continue;
+
+            double factorCiv = 1.0;
             if (c instanceof Planeta) {
                 Planeta p = (Planeta) c;
                 if (p.tieneCivilizacion() && p.getCivilizacion() != null) {
-                    var estado = p.getCivilizacion().getEstado();
-                    double bonus = switch (estado) {
-                        case PRÓSPERA -> ConfiguracionSimulacion.BONUS_CIV_PROSPERA;
-                        case ESTABLE -> ConfiguracionSimulacion.BONUS_CIV_PROSPERA * 0.5;
-                        case LUCHANDO -> ConfiguracionSimulacion.BONUS_CIV_LUCHANDO;
-                        case EN_PELIGRO -> 0.1;
-                        case EXTINGUIDA -> 0;
-                    };
-                    inventario.agregarRecurso(TipoRecurso.MATERIA_PLANETARIA, bonus);
-                    inventario.agregarRecurso(TipoRecurso.CIENCIA, bonus * 0.15);
-                    inventario.agregarRecurso(TipoRecurso.ENERGIA, bonus * 0.25);
+                    factorCiv = p.getCivilizacion().calcularMultiplicadorProduccion();
                 }
             }
+
+            for (Map.Entry<TipoRecurso, Double> entry : produccionEscalada.entrySet()) {
+                inventario.agregarRecurso(entry.getKey(), entry.getValue() * factorCiv);
+            }
         }
+    }
+
+    private void actualizarGeneracionPorMasa() {
+        // En este modelo economico, los recursos provienen exclusivamente de los tipos de cuerpos
+        // (Sol -> Energia, Minerales; Planetas -> Minerales, Ciencia, Poblacion; Luna -> Minerales)
     }
 
     private void generarEventosCosmicos() {
@@ -160,6 +195,7 @@ public class SimulacionSolar {
                 double alto = 1080;
                 Meteorito m = CuerpoCelesteFactory.crearMeteoritoAleatorio(ancho, alto);
                 agregarCuerpo(m);
+                notificarEvento("Alerta cosmica: Nuevo meteorito detectado en trayectoria.", MensajeEvento.TipoMensaje.ADVERTENCIA);
             }
         }
     }
@@ -167,8 +203,12 @@ public class SimulacionSolar {
     // ===== Gestión de Cuerpos (Spawn y Presets) =====
 
     public boolean spawnCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return spawnCuerpo(tipo, null, x, y, factorMasa, velocidadInicial);
+    }
+
+    public boolean spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
         if (!inventario.puedeCrear(tipo, factorMasa)) {
-            System.out.println("❌ Recursos insuficientes para " + tipo.nombre);
+            notificarEvento("Recursos insuficientes para " + tipo.nombre, MensajeEvento.TipoMensaje.ADVERTENCIA);
             return false;
         }
 
@@ -212,9 +252,13 @@ public class SimulacionSolar {
         }
 
         if (cuerpo != null) {
+            if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {
+                cuerpo.setNombre(nombrePersonalizado.trim());
+            }
             if (inventario.gastarParaCrear(tipo, factorMasa)) {
                 agregarCuerpo(cuerpo);
                 salirModoColocacion();
+                notificarEvento("Cuerpo colocado: " + cuerpo.getNombre() + " (" + tipo.nombre + ")", MensajeEvento.TipoMensaje.INFO);
                 return true;
             }
         }
@@ -230,6 +274,11 @@ public class SimulacionSolar {
     public void eliminarCuerpo(CuerpoCeleste cuerpo) {
         sistemaSolar.getCuerpos().remove(cuerpo);
         vista.removerCuerpo(cuerpo);
+        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            if (c.getCuerpoOrbitado() == cuerpo) {
+                c.setCuerpoOrbitado(null);
+            }
+        }
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
     }
 
@@ -252,26 +301,16 @@ public class SimulacionSolar {
         Vector2D posTierra = new Vector2D(160, 0);
         Vector2D velTierra = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posTierra, false);
         Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x, posTierra.y, 1.0, velTierra);
+        tierra.setCuerpoOrbitado(sol);
         tierra.desarrollarCivilizacion();
         agregarCuerpo(tierra);
 
-        // 3. Luna orbitando a la Tierra
+        // 3. Luna orbitando a la Tierra (velocidad más lenta)
         Vector2D posLuna = new Vector2D(160 + 26, 0);
-        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -65.0));
+        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -1.7));
         Luna luna = CuerpoCelesteFactory.crearLuna(posLuna.x, posLuna.y, 0.8, velLuna);
+        luna.setCuerpoOrbitado(tierra);
         agregarCuerpo(luna);
-
-        // 4. Gigante Gaseoso exterior (tipo Júpiter)
-        Vector2D posJupiter = new Vector2D(-340, 0);
-        Vector2D velJupiter = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posJupiter, false);
-        Planeta jupiter = CuerpoCelesteFactory.crearPlanetaGaseoso(posJupiter.x, posJupiter.y, 1.3, velJupiter);
-        agregarCuerpo(jupiter);
-
-        // 5. Satélite orbitando la Tierra
-        Vector2D posSat = new Vector2D(160 - 20, 0);
-        Vector2D velSat = velTierra.sumar(new Vector2D(0, 75.0));
-        Satelite sat = CuerpoCelesteFactory.crearSatelite(posSat.x, posSat.y, 1.0, velSat);
-        agregarCuerpo(sat);
     }
 
     public void cargarPresetEstrellaBinaria() {
@@ -311,10 +350,15 @@ public class SimulacionSolar {
 
     // ===== Modo Colocación y Órbita Asistida =====
 
-    public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa) {
+    public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa, String nombre) {
         this.modoColocacion = ModoColocacion.COLOCANDO;
         this.tipoColocacion = tipo;
         this.factorMasaColocacion = factorMasa;
+        this.nombreColocacion = nombre;
+    }
+
+    public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa) {
+        entrarModoColocacion(tipo, factorMasa, null);
     }
 
     public void actualizarPosicionPreview(double xJavaFX, double yJavaFX) {
@@ -326,6 +370,17 @@ public class SimulacionSolar {
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica) {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica);
         if (cuerpoCercano != null) {
+            if (tipoColocacion == TipoCuerpo.LUNA && cuerpoCercano instanceof Planeta) {
+                Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
+                double dist = Math.max(1.0, r.magnitud());
+                double factorMasa = (cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().masaBase > 0)
+                        ? Math.max(0.2, cuerpoCercano.getMasa() / cuerpoCercano.getTipoCuerpo().masaBase)
+                        : 1.0;
+                double vOrb = Math.sqrt(75.0 * factorMasa / dist);
+                Vector2D uRadial = r.dividir(dist);
+                Vector2D uTangencial = new Vector2D(-uRadial.y, uRadial.x);
+                return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
+            }
             return CuerpoCelesteFactory.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
         }
         return Vector2D.cero();
@@ -333,21 +388,47 @@ public class SimulacionSolar {
 
     public void confirmarColocacionAutoOrbita() {
         if (modoColocacion == ModoColocacion.COLOCANDO && posicionPreview != null && tipoColocacion != null) {
-            Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posicionPreview);
-            spawnCuerpo(tipoColocacion, posicionPreview.x, posicionPreview.y, factorMasaColocacion, velOrbital);
+            Vector2D posPreviewLocal = posicionPreview;
+            Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreviewLocal);
+            CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreviewLocal);
+            boolean spawned = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
+            if (spawned && cuerpoCercano != null && !sistemaSolar.getCuerpos().isEmpty()) {
+                CuerpoCeleste recienCreado = sistemaSolar.getCuerpos().get(sistemaSolar.getCuerpos().size() - 1);
+                double dist = posPreviewLocal.distanciaA(cuerpoCercano.getPosicion());
+                if (recienCreado instanceof Luna && cuerpoCercano instanceof Planeta) {
+                    recienCreado.setCuerpoOrbitado(cuerpoCercano);
+                    recienCreado.setRadioOrbita(dist);
+                } else if (recienCreado instanceof Planeta && (cuerpoCercano instanceof Estrella ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
+                        cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO)) {
+                    recienCreado.setCuerpoOrbitado(cuerpoCercano);
+                    recienCreado.setRadioOrbita(dist);
+                }
+            }
         }
     }
 
     public void confirmarColocacionConImpulso(Vector2D posFisica, Vector2D velFisica) {
         if (tipoColocacion != null) {
-            spawnCuerpo(tipoColocacion, posFisica.x, posFisica.y, factorMasaColocacion, velFisica);
+            spawnCuerpo(tipoColocacion, nombreColocacion, posFisica.x, posFisica.y, factorMasaColocacion, velFisica);
         }
     }
 
     public void salirModoColocacion() {
         this.modoColocacion = ModoColocacion.NINGUNO;
         this.tipoColocacion = null;
+        this.nombreColocacion = null;
+        this.factorMasaColocacion = 1.0;
         this.posicionPreview = null;
+    }
+
+    public String getNombreColocacion() {
+        return nombreColocacion;
+    }
+
+    public void setNombreColocacion(String nombreColocacion) {
+        this.nombreColocacion = nombreColocacion;
     }
 
     public CuerpoCeleste encontrarCuerpoGravitatorioCercano(Vector2D pos) {
@@ -355,7 +436,11 @@ public class SimulacionSolar {
         double maxFuerza = 0;
 
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
-            if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e25) continue;
+            if (c.getTipoCuerpo() == TipoCuerpo.LUNA || c.getTipoCuerpo() == TipoCuerpo.SATELITE ||
+                c.getTipoCuerpo() == TipoCuerpo.METEORITO || c.getTipoCuerpo() == TipoCuerpo.ESCUDO_DOME) {
+                continue;
+            }
+            if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e22) continue;
 
             double dist = pos.distanciaA(c.getPosicion());
             if (dist < 10.0) continue;
@@ -397,7 +482,12 @@ public class SimulacionSolar {
     public TipoCuerpo getTipoColocacion() { return tipoColocacion; }
     public Vector2D getPosicionPreview() { return posicionPreview; }
     public double getFactorMasaColocacion() { return factorMasaColocacion; }
-    public void setFactorMasaColocacion(double f) { this.factorMasaColocacion = Math.max(0.1, Math.min(10, f)); }
+    public void setFactorMasaColocacion(double f) {
+        this.factorMasaColocacion = Math.max(
+            ConfiguracionSimulacion.MASA_FACTOR_MIN,
+            Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, f)
+        );
+    }
 
     public enum ModoColocacion {
         NINGUNO, COLOCANDO

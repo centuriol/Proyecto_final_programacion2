@@ -19,11 +19,11 @@ import org.example.game.simulacion.SimulacionSolar;
 public class ControlTiempoWidget extends VBox {
 
     private final SimulacionSolar simulacion;
-    private final Button btnPause = new Button("⏸");
-    private final Button btn1x = new Button("▶");
-    private final Button btn2x = new Button("⏩");
-    private final Button btn4x = new Button("⏭");
-    private final Button btnStep = new Button("⏭|");
+    private final Button btnPause = new Button("||");
+    private final Button btn1x = new Button("1x");
+    private final Button btn2x = new Button("2x");
+    private final Button btn4x = new Button("4x");
+    private final Button btnStep = new Button(">|");
     private final Label lblTick = new Label("Tick: 0");
 
     private double velocidadActual = 1.0;

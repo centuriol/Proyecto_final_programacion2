@@ -14,12 +14,14 @@ public class Luna extends CuerpoCeleste {
 
     @Override
     public String describir() {
-        return "Luna " + getNombre() + " (masa: " + String.format("%.2e", getMasa()) + " kg)";
+        return "Luna " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
     }
 
     @Override
     public double getRadio() {
-        return 9.0;
+        double factor = getMasa() / TipoCuerpo.LUNA.masaBase;
+        if (factor <= 0) return 2.0;
+        return Math.max(2.0, 9.0 * Math.cbrt(factor));
     }
 
     @Override

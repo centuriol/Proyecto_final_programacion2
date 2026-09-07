@@ -22,17 +22,17 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
 import org.example.game.ui.HUDRecursosTop;
-import org.example.game.ui.MenuSuperiorIzquierdo;
+import org.example.game.ui.PanelNotificaciones;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Punto de entrada principal de "Órbita" — Sandbox espacial Pixel Art (Estilo RimWorld UI).
+ * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
  *
  * Principios SOLID:
- * - SRP: Inicializa la aplicación JavaFX, organiza el árbol de vistas y canaliza eventos de entrada.
- * - DIP: Delega la física a SimulacionSolar/MotorFisica y el dibujo a RenderizadorPixelArt.
+ * - SRP: Inicializa la aplicacion JavaFX, organiza el arbol de vistas y canaliza eventos de entrada.
+ * - DIP: Delega la fisica a SimulacionSolar/MotorFisica y el dibujo a RenderizadorPixelArt.
  */
 public class App extends Application {
 
@@ -49,11 +49,9 @@ public class App extends Application {
     private HUDRecursosTop hudRecursos;
     private BarraInventarioHotbar hotbar;
     private ControlTiempoWidget controlTiempo;
-    private MenuSuperiorIzquierdo menuSuperior;
+    private PanelNotificaciones panelNotificaciones;
 
     // Estado interactivo de mouse
-    private Vector2D dragInicioFisica = null;
-    private Vector2D dragActualFisica = null;
     private List<Vector2D> trayectoriaPreview = new ArrayList<>();
     private CuerpoCeleste cuerpoSeleccionado = null;
 
@@ -62,7 +60,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        // 1. Simulación & Motor de física permisiva
+        // 1. Simulacion & Motor de fisica permisiva
         simulacion = new SimulacionSolar(ANCHO_MUNDO, ALTO_MUNDO);
 
         // 2. Renderizador Pixel Art
@@ -71,26 +69,25 @@ public class App extends Application {
         // 3. Canvas principal de juego
         Canvas canvasJuego = new Canvas(ANCHO_MUNDO, ALTO_MUNDO);
 
-        // 4. Componentes UI RimWorld Style
+        // 4. Componentes UI
         hudRecursos = new HUDRecursosTop(simulacion);
         hotbar = new BarraInventarioHotbar(simulacion);
         controlTiempo = new ControlTiempoWidget(simulacion);
-        menuSuperior = new MenuSuperiorIzquierdo(simulacion, renderizador, () -> {
-            cuerpoSeleccionado = null;
-            hudRecursos.actualizar();
-            controlTiempo.actualizarTick();
-        });
+        panelNotificaciones = new PanelNotificaciones(simulacion);
 
         // 5. Layout Superpuesto (HUD sobre Canvas)
         BorderPane overlayUI = new BorderPane();
         overlayUI.setPadding(new Insets(12));
         overlayUI.setPickOnBounds(false); // Permite click-through al canvas
 
-        // Barra Superior: Menú Izq + Spacer + Recursos Der
-        HBox topBar = new HBox(menuSuperior, crearSpacer(), hudRecursos);
-        topBar.setAlignment(Pos.CENTER);
+        // Barra Superior: Recursos Der (barra de arriba a la izquierda eliminada)
+        HBox topBar = new HBox(crearSpacer(), hudRecursos);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPickOnBounds(false);
         overlayUI.setTop(topBar);
+
+        // Panel lateral izquierdo para notificaciones
+        overlayUI.setLeft(panelNotificaciones);
 
         // Barra Inferior: Control Tiempo Izq + Spacer + Hotbar Centro
         HBox bottomBar = new HBox(controlTiempo, crearSpacer(), hotbar, crearSpacer());
@@ -102,7 +99,7 @@ public class App extends Application {
         root.setStyle("-fx-background-color: #0e1017;");
 
         // 6. Configurar eventos de mouse y teclado
-        configurarEventos(root, canvasJuego);
+        configurarEventos(root, canvasJuego, stage);
 
         // 7. Sincronización de callbacks
         simulacion.setOnTickCallback(() -> {
@@ -118,7 +115,7 @@ public class App extends Application {
         scene.setFill(Color.web("#0e1017"));
 
         stage.setScene(scene);
-        stage.setTitle("Órbita — Sistema Solar Pixel Art Sandbox");
+        stage.setTitle("Orbita - Simulador de Sistemas Solares");
         stage.show();
 
         root.requestFocus();
@@ -131,7 +128,7 @@ public class App extends Application {
         return spacer;
     }
 
-    private void configurarEventos(StackPane root, Canvas canvas) {
+    private void configurarEventos(StackPane root, Canvas canvas, Stage stage) {
         // --- TECLADO ---
         root.setOnKeyPressed(e -> {
             KeyCode code = e.getCode();
@@ -151,12 +148,7 @@ public class App extends Application {
                 }
                 case DIGIT1 -> hotbar.seleccionarTipo(TipoCuerpo.ESTRELLA);
                 case DIGIT2 -> hotbar.seleccionarTipo(TipoCuerpo.PLANETA_ROCOSO);
-                case DIGIT3 -> hotbar.seleccionarTipo(TipoCuerpo.PLANETA_GASEOSO);
-                case DIGIT4 -> hotbar.seleccionarTipo(TipoCuerpo.LUNA);
-                case DIGIT5 -> hotbar.seleccionarTipo(TipoCuerpo.SATELITE);
-                case DIGIT6 -> hotbar.seleccionarTipo(TipoCuerpo.ESCUDO_DOME);
-                case DIGIT7 -> hotbar.seleccionarTipo(TipoCuerpo.METEORITO);
-                case DIGIT8 -> hotbar.seleccionarTipo(TipoCuerpo.AGUJERO_NEGRO);
+                case DIGIT3 -> hotbar.seleccionarTipo(TipoCuerpo.LUNA);
                 case G -> renderizador.toggleGrilla();
                 case T -> renderizador.toggleEstelas();
                 case H -> renderizador.toggleZonasHabitables();
@@ -174,73 +166,50 @@ public class App extends Application {
             }
         });
 
-        // --- MOUSE PRESSED: Inicia colocación o Slingshot Drag ---
+        // --- MOUSE PRESSED: Colocación directa o Selección de cuerpo ---
         canvas.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                    double xFisica = ConstantesFisicas.javaFXAFisicaX(e.getX(), ANCHO_MUNDO);
-                    double yFisica = ConstantesFisicas.javaFXAFisica(e.getY(), ALTO_MUNDO);
-                    dragInicioFisica = new Vector2D(xFisica, yFisica);
-                    dragActualFisica = new Vector2D(xFisica, yFisica);
+                    // Colocación directa asistida (sin lanzamientos)
+                    simulacion.actualizarPosicionPreview(e.getX(), e.getY());
+                    simulacion.confirmarColocacionAutoOrbita();
+                    trayectoriaPreview.clear();
+                    hotbar.deseleccionar();
                 } else {
-                    // Seleccionar cuerpo bajo el cursor
+                    // Seleccionar cuerpo bajo el cursor y abrir descripción para inspección/eliminación
                     seleccionarCuerpoBajoCursor(e.getX(), e.getY());
-                }
-            } else if (e.getButton() == MouseButton.SECONDARY) {
-                // Click derecho cancela colocación o deselecciona
-                simulacion.salirModoColocacion();
-                hotbar.deseleccionar();
-                cuerpoSeleccionado = null;
-                dragInicioFisica = null;
-                dragActualFisica = null;
-                trayectoriaPreview.clear();
-            }
-        });
-
-        // --- MOUSE DRAGGED: Arrastre para vector de impulso (Slingshot) ---
-        canvas.setOnMouseDragged(e -> {
-            if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO && dragInicioFisica != null) {
-                double xFisica = ConstantesFisicas.javaFXAFisicaX(e.getX(), ANCHO_MUNDO);
-                double yFisica = ConstantesFisicas.javaFXAFisica(e.getY(), ALTO_MUNDO);
-                dragActualFisica = new Vector2D(xFisica, yFisica);
-
-                // Calcular vector impulso hacia adelante
-                Vector2D delta = dragInicioFisica.restar(dragActualFisica);
-                Vector2D velImpulso = delta.multiplicar(1.8);
-
-                // Predecir trayectoria del lanzamiento
-                TipoCuerpo tipo = simulacion.getTipoColocacion();
-                double masa = tipo != null ? tipo.masaBase * simulacion.getFactorMasaColocacion() : 1e24;
-
-                trayectoriaPreview = simulacion.getPredictor().predecirTrayectoria(
-                        dragInicioFisica, velImpulso, masa,
-                        simulacion.getSistemaSolar().getCuerpos(), 80, 1.0
-                );
-            }
-        });
-
-        // --- MOUSE RELEASED: Confirma colocación con Slingshot o Auto-Órbita ---
-        canvas.setOnMouseReleased(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                if (dragInicioFisica != null) {
-                    double distArrastre = dragInicioFisica.distanciaA(dragActualFisica != null ? dragActualFisica : dragInicioFisica);
-
-                    if (distArrastre > 12.0) {
-                        // Lanzamiento por Slingshot (impulso manual)
-                        Vector2D delta = dragInicioFisica.restar(dragActualFisica);
-                        Vector2D velImpulso = delta.multiplicar(1.8);
-                        simulacion.confirmarColocacionConImpulso(dragInicioFisica, velImpulso);
-                    } else {
-                        // Colocación asistida con órbita circular estable
-                        simulacion.confirmarColocacionAutoOrbita();
+                    if (cuerpoSeleccionado != null) {
+                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
                     }
                 }
-
-                dragInicioFisica = null;
-                dragActualFisica = null;
-                trayectoriaPreview.clear();
-                hotbar.deseleccionar();
+            } else if (e.getButton() == MouseButton.SECONDARY) {
+                if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
+                    // Click derecho cancela modo colocación
+                    simulacion.salirModoColocacion();
+                    hotbar.deseleccionar();
+                    cuerpoSeleccionado = null;
+                    trayectoriaPreview.clear();
+                } else {
+                    // Click derecho sobre un cuerpo abre ventana de descripción e inspección del ítem
+                    seleccionarCuerpoBajoCursor(e.getX(), e.getY());
+                    if (cuerpoSeleccionado != null) {
+                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
+                    }
+                }
             }
+        });
+
+        // --- MOUSE DRAGGED: Actualiza preview en arrastre (sin lanzamientos) ---
+        canvas.setOnMouseDragged(e -> {
+            if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
+                simulacion.actualizarPosicionPreview(e.getX(), e.getY());
+                actualizarPrediccionTrayectoriaAuto();
+            }
+        });
+
+        // --- MOUSE RELEASED: Sin lanzamientos ---
+        canvas.setOnMouseReleased(e -> {
+            // Se inhabilitan los lanzamientos manuales (slingshots)
         });
 
         // --- SCROLL: Ajuste de masa ---
@@ -271,12 +240,13 @@ public class App extends Application {
         Vector2D clickPos = new Vector2D(xFisica, yFisica);
 
         CuerpoCeleste masCercano = null;
-        double distMin = 35.0; // Umbral de selección en px
+        double menorDistancia = Double.MAX_VALUE;
 
         for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
             double d = clickPos.distanciaA(c.getPosicion());
-            if (d < distMin) {
-                distMin = d;
+            double radioTolerancia = Math.max(28.0, c.getRadio() + 10.0);
+            if (d <= radioTolerancia && d < menorDistancia) {
+                menorDistancia = d;
                 masCercano = c;
             }
         }
@@ -318,7 +288,8 @@ public class App extends Application {
                         simulacion.getPosicionPreview(),
                         simulacion.getTipoColocacion(),
                         simulacion.getFactorMasaColocacion(),
-                        dragInicioFisica,
+                        simulacion.getNombreColocacion(),
+                        null, // Sin vector de impulso/lanzamiento
                         trayectoriaPreview,
                         cuerpoSeleccionado
                 );

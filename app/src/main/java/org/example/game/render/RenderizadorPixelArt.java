@@ -79,6 +79,14 @@ public class RenderizadorPixelArt {
                               Vector2D previewPosFisica, TipoCuerpo previewTipo, double previewFactorMasa,
                               Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
                               CuerpoCeleste cuerpoSeleccionado) {
+        renderizarTodo(gc, cuerpos, tick, previewPosFisica, previewTipo, previewFactorMasa, null, dragInicioFisica, trayectoriaPreview, cuerpoSeleccionado);
+    }
+
+    public void renderizarTodo(GraphicsContext gc, List<CuerpoCeleste> cuerpos, long tick,
+                              Vector2D previewPosFisica, TipoCuerpo previewTipo, double previewFactorMasa,
+                              String previewNombre,
+                              Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
+                              CuerpoCeleste cuerpoSeleccionado) {
 
         // 1. Fondo espacial profundo (#1a1c26 a #0c0d14)
         gc.setFill(Color.web("#0e1017"));
@@ -99,6 +107,9 @@ public class RenderizadorPixelArt {
         if (mostrarZonasHabitables) {
             dibujarZonasHabitables(gc, cuerpos, tick);
         }
+
+        // 4.1 Áreas de Atracción y Colapso Gravitacional (Líneas sutiles apenas visibles)
+        dibujarAreasAtraccion(gc, cuerpos);
 
         // 5. Anillos de órbita y estelas de movimiento
         actualizarEstelas(cuerpos);
@@ -128,7 +139,7 @@ public class RenderizadorPixelArt {
 
         // 10. Ghost Preview de colocación
         if (previewTipo != null && previewPosFisica != null) {
-            dibujarGhostPreview(gc, previewPosFisica, previewTipo, previewFactorMasa, tick);
+            dibujarGhostPreview(gc, previewPosFisica, previewTipo, previewFactorMasa, previewNombre, tick);
         }
     }
 
@@ -180,24 +191,55 @@ public class RenderizadorPixelArt {
                 double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
                 double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
 
-                // Zona habitable: 120px a 240px
-                double rMin = 110.0;
-                double rMax = 230.0;
+                double factorMasa = 1.0;
+                if (c.getTipoCuerpo() != null && c.getTipoCuerpo().masaBase > 0) {
+                    factorMasa = Math.max(0.1, c.getMasa() / c.getTipoCuerpo().masaBase);
+                }
+                double escala = Math.sqrt(factorMasa);
 
-                // Anillo de resplandor verde habitable
-                gc.setStroke(Color.rgb(80, 250, 123, 0.12));
-                gc.setLineWidth(rMax - rMin);
-                double rMedio = (rMin + rMax) / 2.0;
-                gc.strokeOval(sx - rMedio, sy - rMedio, rMedio * 2, rMedio * 2);
+                // Líneas de referencia orbitales casi transparentes para planetas (reducidas a 2 órbitas)
+                double[] radiosReferencia = { 160.0, 280.0 };
 
-                // Bordes delimitadores
-                gc.setStroke(Color.rgb(80, 250, 123, 0.35));
                 gc.setLineWidth(1.0);
-                gc.setLineDashes(6, 6);
-                gc.strokeOval(sx - rMin, sy - rMin, rMin * 2, rMin * 2);
-                gc.strokeOval(sx - rMax, sy - rMax, rMax * 2, rMax * 2);
+                gc.setLineDashes(3, 5);
+
+                for (double rBase : radiosReferencia) {
+                    double rOrbita = rBase * escala;
+                    // Línea casi transparente sutil, consistente con las áreas de atracción ("que apenas se vean")
+                    gc.setStroke(Color.rgb(91, 227, 255, 0.14));
+                    gc.strokeOval(sx - rOrbita, sy - rOrbita, rOrbita * 2.0, rOrbita * 2.0);
+                }
+
                 gc.setLineDashes(null);
             }
+        }
+    }
+
+    private void dibujarAreasAtraccion(GraphicsContext gc, List<CuerpoCeleste> cuerpos) {
+        for (CuerpoCeleste c : cuerpos) {
+            if (!c.esSimulado()) continue;
+
+            double rAtraccion = c.getRadioAtraccion();
+            if (rAtraccion <= 0) continue;
+
+            double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
+            double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
+
+            // Color sutil según el tipo de cuerpo con muy baja opacidad ("que apenas se vean")
+            Color colorArea;
+            if (c.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
+                colorArea = Color.rgb(255, 215, 0, 0.16); // Dorado muy tenue
+            } else if (c.getTipoCuerpo() == TipoCuerpo.LUNA) {
+                colorArea = Color.rgb(200, 210, 225, 0.15); // Plateado muy tenue
+            } else {
+                colorArea = Color.rgb(91, 227, 255, 0.14); // Cyan muy tenue para planetas
+            }
+
+            gc.setStroke(colorArea);
+            gc.setLineWidth(1.0);
+            gc.setLineDashes(3, 5);
+            gc.strokeOval(sx - rAtraccion, sy - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
+            gc.setLineDashes(null);
         }
     }
 
@@ -585,6 +627,10 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarGhostPreview(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa, long tick) {
+        dibujarGhostPreview(gc, posFisica, tipo, factorMasa, null, tick);
+    }
+
+    private void dibujarGhostPreview(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa, String previewNombre, long tick) {
         double x = ConstantesFisicas.fisicaAXJavaFX(posFisica.x, anchoCanvas);
         double y = ConstantesFisicas.fisicaAYJavaFX(posFisica.y, altoCanvas);
         double r = Math.max(8.0, Math.min(35.0, 15.0 * factorMasa));
@@ -598,17 +644,54 @@ public class RenderizadorPixelArt {
         gc.strokeOval(x - rPulsante, y - rPulsante, rPulsante * 2, rPulsante * 2);
         gc.setLineDashes(null);
 
-        // Tag informativo
+        // Radio de atracción / colapso del cuerpo a colocar (guía de distancia segura)
+        double rAtraccion;
+        if (tipo == TipoCuerpo.ESTRELLA) {
+            rAtraccion = Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
+        } else if (tipo == TipoCuerpo.PLANETA_ROCOSO || tipo == TipoCuerpo.PLANETA_GASEOSO || tipo == TipoCuerpo.PLANETA_HELADO) {
+            rAtraccion = Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
+        } else if (tipo == TipoCuerpo.LUNA) {
+            rAtraccion = Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
+        } else if (tipo == TipoCuerpo.AGUJERO_NEGRO || tipo == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+            rAtraccion = Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
+        } else {
+            rAtraccion = Math.max(20.0, 35.0 * Math.sqrt(factorMasa));
+        }
+
+        // Círculo sutil ("que apenas se vea") de área de colapso para preview
+        gc.setStroke(Color.rgb(255, 255, 255, 0.20));
+        gc.setLineWidth(1.0);
+        gc.setLineDashes(3, 5);
+        gc.strokeOval(x - rAtraccion, y - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
+
+        // Si se está colocando una Estrella, mostrar también las líneas de referencia orbitales casi transparentes
+        if (tipo == TipoCuerpo.ESTRELLA) {
+            double escala = Math.sqrt(Math.max(0.1, factorMasa));
+            double[] radiosReferencia = { 160.0, 280.0 };
+            gc.setStroke(Color.rgb(91, 227, 255, 0.12));
+            for (double rBase : radiosReferencia) {
+                double rOrbita = rBase * escala;
+                gc.strokeOval(x - rOrbita, y - rOrbita, rOrbita * 2.0, rOrbita * 2.0);
+            }
+        }
+
+        gc.setLineDashes(null);
+
+        // Tag informativo con nombre personalizado si existe
+        String textoNombre = (previewNombre != null && !previewNombre.isBlank()) ? previewNombre : tipo.nombre;
+        String linea1 = textoNombre + " (" + String.format("%.1fx", factorMasa) + ")";
+        double tagWidth = Math.max(130.0, linea1.length() * 8.0 + 20.0);
+
         gc.setFill(Color.rgb(26, 28, 38, 0.9));
-        gc.fillRect(x + r + 8, y - 20, 130, 42);
+        gc.fillRect(x + r + 8, y - 20, tagWidth, 42);
         gc.setStroke(Color.web("#5be3ff"));
         gc.setLineWidth(1.0);
-        gc.strokeRect(x + r + 8, y - 20, 130, 42);
+        gc.strokeRect(x + r + 8, y - 20, tagWidth, 42);
 
         gc.setFill(Color.web("#e8e4d8"));
-        gc.fillText(tipo.nombre + " (" + String.format("%.1fx", factorMasa) + ")", x + r + 14, y - 4);
+        gc.fillText(linea1, x + r + 14, y - 4);
         gc.setFill(Color.web("#50fa7b"));
-        gc.fillText("Click: Órbita | Drag: Lanzar", x + r + 14, y + 14);
+        gc.fillText("Click para colocar", x + r + 14, y + 14);
     }
 
     // ===== Setters de Toggles =====

@@ -21,17 +21,21 @@ public class PanelInventario extends VBox {
     private final InventarioJugador inventario;
 
     // UI Elements
-    private final Label lblTitulo = new Label("🎮 INVENTARIO");
+    private final Label lblTitulo = new Label("INVENTARIO");
     private final VBox recursosBox = new VBox(5);
     private final Separator sep1 = new Separator();
-    private final Label lblSpawn = new Label("🚀 CREAR CUERPO");
+    private final Label lblSpawn = new Label("CREAR CUERPO");
     private final VBox botonesSpawnBox = new VBox(5);
     private final Separator sep2 = new Separator();
-    private final Label lblMasa = new Label("⚖️ FACTOR MASA: 1.0x");
-    private final Slider sliderMasa = new Slider(0.1, 10.0, 1.0);
+    private final Label lblMasa = new Label("FACTOR MASA: 1.0x");
+    private final Slider sliderMasa = new Slider(
+            ConfiguracionSimulacion.MASA_FACTOR_MIN,
+            ConfiguracionSimulacion.MASA_FACTOR_MAX,
+            ConfiguracionSimulacion.MASA_FACTOR_MIN
+    );
     private final Label lblInfoCosto = new Label("");
     private final Separator sep3 = new Separator();
-    private final Label lblControles = new Label("⌨️ CONTROLES");
+    private final Label lblControles = new Label("CONTROLES");
     private final VBox controlesBox = new VBox(3);
 
     private TipoCuerpo tipoSeleccionado = null;
@@ -64,7 +68,7 @@ public class PanelInventario extends VBox {
         sliderMasa.valueProperty().addListener((obs, old, neu) -> {
             double f = neu.doubleValue();
             simulacion.setFactorMasaColocacion(f);
-            lblMasa.setText(String.format("⚖️ FACTOR MASA: %.1fx", f));
+            lblMasa.setText(String.format("FACTOR MASA: %.1fx", f));
             actualizarInfoCosto();
         });
 
@@ -86,28 +90,18 @@ public class PanelInventario extends VBox {
     }
 
     private void crearBotonesSpawn() {
-        // Estrellas
-        Button btnEstrella = crearBotonSpawn("⭐ Estrella", TipoCuerpo.ESTRELLA,
-                "Crea una estrella (fuente de gravedad y energía)");
-        // Planetas
-        Button btnRocoso = crearBotonSpawn("🪨 Planeta Rocoso", TipoCuerpo.PLANETA_ROCOSO,
-                "Planeta tipo Tierra, puede albergar civilización");
-        Button btnGaseoso = crearBotonSpawn("☁ Planeta Gaseoso", TipoCuerpo.PLANETA_GASEOSO,
-                "Gigante gaseoso, mucha gravedad, sin civilización");
-        Button btnHelado = crearBotonSpawn("🧊 Planeta Helado", TipoCuerpo.PLANETA_HELADO,
-                "Planeta lejano, pocos recursos");
-        // Agujeros negros
-        Button btnAgujero = crearBotonSpawn("🕳 Agujero Negro", TipoCuerpo.AGUJERO_NEGRO,
-                "Absorbe todo, genera materia oscura");
-        Button btnSMBH = crearBotonSpawn("🕳 SMBH", TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO,
-                "Agujero supermasivo, controla galaxia");
-        // Otros
-        Button btnMeteorito = crearBotonSpawn("☄ Meteorito", TipoCuerpo.METEORITO,
-                "Proyectil para alterar órbitas");
+        // Estrella
+        Button btnEstrella = crearBotonSpawn("Estrella", TipoCuerpo.ESTRELLA,
+                "Crea una estrella (fuente de gravedad y energia)");
+        // Planeta Rocoso
+        Button btnRocoso = crearBotonSpawn("Planeta Rocoso", TipoCuerpo.PLANETA_ROCOSO,
+                "Planeta tipo Tierra, puede albergar civilizacion");
+        // Luna
+        Button btnLuna = crearBotonSpawn("Luna", TipoCuerpo.LUNA,
+                "Satelite natural rocoso");
 
         botonesSpawnBox.getChildren().addAll(
-                btnEstrella, btnRocoso, btnGaseoso, btnHelado,
-                new Separator(), btnAgujero, btnSMBH, new Separator(), btnMeteorito
+                btnEstrella, btnRocoso, btnLuna
         );
     }
 
@@ -124,7 +118,7 @@ public class PanelInventario extends VBox {
                 tipoSeleccionado = tipo;
                 actualizarSeleccionVisual(tipo);
             } else {
-                // Feedback visual: shake o color rojo
+                // Feedback visual: color rojo temporal
                 btn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white;");
                 new javafx.animation.Timeline(
                         new javafx.animation.KeyFrame(javafx.util.Duration.millis(200),
@@ -152,22 +146,23 @@ public class PanelInventario extends VBox {
     }
 
     private void crearControlesSimulacion() {
-        Button btnPlayPause = new Button("⏯ Play/Pause (Espacio)");
+        Button btnPlayPause = new Button("Play/Pause (Espacio)");
         btnPlayPause.setMaxWidth(Double.MAX_VALUE);
         btnPlayPause.setOnAction(e -> simulacion.togglePause());
 
-        Button btnStep = new Button("⏭ Step (S)");
+        Button btnStep = new Button("Paso (S)");
         btnStep.setMaxWidth(Double.MAX_VALUE);
         btnStep.setOnAction(e -> simulacion.step());
 
-        Button btnLimpiar = new Button("🗑 Limpiar Todo");
+        Button btnLimpiar = new Button("Limpiar Todo");
         btnLimpiar.setMaxWidth(Double.MAX_VALUE);
         btnLimpiar.setStyle("-fx-background-color: #e94560; -fx-text-fill: white;");
         btnLimpiar.setOnAction(e -> limpiarTodo());
 
         HBox velocidadBox = new HBox(5);
-        Label lblVel = new Label("⚡");
+        Label lblVel = new Label("Velocidad:");
         lblVel.setTextFill(Color.WHITE);
+        lblVel.setFont(Font.font("System", FontWeight.NORMAL, 10));
         Slider sliderVel = new Slider(0.1, 5.0, 1.0);
         sliderVel.setPrefWidth(120);
         sliderVel.valueProperty().addListener((obs, o, n) ->
@@ -181,16 +176,14 @@ public class PanelInventario extends VBox {
     private void limpiarTodo() {
         // Confirmar
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Limpiar simulación");
-        alert.setHeaderText("¿Eliminar todos los cuerpos?");
-        alert.setContentText("Se perderá el progreso actual.");
+        alert.setTitle("Limpiar simulacion");
+        alert.setHeaderText("Eliminar todos los cuerpos?");
+        alert.setContentText("Se perdera el progreso actual.");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 simulacion.getSistemaSolar().getCuerpos().clear();
                 simulacion.getVista().getPane().getChildren().clear();
-                InventarioJugador nuevoInv = new InventarioJugador();
-                // Hack: reemplazar inventario (necesitaríamos setter)
-                System.out.println("Simulación reiniciada");
+                simulacion.notificarEvento("Simulacion reiniciada.", org.example.game.simulacion.MensajeEvento.TipoMensaje.INFO);
             }
         });
     }
@@ -200,22 +193,20 @@ public class PanelInventario extends VBox {
 
         for (TipoRecurso tr : TipoRecurso.values()) {
             double cant = inventario.getRecurso(tr);
-            if (cant > 0 || tr == TipoRecurso.MATERIA_OSCURA || tr == TipoRecurso.CIENCIA) {
+            if (cant > 0 || tr == TipoRecurso.POBLACION || tr == TipoRecurso.CIENCIA || tr == TipoRecurso.MINERALES || tr == TipoRecurso.ENERGIA) {
                 HBox row = new HBox(5);
                 row.setAlignment(Pos.CENTER_LEFT);
 
-                Label lblIcono = new Label(tr.icono);
-                lblIcono.setFont(Font.font(14));
-
                 Label lblNombre = new Label(tr.nombre);
                 lblNombre.setTextFill(Color.WHITE);
-                lblNombre.setPrefWidth(100);
+                lblNombre.setPrefWidth(120);
+                lblNombre.setFont(Font.font("System", FontWeight.NORMAL, 11));
 
                 Label lblCant = new Label(String.format("%.1f", cant));
                 lblCant.setTextFill(Color.web(tr.getColorHex()));
                 lblCant.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
 
-                row.getChildren().addAll(lblIcono, lblNombre, lblCant);
+                row.getChildren().addAll(lblNombre, lblCant);
                 recursosBox.getChildren().add(row);
             }
         }
@@ -223,16 +214,16 @@ public class PanelInventario extends VBox {
 
     private void actualizarInfoCosto() {
         if (tipoSeleccionado != null) {
-            var costo = inventario.getCosto(tipoSeleccionado);
-            if (costo != null) {
+            var costosEscalados = inventario.calcularCostoTotal(tipoSeleccionado, simulacion.getFactorMasaColocacion());
+            if (!costosEscalados.isEmpty()) {
                 StringBuilder sb = new StringBuilder("Costo (x" + String.format("%.1f", simulacion.getFactorMasaColocacion()) + "): ");
-                for (var e : costo.getCostos().entrySet()) {
-                    double total = e.getValue() * simulacion.getFactorMasaColocacion();
+                for (var e : costosEscalados.entrySet()) {
+                    double total = e.getValue();
                     double disponible = inventario.getRecurso(e.getKey());
                     String color = disponible >= total ? "#32CD32" : "#FF4444";
-                    sb.append(e.getKey().icono).append(" ")
+                    sb.append(e.getKey().nombre).append(": ")
                       .append(String.format("%.0f", total))
-                      .append(" ");
+                      .append("  ");
                 }
                 lblInfoCosto.setText(sb.toString());
                 lblInfoCosto.setTextFill(Color.web("#cccccc"));
