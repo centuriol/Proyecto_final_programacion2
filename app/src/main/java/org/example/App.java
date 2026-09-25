@@ -1,38 +1,36 @@
 package org.example;
 
-import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.Vector2D;
+import org.example.game.controlador.BucleJuego;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.controlador.ControladorTeclado;
+import org.example.game.controlador.SincronizadorUI;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
+import org.example.game.ui.EspaciadorUI;
 import org.example.game.ui.HUDRecursosTop;
 import org.example.game.ui.PanelNotificaciones;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
  *
- * Principios SOLID:
- * - SRP: Inicializa la aplicacion JavaFX, organiza el arbol de vistas y canaliza eventos de entrada.
- * - DIP: Delega la fisica a SimulacionSolar/MotorFisica y el dibujo a RenderizadorPixelArt.
+ * Principios SOLID aplicados:
+ * - SRP: Su única responsabilidad es inicializar la aplicación JavaFX, configurar el árbol
+ *   de vistas y componer los controladores dedicados. No implementa funciones de teclado,
+ *   eventos de ratón ni ciclos de simulación directamente.
+ * - DIP: Delega la lógica de negocio a SimulacionSolar/MotorFisica, el dibujo a RenderizadorPixelArt,
+ *   la temporización a BucleJuego y el manejo de entradas a ControladorTeclado y ControladorMouse.
  */
 public class App extends Application {
 
@@ -43,7 +41,9 @@ public class App extends Application {
 
     private SimulacionSolar simulacion;
     private RenderizadorPixelArt renderizador;
-    private AnimationTimer gameLoop;
+    private BucleJuego bucleJuego;
+    private ControladorTeclado controladorTeclado;
+    private ControladorMouse controladorMouse;
 
     // Componentes UI
     private HUDRecursosTop hudRecursos;
@@ -51,16 +51,9 @@ public class App extends Application {
     private ControlTiempoWidget controlTiempo;
     private PanelNotificaciones panelNotificaciones;
 
-    // Estado interactivo de mouse
-    private List<Vector2D> trayectoriaPreview = new ArrayList<>();
-    private CuerpoCeleste cuerpoSeleccionado = null;
-
-    private long lastTickTime = 0;
-    private double tickAcumulado = 0;
-
     @Override
     public void start(Stage stage) {
-        // 1. Simulacion & Motor de fisica permisiva
+        // 1. Simulación & Motor de física permisiva
         simulacion = new SimulacionSolar(ANCHO_MUNDO, ALTO_MUNDO);
 
         // 2. Renderizador Pixel Art
@@ -75,13 +68,22 @@ public class App extends Application {
         controlTiempo = new ControlTiempoWidget(simulacion);
         panelNotificaciones = new PanelNotificaciones(simulacion);
 
-        // 5. Layout Superpuesto (HUD sobre Canvas)
+        // 5. Controladores de entrada encapsulados según POO y SOLID
+        controladorMouse = new ControladorMouse(simulacion, hotbar, stage, ANCHO_MUNDO, ALTO_MUNDO);
+        controladorMouse.conectar(canvasJuego);
+
+        controladorTeclado = new ControladorTeclado();
+        controladorTeclado.configurarAtajosPorDefecto(
+                simulacion, controlTiempo, hotbar, renderizador, controladorMouse
+        );
+
+        // 6. Layout Superpuesto (HUD sobre Canvas)
         BorderPane overlayUI = new BorderPane();
         overlayUI.setPadding(new Insets(12));
         overlayUI.setPickOnBounds(false); // Permite click-through al canvas
 
-        // Barra Superior: Recursos Der (barra de arriba a la izquierda eliminada)
-        HBox topBar = new HBox(crearSpacer(), hudRecursos);
+        // Barra Superior: Recursos Der
+        HBox topBar = new HBox(EspaciadorUI.crearHorizontal(), hudRecursos);
         topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPickOnBounds(false);
         overlayUI.setTop(topBar);
@@ -90,7 +92,12 @@ public class App extends Application {
         overlayUI.setLeft(panelNotificaciones);
 
         // Barra Inferior: Control Tiempo Izq + Spacer + Hotbar Centro
-        HBox bottomBar = new HBox(controlTiempo, crearSpacer(), hotbar, crearSpacer());
+        HBox bottomBar = new HBox(
+                controlTiempo,
+                EspaciadorUI.crearHorizontal(),
+                hotbar,
+                EspaciadorUI.crearHorizontal()
+        );
         bottomBar.setAlignment(Pos.BOTTOM_CENTER);
         bottomBar.setPickOnBounds(false);
         overlayUI.setBottom(bottomBar);
@@ -98,17 +105,15 @@ public class App extends Application {
         StackPane root = new StackPane(canvasJuego, overlayUI);
         root.setStyle("-fx-background-color: #0e1017;");
 
-        // 6. Configurar eventos de mouse y teclado
-        configurarEventos(root, canvasJuego, stage);
+        // Vincular el controlador de teclado al root pane
+        root.setOnKeyPressed(controladorTeclado);
 
-        // 7. Sincronización de callbacks
-        simulacion.setOnTickCallback(() -> {
-            hudRecursos.actualizar();
-            controlTiempo.actualizarTick();
-        });
+        // 7. Sincronización de callbacks UI encapsulada
+        simulacion.setOnTickCallback(new SincronizadorUI(hudRecursos, controlTiempo));
 
-        // 8. Bucle principal de animación (Ticks fijos + Render variable)
-        iniciarGameLoop(canvasJuego);
+        // 8. Bucle principal de animación (Ticks fijos + Render desacoplado)
+        bucleJuego = new BucleJuego(simulacion, renderizador, canvasJuego, controladorMouse);
+        bucleJuego.iniciar();
 
         // 9. Mostrar ventana
         Scene scene = new Scene(root, ANCHO_VENTANA, ALTO_VENTANA);
@@ -121,187 +126,28 @@ public class App extends Application {
         root.requestFocus();
     }
 
-    private HBox crearSpacer() {
-        HBox spacer = new HBox();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        spacer.setMouseTransparent(true);
-        return spacer;
-    }
-
-    private void configurarEventos(StackPane root, Canvas canvas, Stage stage) {
-        // --- TECLADO ---
-        root.setOnKeyPressed(e -> {
-            KeyCode code = e.getCode();
-            switch (code) {
-                case SPACE -> {
-                    simulacion.togglePause();
-                    controlTiempo.actualizarSeleccion();
-                }
-                case S -> {
-                    simulacion.step();
-                    controlTiempo.actualizarTick();
-                }
-                case ESCAPE -> {
-                    simulacion.salirModoColocacion();
-                    hotbar.deseleccionar();
-                    cuerpoSeleccionado = null;
-                }
-                case DIGIT1 -> hotbar.seleccionarTipo(TipoCuerpo.ESTRELLA);
-                case DIGIT2 -> hotbar.seleccionarTipo(TipoCuerpo.PLANETA_ROCOSO);
-                case DIGIT3 -> hotbar.seleccionarTipo(TipoCuerpo.LUNA);
-                case G -> renderizador.toggleGrilla();
-                case T -> renderizador.toggleEstelas();
-                case H -> renderizador.toggleZonasHabitables();
-                case PLUS, EQUALS -> simulacion.setFactorMasaColocacion(simulacion.getFactorMasaColocacion() * 1.15);
-                case MINUS -> simulacion.setFactorMasaColocacion(simulacion.getFactorMasaColocacion() / 1.15);
-                default -> {}
-            }
-        });
-
-        // --- MOUSE MOVED: Actualiza preview y calcula órbita sugerida ---
-        canvas.setOnMouseMoved(e -> {
-            if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                simulacion.actualizarPosicionPreview(e.getX(), e.getY());
-                actualizarPrediccionTrayectoriaAuto();
-            }
-        });
-
-        // --- MOUSE PRESSED: Colocación directa o Selección de cuerpo ---
-        canvas.setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                    // Colocación directa asistida (sin lanzamientos)
-                    simulacion.actualizarPosicionPreview(e.getX(), e.getY());
-                    simulacion.confirmarColocacionAutoOrbita();
-                    trayectoriaPreview.clear();
-                    hotbar.deseleccionar();
-                } else {
-                    // Seleccionar cuerpo bajo el cursor y abrir descripción para inspección/eliminación
-                    seleccionarCuerpoBajoCursor(e.getX(), e.getY());
-                    if (cuerpoSeleccionado != null) {
-                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
-                    }
-                }
-            } else if (e.getButton() == MouseButton.SECONDARY) {
-                if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                    // Click derecho cancela modo colocación
-                    simulacion.salirModoColocacion();
-                    hotbar.deseleccionar();
-                    cuerpoSeleccionado = null;
-                    trayectoriaPreview.clear();
-                } else {
-                    // Click derecho sobre un cuerpo abre ventana de descripción e inspección del ítem
-                    seleccionarCuerpoBajoCursor(e.getX(), e.getY());
-                    if (cuerpoSeleccionado != null) {
-                        org.example.game.ui.VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpoSeleccionado, simulacion, stage);
-                    }
-                }
-            }
-        });
-
-        // --- MOUSE DRAGGED: Actualiza preview en arrastre (sin lanzamientos) ---
-        canvas.setOnMouseDragged(e -> {
-            if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-                simulacion.actualizarPosicionPreview(e.getX(), e.getY());
-                actualizarPrediccionTrayectoriaAuto();
-            }
-        });
-
-        // --- MOUSE RELEASED: Sin lanzamientos ---
-        canvas.setOnMouseReleased(e -> {
-            // Se inhabilitan los lanzamientos manuales (slingshots)
-        });
-
-        // --- SCROLL: Ajuste de masa ---
-        canvas.setOnScroll(e -> {
-            double delta = e.getDeltaY() > 0 ? 1.15 : 0.87;
-            simulacion.setFactorMasaColocacion(simulacion.getFactorMasaColocacion() * delta);
-            e.consume();
-        });
-    }
-
-    private void actualizarPrediccionTrayectoriaAuto() {
-        Vector2D pos = simulacion.getPosicionPreview();
-        if (pos == null) return;
-
-        Vector2D velOrbital = simulacion.calcularVelocidadOrbitalAsistida(pos);
-        TipoCuerpo tipo = simulacion.getTipoColocacion();
-        double masa = tipo != null ? tipo.masaBase * simulacion.getFactorMasaColocacion() : 1e24;
-
-        trayectoriaPreview = simulacion.getPredictor().predecirTrayectoria(
-                pos, velOrbital, masa,
-                simulacion.getSistemaSolar().getCuerpos(), 75, 1.0
-        );
-    }
-
-    private void seleccionarCuerpoBajoCursor(double mouseX, double mouseY) {
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(mouseX, ANCHO_MUNDO);
-        double yFisica = ConstantesFisicas.javaFXAFisica(mouseY, ALTO_MUNDO);
-        Vector2D clickPos = new Vector2D(xFisica, yFisica);
-
-        CuerpoCeleste masCercano = null;
-        double menorDistancia = Double.MAX_VALUE;
-
-        for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
-            double d = clickPos.distanciaA(c.getPosicion());
-            double radioTolerancia = Math.max(28.0, c.getRadio() + 10.0);
-            if (d <= radioTolerancia && d < menorDistancia) {
-                menorDistancia = d;
-                masCercano = c;
-            }
-        }
-        this.cuerpoSeleccionado = masCercano;
-    }
-
-    private void iniciarGameLoop(Canvas canvas) {
-        gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (lastTickTime == 0) {
-                    lastTickTime = now;
-                    return;
-                }
-
-                double deltaTime = (now - lastTickTime) / 1_000_000_000.0;
-                lastTickTime = now;
-
-                // Ticks fijos a 20 TPS base * multiplicador de velocidad
-                double ticksPorSegundo = 20.0 * simulacion.getVelocidadSimulacion();
-                double tiempoPorTick = 1.0 / ticksPorSegundo;
-
-                tickAcumulado += deltaTime;
-                int ticksAEjecutar = (int) (tickAcumulado / tiempoPorTick);
-
-                if (ticksAEjecutar > 0) {
-                    tickAcumulado -= ticksAEjecutar * tiempoPorTick;
-                    ticksAEjecutar = Math.min(ticksAEjecutar, 8); // Evitar espiral de retraso
-                    for (int i = 0; i < ticksAEjecutar; i++) {
-                        simulacion.avanzarTick();
-                    }
-                }
-
-                // Renderizar frame completo en Pixel Art
-                renderizador.renderizarTodo(
-                        canvas.getGraphicsContext2D(),
-                        simulacion.getSistemaSolar().getCuerpos(),
-                        simulacion.getTickActual(),
-                        simulacion.getPosicionPreview(),
-                        simulacion.getTipoColocacion(),
-                        simulacion.getFactorMasaColocacion(),
-                        simulacion.getNombreColocacion(),
-                        null, // Sin vector de impulso/lanzamiento
-                        trayectoriaPreview,
-                        cuerpoSeleccionado
-                );
-            }
-        };
-        gameLoop.start();
-    }
-
     @Override
     public void stop() throws Exception {
-        if (gameLoop != null) gameLoop.stop();
+        if (bucleJuego != null) {
+            bucleJuego.detener();
+        }
         super.stop();
+    }
+
+    public SimulacionSolar getSimulacion() {
+        return simulacion;
+    }
+
+    public ControladorTeclado getControladorTeclado() {
+        return controladorTeclado;
+    }
+
+    public ControladorMouse getControladorMouse() {
+        return controladorMouse;
+    }
+
+    public BucleJuego getBucleJuego() {
+        return bucleJuego;
     }
 
     public static void main(String[] args) {
