@@ -222,6 +222,12 @@ public class SimulacionSolar {
             case PLANETA_ROCOSO:
                 cuerpo = CuerpoCelesteFactory.crearPlanetaRocoso(x, y, factorMasa, velocidadInicial);
                 break;
+            case PLANETA_AGUA:
+                cuerpo = CuerpoCelesteFactory.crearPlanetaAgua(x, y, factorMasa, velocidadInicial);
+                break;
+            case PLANETA_LAVA:
+                cuerpo = CuerpoCelesteFactory.crearPlanetaLava(x, y, factorMasa, velocidadInicial);
+                break;
             case PLANETA_GASEOSO:
                 cuerpo = CuerpoCelesteFactory.crearPlanetaGaseoso(x, y, factorMasa, velocidadInicial);
                 break;

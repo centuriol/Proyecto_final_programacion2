@@ -31,16 +31,18 @@ public class ControlTiempoWidget extends VBox {
     public ControlTiempoWidget(SimulacionSolar simulacion) {
         this.simulacion = simulacion;
 
-        setAlignment(Pos.CENTER_LEFT);
-        setPadding(new Insets(6, 10, 6, 10));
-        setSpacing(4);
+        setAlignment(Pos.CENTER);
+        setPadding(new Insets(6, 12, 6, 12));
+        setSpacing(6);
+        setPrefHeight(94);
         setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
         lblTick.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblTick.setTextFill(Color.web("#5be3ff"));
+        lblTick.setAlignment(Pos.CENTER);
 
         HBox btnBox = new HBox(4);
-        btnBox.setAlignment(Pos.CENTER_LEFT);
+        btnBox.setAlignment(Pos.CENTER);
 
         configurarBoton(btnPause, "Pausa (Espacio)", () -> {
             simulacion.pause();

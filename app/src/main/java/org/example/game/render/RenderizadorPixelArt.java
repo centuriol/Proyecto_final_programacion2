@@ -299,6 +299,12 @@ public class RenderizadorPixelArt {
             case PLANETA_ROCOSO:
                 dibujarPlanetaRocosoPixel(gc, x, y, c, tick);
                 break;
+            case PLANETA_AGUA:
+                dibujarPlanetaAguaPixel(gc, x, y, c, tick);
+                break;
+            case PLANETA_LAVA:
+                dibujarPlanetaLavaPixel(gc, x, y, c, tick);
+                break;
             case PLANETA_GASEOSO:
                 dibujarGiganteGaseosoPixel(gc, x, y, c.getRadio(), tick);
                 break;
@@ -325,14 +331,24 @@ public class RenderizadorPixelArt {
                 dibujarCuerpoGenerico(gc, x, y, c);
         }
 
-        // Etiqueta compacta con nombre debajo
+        // Etiqueta compacta con nombre debajo, centrada con el cuerpo
         gc.setFill(Color.web("#e8e4d8"));
         gc.setGlobalAlpha(0.85);
-        gc.fillText(c.getNombre(), x - 20, y + c.getRadio() + 14);
+        gc.setTextAlign(javafx.scene.text.TextAlignment.CENTER);
+        gc.fillText(c.getNombre(), x, y + c.getRadio() + 14);
+        gc.setTextAlign(javafx.scene.text.TextAlignment.LEFT);
         gc.setGlobalAlpha(1.0);
     }
 
     private void dibujarEstrellaPixel(GraphicsContext gc, double cx, double cy, double r, long tick) {
+        javafx.scene.image.Image imgSol = GestorImagenes.getImagen(TipoCuerpo.ESTRELLA);
+        if (imgSol != null) {
+            // Solo la imagen del sol, sin halo ni luz externa
+            double tam = Math.max(32.0, r * 2.2);
+            gc.drawImage(imgSol, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+            return;
+        }
+
         // Resplandor corona pulsante
         double pulso = 1.0 + 0.12 * Math.sin(tick * 0.15);
         double rCorona = r * 1.5 * pulso;
@@ -362,6 +378,21 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarPlanetaRocosoPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
+        javafx.scene.image.Image imgPlaneta = GestorImagenes.getImagen(TipoCuerpo.PLANETA_ROCOSO);
+        if (imgPlaneta != null) {
+            double r = c.getRadio();
+            double tam = Math.max(22.0, r * 2.0);
+            gc.drawImage(imgPlaneta, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+
+            // Si tiene civilización: luces de ciudades en la superficie
+            if (c instanceof Planeta && ((Planeta) c).tieneCivilizacion()) {
+                gc.setFill(Color.web("#5be3ff"));
+                gc.fillRect(cx - r * 0.3, cy - r * 0.2, 2, 2);
+                gc.fillRect(cx + r * 0.2, cy + r * 0.1, 2, 2);
+            }
+            return;
+        }
+
         double r = c.getRadio();
 
         // Borde 2px negro estilo RimWorld
@@ -389,6 +420,42 @@ public class RenderizadorPixelArt {
             gc.fillRect(cx - r * 0.2, cy + r * 0.3, 2, 2);
             gc.fillRect(cx + r * 0.2, cy + r * 0.1, 3, 2);
         }
+    }
+
+    private void dibujarPlanetaAguaPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
+        javafx.scene.image.Image imgAgua = GestorImagenes.getImagen(TipoCuerpo.PLANETA_AGUA);
+        if (imgAgua != null) {
+            double r = c.getRadio();
+            double tam = Math.max(22.0, r * 2.0);
+            gc.drawImage(imgAgua, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+            return;
+        }
+
+        double r = c.getRadio();
+        gc.setFill(Color.BLACK);
+        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
+        gc.setFill(Color.web("#00bfff"));
+        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        gc.setFill(Color.web("#1e90ff"));
+        gc.fillRect(cx - r * 0.4, cy - r * 0.2, r * 0.8, r * 0.4);
+    }
+
+    private void dibujarPlanetaLavaPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
+        javafx.scene.image.Image imgLava = GestorImagenes.getImagen(TipoCuerpo.PLANETA_LAVA);
+        if (imgLava != null) {
+            double r = c.getRadio();
+            double tam = Math.max(22.0, r * 2.0);
+            gc.drawImage(imgLava, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+            return;
+        }
+
+        double r = c.getRadio();
+        gc.setFill(Color.BLACK);
+        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
+        gc.setFill(Color.web("#ff4500"));
+        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        gc.setFill(Color.web("#ffd700"));
+        gc.fillRect(cx - r * 0.3, cy - r * 0.2, r * 0.6, r * 0.4);
     }
 
     private void dibujarGiganteGaseosoPixel(GraphicsContext gc, double cx, double cy, double r, long tick) {
@@ -423,6 +490,13 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarLunaPixel(GraphicsContext gc, double cx, double cy, double r) {
+        javafx.scene.image.Image imgLuna = GestorImagenes.getImagen(TipoCuerpo.LUNA);
+        if (imgLuna != null) {
+            double tam = Math.max(14.0, r * 2.0);
+            gc.drawImage(imgLuna, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+            return;
+        }
+
         gc.setFill(Color.BLACK);
         gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
 
@@ -644,11 +718,22 @@ public class RenderizadorPixelArt {
         gc.strokeOval(x - rPulsante, y - rPulsante, rPulsante * 2, rPulsante * 2);
         gc.setLineDashes(null);
 
+        // Si el ítem tiene imagen de sprite, dibujarlo como ghost translúcido
+        javafx.scene.image.Image imgGhost = GestorImagenes.getImagen(tipo);
+        if (imgGhost != null) {
+            gc.setGlobalAlpha(0.65);
+            double tamGhost = (tipo == TipoCuerpo.ESTRELLA) ? Math.max(32.0, r * 2.2) : Math.max(16.0, r * 2.0);
+            gc.drawImage(imgGhost, Math.round(x - tamGhost / 2.0), Math.round(y - tamGhost / 2.0), tamGhost, tamGhost);
+            gc.setGlobalAlpha(1.0);
+        }
+
         // Radio de atracción / colapso del cuerpo a colocar (guía de distancia segura)
         double rAtraccion;
         if (tipo == TipoCuerpo.ESTRELLA) {
             rAtraccion = Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
-        } else if (tipo == TipoCuerpo.PLANETA_ROCOSO || tipo == TipoCuerpo.PLANETA_GASEOSO || tipo == TipoCuerpo.PLANETA_HELADO) {
+        } else if (tipo == TipoCuerpo.PLANETA_ROCOSO || tipo == TipoCuerpo.PLANETA_GASEOSO
+                || tipo == TipoCuerpo.PLANETA_HELADO || tipo == TipoCuerpo.PLANETA_AGUA
+                || tipo == TipoCuerpo.PLANETA_LAVA) {
             rAtraccion = Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
         } else if (tipo == TipoCuerpo.LUNA) {
             rAtraccion = Math.max(25.0, 40.0 * Math.sqrt(factorMasa));

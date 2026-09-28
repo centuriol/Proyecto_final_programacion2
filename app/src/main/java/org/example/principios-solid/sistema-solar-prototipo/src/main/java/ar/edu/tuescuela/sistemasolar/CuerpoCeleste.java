@@ -202,7 +202,9 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
         }
         if (tipoCuerpo == TipoCuerpo.ESTRELLA) {
             return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
-        } else if (tipoCuerpo == TipoCuerpo.PLANETA_ROCOSO || tipoCuerpo == TipoCuerpo.PLANETA_GASEOSO || tipoCuerpo == TipoCuerpo.PLANETA_HELADO) {
+        } else if (tipoCuerpo == TipoCuerpo.PLANETA_ROCOSO || tipoCuerpo == TipoCuerpo.PLANETA_GASEOSO
+                || tipoCuerpo == TipoCuerpo.PLANETA_HELADO || tipoCuerpo == TipoCuerpo.PLANETA_AGUA
+                || tipoCuerpo == TipoCuerpo.PLANETA_LAVA) {
             return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
         } else if (tipoCuerpo == TipoCuerpo.LUNA) {
             return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));

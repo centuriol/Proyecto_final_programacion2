@@ -91,13 +91,8 @@ public class App extends Application {
         // Panel lateral izquierdo para notificaciones
         overlayUI.setLeft(panelNotificaciones);
 
-        // Barra Inferior: Control Tiempo Izq + Spacer + Hotbar Centro
-        HBox bottomBar = new HBox(
-                controlTiempo,
-                EspaciadorUI.crearHorizontal(),
-                hotbar,
-                EspaciadorUI.crearHorizontal()
-        );
+        // Barra Inferior: Control Tiempo (Ticks y velocidades) + Hotbar de Ítems (Todo centrado)
+        HBox bottomBar = new HBox(10, controlTiempo, hotbar);
         bottomBar.setAlignment(Pos.BOTTOM_CENTER);
         bottomBar.setPickOnBounds(false);
         overlayUI.setBottom(bottomBar);
