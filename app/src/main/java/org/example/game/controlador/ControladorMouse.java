@@ -29,8 +29,8 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     private final SimulacionSolar simulacion;
     private final BarraInventarioHotbar hotbar;
     private final Stage stage;
-    private final double anchoMundo;
-    private final double altoMundo;
+    private double anchoMundo;
+    private double altoMundo;
 
     private List<Vector2D> trayectoriaPreview = new ArrayList<>();
     private CuerpoCeleste cuerpoSeleccionado = null;
@@ -181,5 +181,12 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
 
     public void setCuerpoSeleccionado(CuerpoCeleste cuerpo) {
         this.cuerpoSeleccionado = cuerpo;
+    }
+
+    public void setDimensiones(double ancho, double alto) {
+        if (ancho > 0 && alto > 0) {
+            this.anchoMundo = ancho;
+            this.altoMundo = alto;
+        }
     }
 }

@@ -48,6 +48,88 @@ class GestorImagenesTest {
     }
 
     @Test
+    void testCargarImagenFondo() {
+        Image fondo = GestorImagenes.getImagenFondo();
+        assertNotNull(fondo, "La imagen de fondo espacial (fondo_final) debe cargarse correctamente");
+        assertTrue(fondo.getWidth() > 0, "El ancho del fondo debe ser mayor a 0");
+        assertTrue(fondo.getHeight() > 0, "El alto del fondo debe ser mayor a 0");
+
+        Image fondoFinalPorNombre = GestorImagenes.getImagenPorNombre("fondo_final");
+        assertNotNull(fondoFinalPorNombre, "Debe cargarse la imagen por el nombre fondo_final");
+
+        Image fondoPrimePorNombre = GestorImagenes.getImagenPorNombre("fondo_prime");
+        assertNotNull(fondoPrimePorNombre, "Debe cargarse la imagen por el nombre fondo_prime");
+
+        Image fondoAnterior = GestorImagenes.getImagenPorNombre("imagen_fonde");
+        assertNotNull(fondoAnterior, "Debe cargarse la imagen anterior por el nombre imagen_fonde");
+    }
+
+    @Test
+    void testRenderizadorTieneImagenFondo() {
+        org.example.game.render.RenderizadorPixelArt renderizador = new org.example.game.render.RenderizadorPixelArt(1920, 1080);
+        assertNotNull(renderizador.getImagenFondo(), "El renderizador debe inicializarse con la imagen de fondo");
+    }
+
+    @Test
+    void testRedimensionamientoCanvasYRenderizador() {
+        org.example.game.ui.ResizableCanvas canvas = new org.example.game.ui.ResizableCanvas(800, 600);
+        assertTrue(canvas.isResizable());
+        canvas.resize(1366, 768);
+        assertEquals(1366, canvas.getWidth());
+        assertEquals(768, canvas.getHeight());
+
+        org.example.game.render.RenderizadorPixelArt renderizador = new org.example.game.render.RenderizadorPixelArt(800, 600);
+        assertEquals(800, renderizador.getAnchoCanvas());
+        assertEquals(600, renderizador.getAltoCanvas());
+
+        renderizador.setDimensiones(1366, 768);
+        assertEquals(1366, renderizador.getAnchoCanvas());
+        assertEquals(768, renderizador.getAltoCanvas());
+        assertNotNull(renderizador.getImagenFondo());
+    }
+
+    @Test
+    void testMovimientoFondoYEscalaVelocidad() {
+        org.example.game.render.RenderizadorPixelArt renderizador = new org.example.game.render.RenderizadorPixelArt(1000, 500);
+        assertEquals(0.0, renderizador.getDesplazamientoFondoX(), 0.001);
+
+        // A velocidad 1x (1 segundo)
+        renderizador.avanzarFondo(1.0, 1.0);
+        double velBase = renderizador.getVelocidadBaseFondo();
+        assertEquals(velBase, renderizador.getDesplazamientoFondoX(), 0.001);
+
+        // A velocidad 2x (1 segundo), debe avanzar el doble
+        renderizador.avanzarFondo(1.0, 2.0);
+        assertEquals(velBase + 2.0 * velBase, renderizador.getDesplazamientoFondoX(), 0.001);
+
+        // A velocidad 4x (1 segundo), debe avanzar el cuádruple
+        renderizador.avanzarFondo(1.0, 4.0);
+        assertEquals(velBase * 7.0, renderizador.getDesplazamientoFondoX(), 0.001);
+
+        // Si se pausa (multiplicador 0), no debe avanzar
+        renderizador.avanzarFondo(1.0, 0.0);
+        assertEquals(velBase * 7.0, renderizador.getDesplazamientoFondoX(), 0.001);
+    }
+
+    @Test
+    void testRotacionAxialItemsSobreSuPropioEje() {
+        org.example.game.render.RenderizadorPixelArt renderizador = new org.example.game.render.RenderizadorPixelArt(1000, 500);
+        assertEquals(0.0, renderizador.getTiempoAnimacionSegundos(), 0.001);
+
+        // A velocidad 1x (1 segundo)
+        renderizador.avanzarAnimaciones(1.0, 1.0);
+        assertEquals(1.0, renderizador.getTiempoAnimacionSegundos(), 0.001);
+
+        // A velocidad 2x (1 segundo), suma 2 segundos de tiempo animado
+        renderizador.avanzarAnimaciones(1.0, 2.0);
+        assertEquals(3.0, renderizador.getTiempoAnimacionSegundos(), 0.001);
+
+        // Pausa (0.0), no debe avanzar
+        renderizador.avanzarAnimaciones(1.0, 0.0);
+        assertEquals(3.0, renderizador.getTiempoAnimacionSegundos(), 0.001);
+    }
+
+    @Test
     void testTieneImagen() {
         assertTrue(GestorImagenes.tieneImagen(TipoCuerpo.ESTRELLA));
         assertTrue(GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_ROCOSO));

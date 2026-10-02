@@ -123,40 +123,84 @@ public class GestorImagenes {
         return contenedor;
     }
 
+    private static String nombreFondoActivo = "fondo_final";
+
+    /**
+     * Permite cambiar dinámicamente el nombre de la imagen de fondo espacial activa.
+     */
+    public static void setNombreFondoActivo(String nombre) {
+        if (nombre != null && !nombre.isBlank()) {
+            nombreFondoActivo = nombre.trim();
+        }
+    }
+
+    /**
+     * Obtiene la imagen de fondo espacial del juego (prioriza "fondo_final", luego "fondo_prime", "imagen_fonde" o "imagen_fondo").
+     */
+    public static Image getImagenFondo() {
+        Image fondo = getImagenPorNombre(nombreFondoActivo);
+        if (fondo == null && !nombreFondoActivo.equalsIgnoreCase("fondo_final")) {
+            fondo = getImagenPorNombre("fondo_final");
+        }
+        if (fondo == null) {
+            fondo = getImagenPorNombre("fondo_prime");
+        }
+        if (fondo == null) {
+            fondo = getImagenPorNombre("imagen_fonde");
+        }
+        if (fondo == null) {
+            fondo = getImagenPorNombre("imagen_fondo");
+        }
+        if (fondo == null) {
+            fondo = getImagenPorNombre("fondo");
+        }
+        return fondo;
+    }
+
     private static Image cargarImagen(String nombre) {
-        // 1. Intentar cargar PNG desde el Classpath
-        InputStream isClasspathPng = obtenerStreamClasspath(nombre, ".png");
-        if (isClasspathPng != null) {
-            try {
-                return new Image(isClasspathPng);
-            } catch (Exception ignored) {}
+        String baseNombre = nombre;
+        List<String> extensiones;
+
+        int dotIdx = nombre.lastIndexOf('.');
+        if (dotIdx != -1) {
+            String ext = nombre.substring(dotIdx).toLowerCase();
+            if (ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".pixil")) {
+                baseNombre = nombre.substring(0, dotIdx);
+                extensiones = List.of(ext);
+            } else {
+                extensiones = List.of(".png", ".jpg", ".jpeg", ".pixil");
+            }
+        } else {
+            extensiones = List.of(".png", ".jpg", ".jpeg", ".pixil");
         }
 
-        // 2. Intentar cargar y decodificar .pixil desde el Classpath
-        InputStream isClasspathPixil = obtenerStreamClasspath(nombre, ".pixil");
-        if (isClasspathPixil != null) {
-            Image img = decodificarPixil(isClasspathPixil);
-            if (img != null) return img;
-        }
-
-        // 3. Intentar buscar archivo PNG en el sistema de archivos
-        for (String dir : DIRECTORIOS_BUSQUEDA) {
-            File f = new File(dir, nombre + ".png");
-            if (f.exists() && f.isFile()) {
-                try (InputStream fis = new FileInputStream(f)) {
-                    return new Image(fis);
+        for (String ext : extensiones) {
+            // 1. Intentar desde el Classpath
+            InputStream isClasspath = obtenerStreamClasspath(baseNombre, ext);
+            if (isClasspath != null) {
+                try {
+                    if (ext.equals(".pixil")) {
+                        Image img = decodificarPixil(isClasspath);
+                        if (img != null) return img;
+                    } else {
+                        return new Image(isClasspath);
+                    }
                 } catch (Exception ignored) {}
             }
-        }
 
-        // 4. Intentar buscar y decodificar archivo .pixil en el sistema de archivos
-        for (String dir : DIRECTORIOS_BUSQUEDA) {
-            File f = new File(dir, nombre + ".pixil");
-            if (f.exists() && f.isFile()) {
-                try (InputStream fis = new FileInputStream(f)) {
-                    Image img = decodificarPixil(fis);
-                    if (img != null) return img;
-                } catch (Exception ignored) {}
+            // 2. Intentar desde el sistema de archivos
+            for (String dir : DIRECTORIOS_BUSQUEDA) {
+                File f = new File(dir, baseNombre + ext);
+                if (f.exists() && f.isFile()) {
+                    try (InputStream fis = new FileInputStream(f)) {
+                        if (ext.equals(".pixil")) {
+                            Image img = decodificarPixil(fis);
+                            if (img != null) return img;
+                        } else {
+                            return new Image(fis);
+                        }
+                    } catch (Exception ignored) {}
+                }
             }
         }
 
