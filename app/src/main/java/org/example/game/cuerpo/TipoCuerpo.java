@@ -7,7 +7,7 @@ import org.example.game.simulacion.ConfiguracionSimulacion;
  */
 public enum TipoCuerpo {
     ESTRELLA(
-        "Estrella",
+        "Sol",
         1.989e30,      // Masa base (kg) - masa solar
         6.96e8,        // Radio físico base (m) - radio solar
         5778,          // Temperatura superficial (K)
@@ -17,7 +17,7 @@ public enum TipoCuerpo {
         0xFFD700       // Color dorado (hex ARGB)
     ),
     PLANETA_ROCOSO(
-        "Planeta Rocoso",
+        "Planeta Porro",
         5.97e24,       // Masa Tierra
         6.37e6,        // Radio Tierra
         288,           // Temp media
@@ -25,6 +25,26 @@ public enum TipoCuerpo {
         true,          // Puede tener civilización
         false,
         0x4169E1       // Azul real
+    ),
+    PLANETA_AGUA(
+        "Planeta de Agua",
+        5.97e24,       // Masa similar a Planeta Porro
+        6.37e6,        // Radio similar a Planeta Porro
+        285,           // Temp media acuática
+        false,
+        false,         // No genera población
+        false,
+        0x00BFFF       // Deep Sky Blue
+    ),
+    PLANETA_LAVA(
+        "Planeta Lava",
+        5.97e24,       // Masa similar a Planeta Porro
+        6.37e6,        // Radio similar a Planeta Porro
+        1400,          // Temp media magmática
+        false,
+        false,         // No genera población
+        false,
+        0xFF4500       // OrangeRed / Rojo lava
     ),
     PLANETA_GASEOSO(
         "Gigante Gaseoso",
@@ -37,7 +57,7 @@ public enum TipoCuerpo {
         0xCD853F       // Marrón/naranja
     ),
     LUNA(
-        "Luna con Cráteres",
+        "Luna",
         7.34e22,       // Masa Luna
         1.737e6,       // Radio Luna
         220,

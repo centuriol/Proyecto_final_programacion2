@@ -59,6 +59,21 @@ public class BucleJuego extends AnimationTimer {
             }
         }
 
+        // Sincronizar dimensiones si el lienzo se adapta a la ventana/pantalla
+        double anchoActual = canvas.getWidth();
+        double altoActual = canvas.getHeight();
+        if (anchoActual > 0 && altoActual > 0 && (anchoActual != renderizador.getAnchoCanvas() || altoActual != renderizador.getAltoCanvas())) {
+            renderizador.setDimensiones(anchoActual, altoActual);
+            simulacion.setDimensionesMundo(anchoActual, altoActual);
+            if (proveedorEstado instanceof ControladorMouse cm) {
+                cm.setDimensiones(anchoActual, altoActual);
+            }
+        }
+
+        // Desplazamiento continuo del fondo espacial y rotación de ítems sobre su propio eje (escala con 1x, 2x, 4x)
+        double multVelocidad = simulacion.isEnPausa() ? 0.0 : simulacion.getVelocidadSimulacion();
+        renderizador.avanzarAnimaciones(Math.min(deltaTime, 0.1), multVelocidad);
+
         // Renderizar frame completo en Pixel Art
         renderizador.renderizarTodo(
                 canvas.getGraphicsContext2D(),

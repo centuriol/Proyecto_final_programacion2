@@ -72,6 +72,8 @@ public class ControladorTeclado implements EventHandler<KeyEvent> {
         registrarComando(KeyCode.DIGIT1, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.ESTRELLA));
         registrarComando(KeyCode.DIGIT2, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_ROCOSO));
         registrarComando(KeyCode.DIGIT3, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.LUNA));
+        registrarComando(KeyCode.DIGIT4, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_AGUA));
+        registrarComando(KeyCode.DIGIT5, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_LAVA));
 
         registrarComando(KeyCode.G, new ComandoAlternarGrilla(renderizador));
         registrarComando(KeyCode.T, new ComandoAlternarEstelas(renderizador));

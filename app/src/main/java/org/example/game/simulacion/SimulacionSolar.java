@@ -56,7 +56,12 @@ public class SimulacionSolar {
     private Runnable onCambioEstadoCallback;
     private final List<java.util.function.Consumer<MensajeEvento>> listenersEvento = new ArrayList<>();
 
+    private double anchoMundo;
+    private double altoMundo;
+
     public SimulacionSolar(double anchoMundo, double altoMundo) {
+        this.anchoMundo = anchoMundo;
+        this.altoMundo = altoMundo;
         this.motorFisica = new MotorFisicaPermisiva(Math.max(anchoMundo, altoMundo));
         this.sistemaSolar = new SistemaSolar(motorFisica);
         this.inventario = new InventarioJugador();
@@ -191,9 +196,7 @@ public class SimulacionSolar {
                     .filter(c -> c instanceof Meteorito).count();
 
             if (meteoritosActivos < ConfiguracionSimulacion.MAX_METEORITOS_SIMULTANEOS) {
-                double ancho = 1920;
-                double alto = 1080;
-                Meteorito m = CuerpoCelesteFactory.crearMeteoritoAleatorio(ancho, alto);
+                Meteorito m = CuerpoCelesteFactory.crearMeteoritoAleatorio(anchoMundo, altoMundo);
                 agregarCuerpo(m);
                 notificarEvento("Alerta cosmica: Nuevo meteorito detectado en trayectoria.", MensajeEvento.TipoMensaje.ADVERTENCIA);
             }
@@ -221,6 +224,12 @@ public class SimulacionSolar {
                 break;
             case PLANETA_ROCOSO:
                 cuerpo = CuerpoCelesteFactory.crearPlanetaRocoso(x, y, factorMasa, velocidadInicial);
+                break;
+            case PLANETA_AGUA:
+                cuerpo = CuerpoCelesteFactory.crearPlanetaAgua(x, y, factorMasa, velocidadInicial);
+                break;
+            case PLANETA_LAVA:
+                cuerpo = CuerpoCelesteFactory.crearPlanetaLava(x, y, factorMasa, velocidadInicial);
                 break;
             case PLANETA_GASEOSO:
                 cuerpo = CuerpoCelesteFactory.crearPlanetaGaseoso(x, y, factorMasa, velocidadInicial);
@@ -362,8 +371,8 @@ public class SimulacionSolar {
     }
 
     public void actualizarPosicionPreview(double xJavaFX, double yJavaFX) {
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(xJavaFX, 1920);
-        double yFisica = ConstantesFisicas.javaFXAFisica(yJavaFX, 1080);
+        double xFisica = ConstantesFisicas.javaFXAFisicaX(xJavaFX, anchoMundo);
+        double yFisica = ConstantesFisicas.javaFXAFisica(yJavaFX, altoMundo);
         this.posicionPreview = new Vector2D(xFisica, yFisica);
     }
 
@@ -487,6 +496,21 @@ public class SimulacionSolar {
             ConfiguracionSimulacion.MASA_FACTOR_MIN,
             Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, f)
         );
+    }
+
+    public void setDimensionesMundo(double ancho, double alto) {
+        if (ancho > 0 && alto > 0) {
+            this.anchoMundo = ancho;
+            this.altoMundo = alto;
+        }
+    }
+
+    public double getAnchoMundo() {
+        return anchoMundo;
+    }
+
+    public double getAltoMundo() {
+        return altoMundo;
     }
 
     public enum ModoColocacion {

@@ -115,7 +115,9 @@ public class MotorFisicaPermisiva implements org.example.MotorFisica {
                     boolean esLunaYPlaneta = (luna != null && otroLuna != null && otroLuna.getTipoCuerpo() != null &&
                             (otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_ROCOSO ||
                              otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_GASEOSO ||
-                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_HELADO));
+                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_HELADO ||
+                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_AGUA ||
+                             otroLuna.getTipoCuerpo() == TipoCuerpo.PLANETA_LAVA));
 
                     if (esLunaYPlaneta) {
                         double radioCapturaLuna = luna.getRadioAtraccion();

@@ -30,11 +30,13 @@ public class BarraInventarioHotbar extends HBox {
     private static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
             TipoCuerpo.PLANETA_ROCOSO,
-            TipoCuerpo.LUNA
+            TipoCuerpo.LUNA,
+            TipoCuerpo.PLANETA_AGUA,
+            TipoCuerpo.PLANETA_LAVA
     };
 
     private static final String[] ICONOS_HOTBAR = {
-            "[EST]", "[ROC]", "[LUN]"
+            "[SOL]", "[POR]", "[LUN]", "[AGU]", "[LAV]"
     };
 
     public BarraInventarioHotbar(SimulacionSolar simulacion) {
@@ -60,23 +62,36 @@ public class BarraInventarioHotbar extends HBox {
     private VBox crearSlot(TipoCuerpo tipo, String icono, int hotkey) {
         VBox slot = new VBox(2);
         slot.setAlignment(Pos.CENTER);
-        slot.setPrefSize(145, 78);
+        slot.setPrefSize(160, 82);
         slot.setPadding(new Insets(3, 6, 3, 6));
         slot.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 2px; -fx-cursor: hand;");
 
-        // Cabecera: [1] ESTRELLA
-        HBox header = new HBox(4);
-        header.setAlignment(Pos.CENTER);
+        // Cabecera: Nombre centrado con la tecla a la izquierda
+        javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
+        header.setMaxWidth(Double.MAX_VALUE);
 
         Label lblKey = new Label("[" + hotkey + "]");
         lblKey.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
         lblKey.setTextFill(Color.web("#8c92a4"));
+        javafx.scene.layout.StackPane.setAlignment(lblKey, Pos.CENTER_LEFT);
 
         Label lblNom = new Label(tipo.nombre.toUpperCase());
         lblNom.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblNom.setTextFill(Color.web(tipo.getColorHexString()));
+        lblNom.setAlignment(Pos.CENTER);
+        lblNom.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        javafx.scene.layout.StackPane.setAlignment(lblNom, Pos.CENTER);
 
-        header.getChildren().addAll(lblKey, lblNom);
+        header.getChildren().addAll(lblNom, lblKey);
+
+        // Contenido con imagen a la izquierda y detalles a la derecha, centrado
+        HBox contenido = new HBox(6);
+        contenido.setAlignment(Pos.CENTER);
+
+        javafx.scene.layout.StackPane iconBox = org.example.game.render.GestorImagenes.crearContenedorIcono(tipo, 38, 38);
+
+        VBox detalles = new VBox(1);
+        detalles.setAlignment(Pos.CENTER_LEFT);
 
         // Necesitas (Costo para colocarlo)
         String textoCosto = formatearResumenCosto(tipo);
@@ -95,7 +110,10 @@ public class BarraInventarioHotbar extends HBox {
         lblInfo.setFont(Font.font("Monospace", FontWeight.NORMAL, 8));
         lblInfo.setTextFill(Color.web("#718096"));
 
-        slot.getChildren().addAll(header, lblCosto, lblProd, lblInfo);
+        detalles.getChildren().addAll(lblCosto, lblProd, lblInfo);
+        contenido.getChildren().addAll(iconBox, detalles);
+
+        slot.getChildren().addAll(header, contenido);
 
         // Sin tooltip al pasar el cursor (solo se abre la descripción al hacer click)
 
