@@ -55,6 +55,20 @@ public final class CuerpoCelesteFactory {
         return p;
     }
 
+    public static Planeta crearPlanetaAgua(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        double masa = TipoCuerpo.PLANETA_AGUA.masaBase * factorMasa;
+        Planeta p = new Planeta(generarNombre("Agua"), masa, x, y, TipoCuerpo.PLANETA_AGUA);
+        p.setVelocidad(velocidadInicial);
+        return p;
+    }
+
+    public static Planeta crearPlanetaLava(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        double masa = TipoCuerpo.PLANETA_LAVA.masaBase * factorMasa;
+        Planeta p = new Planeta(generarNombre("Lava"), masa, x, y, TipoCuerpo.PLANETA_LAVA);
+        p.setVelocidad(velocidadInicial);
+        return p;
+    }
+
     public static Planeta crearPlanetaHelado(double x, double y, double factorMasa, Vector2D velocidadInicial) {
         double masa = TipoCuerpo.PLANETA_HELADO.masaBase * factorMasa;
         Planeta p = new Planeta(generarNombre("Helado"), masa, x, y, TipoCuerpo.PLANETA_HELADO);
@@ -84,6 +98,12 @@ public final class CuerpoCelesteFactory {
                 break;
             case PLANETA_HELADO:
                 p = crearPlanetaHelado(x, y, factorMasa, vel);
+                break;
+            case PLANETA_AGUA:
+                p = crearPlanetaAgua(x, y, factorMasa, vel);
+                break;
+            case PLANETA_LAVA:
+                p = crearPlanetaLava(x, y, factorMasa, vel);
                 break;
             default:
                 p = crearPlanetaRocoso(x, y, factorMasa, vel);

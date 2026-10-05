@@ -246,12 +246,14 @@ class AppTest {
         assertEquals(pobAntes, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "La luna no debe generar poblacion");
         assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_LUNA_MINERALES, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
 
-        // 4. Verificar que el crecimiento es lento (valores por tick <= 0.05)
-        assertTrue(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA <= 0.05);
+        // 4. Verificar que el crecimiento es lento (valores por tick <= 0.10)
+        assertTrue(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA <= 0.10);
         assertTrue(ConfiguracionSimulacion.PRODUCCION_PLANETA_MINERALES <= 0.05);
         assertTrue(ConfiguracionSimulacion.PRODUCCION_PLANETA_CIENCIA <= 0.05);
         assertTrue(ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION <= 0.05);
         assertTrue(ConfiguracionSimulacion.PRODUCCION_LUNA_MINERALES <= 0.05);
+        assertTrue(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES <= 0.05);
+        assertTrue(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES <= 0.10);
     }
 
     @Test
@@ -841,6 +843,28 @@ class AppTest {
         var prodLuna = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.LUNA);
         assertTrue(prodLuna.containsKey(TipoRecurso.MINERALES));
         assertEquals(1, prodLuna.size(), "La luna solo genera minerales");
+
+        // Planeta de Agua (50 mineral, 25 energia, mitad de planeta porro, sin poblacion)
+        var costoAgua = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_AGUA);
+        assertEquals(50.0, costoAgua.get(TipoRecurso.MINERALES));
+        assertEquals(25.0, costoAgua.get(TipoRecurso.ENERGIA));
+        var prodAgua = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_AGUA);
+        assertEquals(0.015, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.01, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
+        assertFalse(prodAgua.containsKey(TipoRecurso.POBLACION), "El planeta de agua no debe generar poblacion");
+
+        // Planeta Lava (150 mineral, 75 energia, 0.07 mineral, 0.05 ciencia, sin poblacion)
+        var costoLava = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_LAVA);
+        assertEquals(150.0, costoLava.get(TipoRecurso.MINERALES));
+        assertEquals(75.0, costoLava.get(TipoRecurso.ENERGIA));
+        var prodLava = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_LAVA);
+        assertEquals(0.07, prodLava.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.05, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
+        assertFalse(prodLava.containsKey(TipoRecurso.POBLACION), "El planeta lava no debe generar poblacion");
+
+        // Sol (x2 de produccion)
+        assertEquals(0.10, prodEstrella.get(TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(0.04, prodEstrella.get(TipoRecurso.MINERALES), 1e-6);
     }
 
     @Test
@@ -951,8 +975,8 @@ class AppTest {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
         org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
 
-        // La hotbar solo debe contener los 3 slots de cuerpos (Estrella, Planeta, Luna), sin pestaña de masa
-        assertEquals(3, hotbar.getChildren().size(), "La hotbar debe contener exactamente 3 slots de cuerpos celestes sin la pestaña de masa");
+        // La hotbar contiene los 5 slots de cuerpos (Estrella, Planeta Porro, Luna, Planeta de Agua, Planeta Lava), sin pestaña de masa
+        assertEquals(5, hotbar.getChildren().size(), "La hotbar debe contener exactamente 5 slots de cuerpos celestes sin la pestaña de masa");
 
         // Ningún slot debe tener un tooltip instalado en hover
         for (javafx.scene.Node node : hotbar.getChildren()) {
@@ -1166,6 +1190,75 @@ class AppTest {
         assertEquals(250.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "100 restantes + 150 reembolsados = 250");
         assertEquals(125.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), "50 restantes + 75 reembolsados = 125");
         assertEquals(25.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), "0 restantes + 25 reembolsados = 25");
+    }
+
+    @Test
+    void testNuevosItemsPlanetaAguaYPlanetaLavaYSolX2() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.limpiarCuerpos();
+
+        // 1. Verificar costos base
+        var costoAgua = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_AGUA);
+        assertEquals(50.0, costoAgua.get(TipoRecurso.MINERALES));
+        assertEquals(25.0, costoAgua.get(TipoRecurso.ENERGIA));
+        assertNull(costoAgua.get(TipoRecurso.CIENCIA));
+
+        var costoLava = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_LAVA);
+        assertEquals(150.0, costoLava.get(TipoRecurso.MINERALES));
+        assertEquals(75.0, costoLava.get(TipoRecurso.ENERGIA));
+        assertNull(costoLava.get(TipoRecurso.CIENCIA));
+
+        // 2. Verificar producción base por tick
+        var prodAgua = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_AGUA);
+        assertEquals(0.015, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.01, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
+        assertNull(prodAgua.get(TipoRecurso.POBLACION), "Planeta de agua no debe generar poblacion");
+
+        var prodLava = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_LAVA);
+        assertEquals(0.07, prodLava.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.05, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
+        assertNull(prodLava.get(TipoRecurso.POBLACION), "Planeta lava no debe generar poblacion");
+
+        var prodSol = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.ESTRELLA);
+        assertEquals(0.10, prodSol.get(TipoRecurso.ENERGIA), 1e-6, "Produccion sol energia x2");
+        assertEquals(0.04, prodSol.get(TipoRecurso.MINERALES), 1e-6, "Produccion sol minerales x2");
+
+        // 3. Simulación activa: producción por tick de Planeta de Agua
+        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(100, 100, 1.0, Vector2D.cero());
+        sim.agregarCuerpo(agua);
+
+        double minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
+        double cieAntes = sim.getInventario().getRecurso(TipoRecurso.CIENCIA);
+        double pobAntes = sim.getInventario().getRecurso(TipoRecurso.POBLACION);
+        double eneAntes = sim.getInventario().getRecurso(TipoRecurso.ENERGIA);
+
+        sim.avanzarTick();
+
+        assertEquals(minAntes + 0.015, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(cieAntes + 0.01, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(pobAntes, sim.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "No debe generar poblacion");
+        assertEquals(eneAntes, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6, "No debe generar energia");
+
+        // 4. Simulación activa: producción por tick de Planeta Lava
+        sim.limpiarCuerpos();
+        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(-100, -100, 1.0, Vector2D.cero());
+        sim.agregarCuerpo(lava);
+
+        minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
+        cieAntes = sim.getInventario().getRecurso(TipoRecurso.CIENCIA);
+        pobAntes = sim.getInventario().getRecurso(TipoRecurso.POBLACION);
+        eneAntes = sim.getInventario().getRecurso(TipoRecurso.ENERGIA);
+
+        sim.avanzarTick();
+
+        assertEquals(minAntes + 0.07, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(cieAntes + 0.05, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(pobAntes, sim.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "No debe generar poblacion");
+        assertEquals(eneAntes, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6, "No debe generar energia");
+
+        // 5. Imágenes vinculadas
+        assertTrue(org.example.game.render.GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_AGUA));
+        assertTrue(org.example.game.render.GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_LAVA));
     }
 }
 

@@ -90,23 +90,33 @@ public class PanelInventario extends VBox {
     }
 
     private void crearBotonesSpawn() {
-        // Estrella
-        Button btnEstrella = crearBotonSpawn("Estrella", TipoCuerpo.ESTRELLA,
-                "Crea una estrella (fuente de gravedad y energia)");
-        // Planeta Rocoso
-        Button btnRocoso = crearBotonSpawn("Planeta Rocoso", TipoCuerpo.PLANETA_ROCOSO,
-                "Planeta tipo Tierra, puede albergar civilizacion");
+        // Sol
+        Button btnEstrella = crearBotonSpawn("Sol", TipoCuerpo.ESTRELLA,
+                "Crea el sol (fuente de gravedad y energia)");
+        // Planeta Porro
+        Button btnRocoso = crearBotonSpawn("Planeta Porro", TipoCuerpo.PLANETA_ROCOSO,
+                "Planeta habitable, puede albergar civilizacion");
         // Luna
         Button btnLuna = crearBotonSpawn("Luna", TipoCuerpo.LUNA,
                 "Satelite natural rocoso");
+        // Planeta de Agua
+        Button btnAgua = crearBotonSpawn("Planeta de Agua", TipoCuerpo.PLANETA_AGUA,
+                "Planeta oceanico de bajo costo que produce minerales y ciencia");
+        // Planeta Lava
+        Button btnLava = crearBotonSpawn("Planeta Lava", TipoCuerpo.PLANETA_LAVA,
+                "Planeta volcanico de alto rendimiento en minerales y ciencia");
 
         botonesSpawnBox.getChildren().addAll(
-                btnEstrella, btnRocoso, btnLuna
+                btnEstrella, btnRocoso, btnLuna, btnAgua, btnLava
         );
     }
 
     private Button crearBotonSpawn(String texto, TipoCuerpo tipo, String tooltip) {
         Button btn = new Button(texto);
+        javafx.scene.image.ImageView iv = org.example.game.render.GestorImagenes.crearImageView(tipo, 18, 18);
+        if (iv != null) {
+            btn.setGraphic(iv);
+        }
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setPrefHeight(30);
         btn.setTooltip(new Tooltip(tooltip));

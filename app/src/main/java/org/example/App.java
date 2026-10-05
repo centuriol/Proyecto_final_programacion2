@@ -3,12 +3,14 @@ package org.example;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.example.game.controlador.BucleJuego;
 import org.example.game.controlador.ControladorMouse;
@@ -16,11 +18,7 @@ import org.example.game.controlador.ControladorTeclado;
 import org.example.game.controlador.SincronizadorUI;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
-import org.example.game.ui.BarraInventarioHotbar;
-import org.example.game.ui.ControlTiempoWidget;
-import org.example.game.ui.EspaciadorUI;
-import org.example.game.ui.HUDRecursosTop;
-import org.example.game.ui.PanelNotificaciones;
+import org.example.game.ui.*;
 
 /**
  * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
@@ -34,10 +32,8 @@ import org.example.game.ui.PanelNotificaciones;
  */
 public class App extends Application {
 
-    private static final int ANCHO_VENTANA = 1440;
-    private static final int ALTO_VENTANA = 900;
-    private static final int ANCHO_MUNDO = 1920;
-    private static final int ALTO_MUNDO = 1080;
+    private static final int ANCHO_VENTANA_BASE = 1366;
+    private static final int ALTO_VENTANA_BASE = 768;
 
     private SimulacionSolar simulacion;
     private RenderizadorPixelArt renderizador;
@@ -53,14 +49,23 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Obtener dimensiones ideales de la pantalla del usuario
+        double anchoInicial = ANCHO_VENTANA_BASE;
+        double altoInicial = ALTO_VENTANA_BASE;
+        try {
+            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+            anchoInicial = bounds.getWidth();
+            altoInicial = bounds.getHeight();
+        } catch (Exception ignored) {}
+
         // 1. Simulación & Motor de física permisiva
-        simulacion = new SimulacionSolar(ANCHO_MUNDO, ALTO_MUNDO);
+        simulacion = new SimulacionSolar(anchoInicial, altoInicial);
 
         // 2. Renderizador Pixel Art
-        renderizador = new RenderizadorPixelArt(ANCHO_MUNDO, ALTO_MUNDO);
+        renderizador = new RenderizadorPixelArt(anchoInicial, altoInicial);
 
-        // 3. Canvas principal de juego
-        Canvas canvasJuego = new Canvas(ANCHO_MUNDO, ALTO_MUNDO);
+        // 3. Canvas principal de juego redimensionable (ocupa el 100% de la ventana sin recortes ni zoom)
+        ResizableCanvas canvasJuego = new ResizableCanvas(anchoInicial, altoInicial);
 
         // 4. Componentes UI
         hudRecursos = new HUDRecursosTop(simulacion);
@@ -69,13 +74,33 @@ public class App extends Application {
         panelNotificaciones = new PanelNotificaciones(simulacion);
 
         // 5. Controladores de entrada encapsulados según POO y SOLID
-        controladorMouse = new ControladorMouse(simulacion, hotbar, stage, ANCHO_MUNDO, ALTO_MUNDO);
+        controladorMouse = new ControladorMouse(simulacion, hotbar, stage, anchoInicial, altoInicial);
         controladorMouse.conectar(canvasJuego);
 
         controladorTeclado = new ControladorTeclado();
         controladorTeclado.configurarAtajosPorDefecto(
                 simulacion, controlTiempo, hotbar, renderizador, controladorMouse
         );
+
+        // Sincronizar dimensiones cuando el canvas cambie de tamaño
+        canvasJuego.widthProperty().addListener((obs, oldV, newV) -> {
+            double w = newV.doubleValue();
+            double h = canvasJuego.getHeight();
+            if (w > 0 && h > 0) {
+                renderizador.setDimensiones(w, h);
+                simulacion.setDimensionesMundo(w, h);
+                controladorMouse.setDimensiones(w, h);
+            }
+        });
+        canvasJuego.heightProperty().addListener((obs, oldV, newV) -> {
+            double w = canvasJuego.getWidth();
+            double h = newV.doubleValue();
+            if (w > 0 && h > 0) {
+                renderizador.setDimensiones(w, h);
+                simulacion.setDimensionesMundo(w, h);
+                controladorMouse.setDimensiones(w, h);
+            }
+        });
 
         // 6. Layout Superpuesto (HUD sobre Canvas)
         BorderPane overlayUI = new BorderPane();
@@ -91,13 +116,8 @@ public class App extends Application {
         // Panel lateral izquierdo para notificaciones
         overlayUI.setLeft(panelNotificaciones);
 
-        // Barra Inferior: Control Tiempo Izq + Spacer + Hotbar Centro
-        HBox bottomBar = new HBox(
-                controlTiempo,
-                EspaciadorUI.crearHorizontal(),
-                hotbar,
-                EspaciadorUI.crearHorizontal()
-        );
+        // Barra Inferior: Control Tiempo (Ticks y velocidades) + Hotbar de Ítems (Todo centrado)
+        HBox bottomBar = new HBox(10, controlTiempo, hotbar);
         bottomBar.setAlignment(Pos.BOTTOM_CENTER);
         bottomBar.setPickOnBounds(false);
         overlayUI.setBottom(bottomBar);
@@ -115,12 +135,13 @@ public class App extends Application {
         bucleJuego = new BucleJuego(simulacion, renderizador, canvasJuego, controladorMouse);
         bucleJuego.iniciar();
 
-        // 9. Mostrar ventana
-        Scene scene = new Scene(root, ANCHO_VENTANA, ALTO_VENTANA);
+        // 9. Mostrar ventana maximizada aprovechando toda la resolución de pantalla
+        Scene scene = new Scene(root, anchoInicial, altoInicial);
         scene.setFill(Color.web("#0e1017"));
 
         stage.setScene(scene);
         stage.setTitle("Orbita - Simulador de Sistemas Solares");
+        stage.setMaximized(true);
         stage.show();
 
         root.requestFocus();
@@ -148,6 +169,10 @@ public class App extends Application {
 
     public BucleJuego getBucleJuego() {
         return bucleJuego;
+    }
+
+    public RenderizadorPixelArt getRenderizador() {
+        return renderizador;
     }
 
     public static void main(String[] args) {

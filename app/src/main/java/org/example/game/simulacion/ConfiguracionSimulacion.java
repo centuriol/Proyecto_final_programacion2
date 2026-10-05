@@ -45,15 +45,31 @@ public final class ConfiguracionSimulacion {
     public static final double COSTO_LUNA_MINERALES = 50.0;
     public static final double COSTO_LUNA_ENERGIA = 20.0;
 
-    // ===== Producción por Tick (Materiales generados por cada ítem - Crecimiento lento) =====
-    // Estrella: da Energía y Minerales
-    public static final double PRODUCCION_ESTRELLA_ENERGIA = 0.05;
-    public static final double PRODUCCION_ESTRELLA_MINERALES = 0.02;
+    public static final double COSTO_PLANETA_AGUA_MINERALES = 50.0;
+    public static final double COSTO_PLANETA_AGUA_ENERGIA = 25.0;
 
-    // Planeta: da Minerales, Ciencia y Población
+    public static final double COSTO_PLANETA_LAVA_MINERALES = 150.0;
+    public static final double COSTO_PLANETA_LAVA_ENERGIA = 75.0;
+
+    // ===== Producción por Tick (Materiales generados por cada ítem - Crecimiento lento) =====
+    // Estrella: da Energía y Minerales (duplicado a x2)
+    public static final double PRODUCCION_ESTRELLA_ENERGIA = 0.10;
+    public static final double PRODUCCION_ESTRELLA_MINERALES = 0.04;
+
+    // Planeta Porro: da Minerales, Ciencia y Población
     public static final double PRODUCCION_PLANETA_MINERALES = 0.03;
     public static final double PRODUCCION_PLANETA_CIENCIA = 0.02;
     public static final double PRODUCCION_PLANETA_POBLACION = 0.01;
+
+    // Planeta de Agua: la mitad de Planeta Porro, sin población
+    public static final double PRODUCCION_PLANETA_AGUA_MINERALES = 0.015;
+    public static final double PRODUCCION_PLANETA_AGUA_CIENCIA = 0.01;
+    public static final double PRODUCCION_PLANETA_AGUA_POBLACION = 0.0;
+
+    // Planeta Lava: alto rendimiento de mineral y ciencia, sin población
+    public static final double PRODUCCION_PLANETA_LAVA_MINERALES = 0.07;
+    public static final double PRODUCCION_PLANETA_LAVA_CIENCIA = 0.05;
+    public static final double PRODUCCION_PLANETA_LAVA_POBLACION = 0.0;
 
     // Luna: da Minerales
     public static final double PRODUCCION_LUNA_MINERALES = 0.02;

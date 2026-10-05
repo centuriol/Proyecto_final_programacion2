@@ -64,9 +64,19 @@ public class VentanaDescripcionCuerpo {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label lblIcono = new Label(obtenerIcono(tipo));
-        lblIcono.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
-        lblIcono.setTextFill(Color.web(tipo.getColorHexString()));
+        javafx.scene.Node iconoNodo;
+        if (org.example.game.render.GestorImagenes.tieneImagen(tipo)) {
+            javafx.scene.image.ImageView imgView = org.example.game.render.GestorImagenes.crearImageView(tipo, 44, 44);
+            javafx.scene.layout.StackPane imgBox = new javafx.scene.layout.StackPane(imgView);
+            imgBox.setPrefSize(48, 48);
+            imgBox.setStyle("-fx-background-color: #0d0e15; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+            iconoNodo = imgBox;
+        } else {
+            Label lblIcono = new Label(obtenerIcono(tipo));
+            lblIcono.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
+            lblIcono.setTextFill(Color.web(tipo.getColorHexString()));
+            iconoNodo = lblIcono;
+        }
 
         VBox titulosBox = new VBox(2);
         Label lblTitulo = new Label(tipo.nombre.toUpperCase());
@@ -78,7 +88,7 @@ public class VentanaDescripcionCuerpo {
         lblSubtitulo.setTextFill(Color.web("#8c92a4"));
 
         titulosBox.getChildren().addAll(lblTitulo, lblSubtitulo);
-        header.getChildren().addAll(lblIcono, titulosBox);
+        header.getChildren().addAll(iconoNodo, titulosBox);
 
         // 2. Descripción narrativa (Lore del ítem)
         VBox descBox = new VBox(4);
@@ -326,9 +336,19 @@ public class VentanaDescripcionCuerpo {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label lblIcono = new Label(obtenerIcono(tipo));
-        lblIcono.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
-        lblIcono.setTextFill(Color.web(tipo.getColorHexString()));
+        javafx.scene.Node iconoNodo;
+        if (org.example.game.render.GestorImagenes.tieneImagen(tipo)) {
+            javafx.scene.image.ImageView imgView = org.example.game.render.GestorImagenes.crearImageView(tipo, 44, 44);
+            javafx.scene.layout.StackPane imgBox = new javafx.scene.layout.StackPane(imgView);
+            imgBox.setPrefSize(48, 48);
+            imgBox.setStyle("-fx-background-color: #0d0e15; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+            iconoNodo = imgBox;
+        } else {
+            Label lblIcono = new Label(obtenerIcono(tipo));
+            lblIcono.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
+            lblIcono.setTextFill(Color.web(tipo.getColorHexString()));
+            iconoNodo = lblIcono;
+        }
 
         VBox titulosBox = new VBox(2);
         Label lblTitulo = new Label(cuerpo.getNombre().toUpperCase());
@@ -340,7 +360,7 @@ public class VentanaDescripcionCuerpo {
         lblSubtitulo.setTextFill(Color.web("#8c92a4"));
 
         titulosBox.getChildren().addAll(lblTitulo, lblSubtitulo);
-        header.getChildren().addAll(lblIcono, titulosBox);
+        header.getChildren().addAll(iconoNodo, titulosBox);
 
         // Lore
         VBox descBox = new VBox(4);
@@ -528,11 +548,13 @@ public class VentanaDescripcionCuerpo {
     public static String obtenerNombrePorDefecto(TipoCuerpo tipo) {
         if (tipo == null) return "Cuerpo";
         return switch (tipo) {
-            case ESTRELLA -> "Sol Central";
-            case PLANETA_ROCOSO -> "Terra Nova";
+            case ESTRELLA -> "Sol";
+            case PLANETA_ROCOSO -> "Planeta Porro";
+            case PLANETA_AGUA -> "Planeta de Agua";
+            case PLANETA_LAVA -> "Planeta Lava";
             case PLANETA_GASEOSO -> "Joviano";
             case PLANETA_HELADO -> "Boreas";
-            case LUNA -> "Selene";
+            case LUNA -> "Luna";
             case SATELITE -> "Sonda-1";
             case ESCUDO_DOME -> "Aegis";
             case METEORITO -> "Bólido";
@@ -545,8 +567,10 @@ public class VentanaDescripcionCuerpo {
     public static String obtenerIcono(TipoCuerpo tipo) {
         if (tipo == null) return "[???]";
         return switch (tipo) {
-            case ESTRELLA -> "[EST]";
-            case PLANETA_ROCOSO -> "[ROC]";
+            case ESTRELLA -> "[SOL]";
+            case PLANETA_ROCOSO -> "[POR]";
+            case PLANETA_AGUA -> "[AGU]";
+            case PLANETA_LAVA -> "[LAV]";
             case LUNA -> "[LUN]";
             case PLANETA_GASEOSO -> "[GAS]";
             case PLANETA_HELADO -> "[HEL]";
@@ -562,9 +586,12 @@ public class VentanaDescripcionCuerpo {
     public static String obtenerSubtitulo(TipoCuerpo tipo) {
         if (tipo == null) return "Objeto Astronómico";
         return switch (tipo) {
-            case ESTRELLA -> "Estrella Central • Reactor Termonuclear Natural";
-            case PLANETA_ROCOSO, PLANETA_GASEOSO, PLANETA_HELADO -> "Cuerpo Planetario • Fuente de Población y Ciencia";
-            case LUNA -> "Satélite Natural • Cantera de Extracción Mineral";
+            case ESTRELLA -> "Sol • Reactor Termonuclear Natural";
+            case PLANETA_ROCOSO -> "Planeta Porro • Fuente de Población y Ciencia";
+            case PLANETA_AGUA -> "Planeta de Agua • Océano Global Rico en Minerales y Ciencia";
+            case PLANETA_LAVA -> "Planeta Lava • Mundo Volcánico de Extracción Intensiva";
+            case LUNA -> "Luna • Cantera de Extracción Mineral";
+            case PLANETA_GASEOSO, PLANETA_HELADO -> "Cuerpo Planetario • Fuente de Población y Ciencia";
             default -> "Objeto Astronómico";
         };
     }
@@ -573,11 +600,17 @@ public class VentanaDescripcionCuerpo {
         if (tipo == null) return "Cuerpo celeste en el sistema.";
         return switch (tipo) {
             case ESTRELLA ->
-                "Una colosal masa de plasma autosostenida por equilibrio hidrostático. En su núcleo ardiente se desarrollan procesos de fusión que emiten inmensos torrentes de radiación, convirtiéndola en la generadora primaria de energía para todo el sistema solar. Sus ráfagas y vientos estelares cargados de iones pesados dispersan además minerales útiles a través del espacio.";
-            case PLANETA_ROCOSO, PLANETA_GASEOSO, PLANETA_HELADO ->
+                "El Sol: Una colosal masa de plasma autosostenida por equilibrio hidrostático. En su núcleo ardiente se desarrollan procesos de fusión que emiten inmensos torrentes de radiación, convirtiéndola en la generadora primaria de energía para todo el sistema solar. Sus ráfagas y vientos estelares cargados de iones pesados dispersan además minerales útiles a través del espacio.";
+            case PLANETA_ROCOSO ->
+                "Planeta Porro: Un mundo geológicamente diferenciado provisto de corteza densa, atmósfera y capas ricas en compuestos pesados. Alberga biomas y condiciones idóneas para el desarrollo de vida organizada. A medida que su población colonizadora prolifera, se establecen academias de ciencia para la investigación e industrias mineras que extraen minerales valiosos para la expansión.";
+            case PLANETA_AGUA ->
+                "Planeta de Agua: Un mundo oceánico cubierto en su totalidad por vastos y profundos mares hidrotermales. Su ensamblaje geológico requiere una reducida cantidad de recursos (50 de mineral y 25 de energía), produciendo a cambio una extracción moderada de minerales y valiosos datos de investigación marina, sin sustentar una población colonizadora terrestre permanente.";
+            case PLANETA_LAVA ->
+                "Planeta Lava: Un cuerpo planetario sumergido en una actividad magmática extrema con ríos de roca fundida y erupciones continuas. Exige una importante inversión inicial (150 de mineral y 75 de energía) debido a las condiciones térmicas extremas, pero genera un altísimo rendimiento científico y una abundante extracción de minerales pesados expulsados del manto, siendo completamente incompatible con el asentamiento de población.";
+            case PLANETA_GASEOSO, PLANETA_HELADO ->
                 "Un mundo geológicamente diferenciado provisto de corteza densa, atmósfera y capas ricas en compuestos pesados. Alberga biomas y condiciones idóneas para el desarrollo de vida organizada. A medida que su población colonizadora prolifera, se establecen academias de ciencia para la investigación e industrias mineras que extraen minerales valiosos para la expansión.";
             case LUNA ->
-                "Un satélite natural sólido y estéril que gira en torno a su cuerpo huésped. Su superficie no erosionada conserva el registro intacto de miles de millones de años de bombardeo astronómico, concentrando depósitos superficiales de minerales puros. Constituye una cantera inagotable y segura para la extracción de minerales brutos sin perturbar biosferas.";
+                "La Luna: Un satélite natural sólido y estéril que gira en torno a su cuerpo huésped. Su superficie no erosionada conserva el registro intacto de miles de millones de años de bombardeo astronómico, concentrando depósitos superficiales de minerales puros. Constituye una cantera inagotable y segura para la extracción de minerales brutos sin perturbar biosferas.";
             default ->
                 "Cuerpo celeste en órbita dentro del sistema.";
         };
