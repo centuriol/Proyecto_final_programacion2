@@ -8,13 +8,64 @@ import org.example.game.motor.Vector2D;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Factory para creación dinámica de cuerpos celestes.
  * Centraliza la lógica de construcción con parámetros de juego.
+ * OCP: Extensible mediante el registro de estrategias CreadorCuerpo sin modificar código existente.
  */
 public final class CuerpoCelesteFactory {
 
+    @FunctionalInterface
+    public interface CreadorCuerpo {
+        CuerpoCeleste crear(double x, double y, double factorMasa, Vector2D velocidadInicial);
+    }
+
+    private static final Map<TipoCuerpo, CreadorCuerpo> REGISTRO_CREADORES = new EnumMap<>(TipoCuerpo.class);
     private static long contadorId = 0;
+
+    static {
+        registrarCreador(TipoCuerpo.ESTRELLA, (x, y, factorMasa, vel) -> {
+            Estrella e = crearEstrella(x, y, factorMasa);
+            e.setVelocidad(vel);
+            return e;
+        });
+        registrarCreador(TipoCuerpo.PLANETA_ROCOSO, CuerpoCelesteFactory::crearPlanetaRocoso);
+        registrarCreador(TipoCuerpo.PLANETA_AGUA, CuerpoCelesteFactory::crearPlanetaAgua);
+        registrarCreador(TipoCuerpo.PLANETA_LAVA, CuerpoCelesteFactory::crearPlanetaLava);
+        registrarCreador(TipoCuerpo.PLANETA_GASEOSO, CuerpoCelesteFactory::crearPlanetaGaseoso);
+        registrarCreador(TipoCuerpo.PLANETA_HELADO, CuerpoCelesteFactory::crearPlanetaHelado);
+        registrarCreador(TipoCuerpo.LUNA, CuerpoCelesteFactory::crearLuna);
+        registrarCreador(TipoCuerpo.SATELITE, CuerpoCelesteFactory::crearSatelite);
+        registrarCreador(TipoCuerpo.ESCUDO_DOME, CuerpoCelesteFactory::crearEscudo);
+        registrarCreador(TipoCuerpo.METEORITO, (x, y, factorMasa, vel) -> crearMeteoritoJugadorFisica(x, y, vel));
+        registrarCreador(TipoCuerpo.AGUJERO_NEGRO, (x, y, factorMasa, vel) -> {
+            AgujeroNegro bh = crearAgujeroNegroEstelar(x, y, factorMasa);
+            bh.setVelocidad(vel);
+            return bh;
+        });
+        registrarCreador(TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO, (x, y, factorMasa, vel) -> {
+            AgujeroNegro bh = crearAgujeroNegroSupermasivo(x, y, factorMasa);
+            bh.setVelocidad(vel);
+            return bh;
+        });
+    }
+
+    public static void registrarCreador(TipoCuerpo tipo, CreadorCuerpo creador) {
+        if (tipo != null && creador != null) {
+            REGISTRO_CREADORES.put(tipo, creador);
+        }
+    }
+
+    public static CuerpoCeleste crearCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        CreadorCuerpo creador = REGISTRO_CREADORES.get(tipo);
+        if (creador != null) {
+            return creador.crear(x, y, factorMasa, velocidadInicial);
+        }
+        return null;
+    }
 
     private CuerpoCelesteFactory() {}
 
@@ -91,24 +142,9 @@ public final class CuerpoCelesteFactory {
         // La conversión a JavaFX se hace en el renderizador
         Vector2D vel = new Vector2D(0, -vOrbital);
 
-        Planeta p;
-        switch (tipo) {
-            case PLANETA_GASEOSO:
-                p = crearPlanetaGaseoso(x, y, factorMasa, vel);
-                break;
-            case PLANETA_HELADO:
-                p = crearPlanetaHelado(x, y, factorMasa, vel);
-                break;
-            case PLANETA_AGUA:
-                p = crearPlanetaAgua(x, y, factorMasa, vel);
-                break;
-            case PLANETA_LAVA:
-                p = crearPlanetaLava(x, y, factorMasa, vel);
-                break;
-            default:
-                p = crearPlanetaRocoso(x, y, factorMasa, vel);
-        }
-        return p;
+        TipoCuerpo tipoPlaneta = (tipo != null && tipo.esPlaneta()) ? tipo : TipoCuerpo.PLANETA_ROCOSO;
+        CuerpoCeleste c = crearCuerpo(tipoPlaneta, x, y, factorMasa, vel);
+        return (c instanceof Planeta p) ? p : crearPlanetaRocoso(x, y, factorMasa, vel);
     }
 
     // ===== Satélites y Lunas =====

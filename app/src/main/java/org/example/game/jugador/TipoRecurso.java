@@ -22,6 +22,6 @@ public enum TipoRecurso {
     }
 
     public String getColorHex() {
-        return String.format("#%06X", color);
+        return String.format("#%06X", (0xFFFFFF & color));
     }
 }

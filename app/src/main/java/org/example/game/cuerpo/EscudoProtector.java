@@ -32,12 +32,19 @@ public class EscudoProtector extends CuerpoCeleste {
         return energiaRestante;
     }
 
+    @Override
     public double getRadioEscudo() {
         return radioEscudo;
     }
 
+    @Override
     public double getPulsoVisual() {
         return pulsoVisual;
+    }
+
+    @Override
+    public void actualizarEntidad(double dt) {
+        avanzarPulso(dt * 0.05);
     }
 
     public void avanzarPulso(double dt) {

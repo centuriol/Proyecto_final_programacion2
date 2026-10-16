@@ -5,12 +5,10 @@ import org.example.game.render.RenderizadorPixelArt;
 /**
  * SRP: Encapsula la acción de alternar la visualización de las zonas habitables alrededor de las estrellas.
  */
-public class ComandoAlternarZonasHabitables implements Comando {
-
-    private final RenderizadorPixelArt renderizador;
+public class ComandoAlternarZonasHabitables extends ComandoRenderizador {
 
     public ComandoAlternarZonasHabitables(RenderizadorPixelArt renderizador) {
-        this.renderizador = renderizador;
+        super(renderizador);
     }
 
     @Override

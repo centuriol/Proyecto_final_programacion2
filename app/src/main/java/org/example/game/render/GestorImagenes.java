@@ -22,9 +22,11 @@ import java.util.*;
 public class GestorImagenes {
 
     private static final Map<String, Image> cacheImagenes = new HashMap<>();
+    private static final Set<String> recursosFallidos = new HashSet<>();
 
     // Mapeo por defecto de TipoCuerpo a nombre de sprite
     private static final Map<TipoCuerpo, String> MAPEO_CUERPOS = new HashMap<>();
+    private static String nombreFondoActivo = "fondo_final";
 
     // Rutas candidatas para búsqueda en el sistema de archivos
     private static final List<String> DIRECTORIOS_BUSQUEDA = List.of(
@@ -43,6 +45,17 @@ public class GestorImagenes {
         MAPEO_CUERPOS.put(TipoCuerpo.LUNA, "luna");
         MAPEO_CUERPOS.put(TipoCuerpo.PLANETA_AGUA, "planeta_de_agua");
         MAPEO_CUERPOS.put(TipoCuerpo.PLANETA_LAVA, "planeta lava");
+        precargarImagenes();
+    }
+
+    /**
+     * Precarga al inicio los sprites registrados para evitar accesos a disco por frame.
+     */
+    public static void precargarImagenes() {
+        for (String nombre : MAPEO_CUERPOS.values()) {
+            getImagenPorNombre(nombre);
+        }
+        getImagenFondo();
     }
 
     /**
@@ -77,6 +90,7 @@ public class GestorImagenes {
     /**
      * Obtiene una imagen por su nombre (ej. "sol", "luna", "planeta porro").
      * Si no se encuentra en caché, intenta cargarla desde PNG o decodificarla desde .pixil.
+     * Cachea tanto resultados positivos como negativos (para evitar reintentos a disco cada frame).
      */
     public static Image getImagenPorNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) return null;
@@ -85,10 +99,15 @@ public class GestorImagenes {
         if (cacheImagenes.containsKey(key)) {
             return cacheImagenes.get(key);
         }
+        if (recursosFallidos.contains(key)) {
+            return null;
+        }
 
         Image img = cargarImagen(key);
         if (img != null) {
             cacheImagenes.put(key, img);
+        } else {
+            recursosFallidos.add(key);
         }
         return img;
     }
@@ -123,8 +142,6 @@ public class GestorImagenes {
         return contenedor;
     }
 
-    private static String nombreFondoActivo = "fondo_final";
-
     /**
      * Permite cambiar dinámicamente el nombre de la imagen de fondo espacial activa.
      */
@@ -138,8 +155,8 @@ public class GestorImagenes {
      * Obtiene la imagen de fondo espacial del juego (prioriza "fondo_final", luego "fondo_prime", "imagen_fonde" o "imagen_fondo").
      */
     public static Image getImagenFondo() {
-        Image fondo = getImagenPorNombre(nombreFondoActivo);
-        if (fondo == null && !nombreFondoActivo.equalsIgnoreCase("fondo_final")) {
+        Image fondo = (nombreFondoActivo != null) ? getImagenPorNombre(nombreFondoActivo) : null;
+        if (fondo == null && (nombreFondoActivo == null || !nombreFondoActivo.equalsIgnoreCase("fondo_final"))) {
             fondo = getImagenPorNombre("fondo_final");
         }
         if (fondo == null) {
@@ -251,5 +268,6 @@ public class GestorImagenes {
      */
     public static void limpiarCache() {
         cacheImagenes.clear();
+        recursosFallidos.clear();
     }
 }

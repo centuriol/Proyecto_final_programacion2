@@ -38,40 +38,56 @@ public class TrayectoriaPredictor {
     public List<Vector2D> predecirTrayectoria(Vector2D posInicial, Vector2D velInicial,
                                               double masaCuerpo, List<CuerpoCeleste> cuerposSistema,
                                               int pasos, double dt) {
-        List<Vector2D> trayectoria = new ArrayList<>(pasos);
+        List<Vector2D> trayectoria = new ArrayList<>(pasos + 1);
         if (posInicial == null || velInicial == null) return trayectoria;
 
-        Vector2D pos = new Vector2D(posInicial.x, posInicial.y);
-        Vector2D vel = new Vector2D(velInicial.x, velInicial.y);
-        trayectoria.add(new Vector2D(pos.x, pos.y));
+        double px = posInicial.x;
+        double py = posInicial.y;
+        double vx = velInicial.x;
+        double vy = velInicial.y;
+
+        trayectoria.add(new Vector2D(px, py));
 
         double softeningCuadrado = softening * softening;
 
         for (int step = 0; step < pasos; step++) {
-            Vector2D fuerzaTotal = Vector2D.cero();
+            double axTotal = 0.0;
+            double ayTotal = 0.0;
+            boolean colision = false;
 
-            // Calcular atracción gravitacional de los cuerpos del sistema
-            for (CuerpoCeleste c : cuerposSistema) {
+            // Calcular aceleración gravitacional de los cuerpos del sistema sin crear instancias intermedias
+            for (int i = 0; i < cuerposSistema.size(); i++) {
+                CuerpoCeleste c = cuerposSistema.get(i);
                 if (c == null) continue;
-                Vector2D r = c.getPosicion().restar(pos);
-                double r2 = r.magnitudCuadrado() + softeningCuadrado;
+
+                Vector2D posC = c.getPosicion();
+                double rx = posC.x - px;
+                double ry = posC.y - py;
+                double r2 = rx * rx + ry * ry + softeningCuadrado;
                 double rMag = Math.sqrt(r2);
 
                 if (rMag < 5.0) {
-                    // Colisión con cuerpo central durante predicción
+                    colision = true;
                     break;
                 }
 
-                double fMag = G * masaCuerpo * c.getMasa() / r2;
-                Vector2D f = r.dividir(rMag).multiplicar(fMag);
-                fuerzaTotal = fuerzaTotal.sumar(f);
+                // a = G * M / r^2 en dirección normalizada (rx/rMag, ry/rMag)
+                double aMag = G * c.getMasa() / r2;
+                double invRMag = 1.0 / rMag;
+                axTotal += rx * invRMag * aMag;
+                ayTotal += ry * invRMag * aMag;
             }
 
-            Vector2D aceleracion = masaCuerpo > 0 ? fuerzaTotal.dividir(masaCuerpo) : Vector2D.cero();
-            vel = vel.sumar(aceleracion.multiplicar(dt));
-            pos = pos.sumar(vel.multiplicar(dt));
+            if (colision) {
+                break;
+            }
 
-            trayectoria.add(new Vector2D(pos.x, pos.y));
+            vx += axTotal * dt;
+            vy += ayTotal * dt;
+            px += vx * dt;
+            py += vy * dt;
+
+            trayectoria.add(new Vector2D(px, py));
         }
 
         return trayectoria;

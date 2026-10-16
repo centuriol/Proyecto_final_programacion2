@@ -49,4 +49,8 @@ public interface CuerpoFisico {
 
     // Nombre
     String getNombre();
+
+    // Civilización (LSP / OCP)
+    default boolean tieneCivilizacion() { return false; }
+    default org.example.game.civilizacion.CivilizacionComponent getCivilizacion() { return null; }
 }

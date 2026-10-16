@@ -44,4 +44,27 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
+}
+
+val cpdConfig: Configuration by configurations.creating
+
+dependencies {
+    cpdConfig("net.sourceforge.pmd:pmd-core:7.0.0")
+    cpdConfig("net.sourceforge.pmd:pmd-java:7.0.0")
+    cpdConfig("net.sourceforge.pmd:pmd-cli:7.0.0")
+}
+
+tasks.register<JavaExec>("cpd") {
+    classpath = cpdConfig
+    mainClass.set("net.sourceforge.pmd.cli.PmdCli")
+    args(
+        "cpd",
+        "--minimum-tokens", "50",
+        "--dir", "src/main/java",
+        "--format", "text",
+        "--no-fail-on-violation"
+    )
 }

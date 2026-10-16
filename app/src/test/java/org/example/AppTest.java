@@ -530,8 +530,8 @@ class AppTest {
         assertFalse(cuerpos.contains(menor));
         assertTrue(cuerpos.contains(mayor));
 
-        // El mayor pierde exactamente lo que valía el menor
-        double masaEsperadaMayor = masaInicialMayor - masaInicialMenor;
+        // Tarea 2: El mayor gana un porcentaje de la masa del menor (no pierde masa)
+        double masaEsperadaMayor = masaInicialMayor + (masaInicialMenor * ConfiguracionSimulacion.PORCENTAJE_GANANCIA_MASA_COLISION);
         assertEquals(masaEsperadaMayor, mayor.getMasa(), 1e-6);
 
         // Se generan fragmentos proporcionales a la masa del menor
@@ -1259,6 +1259,126 @@ class AppTest {
         // 5. Imágenes vinculadas
         assertTrue(org.example.game.render.GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_AGUA));
         assertTrue(org.example.game.render.GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_LAVA));
+    }
+
+    @Test
+    void testHotbarSlotsSimplificadosSolamenteImagenYNombre() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
+        org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
+
+        assertEquals(5, hotbar.getChildren().size());
+
+        for (int i = 0; i < hotbar.getChildren().size(); i++) {
+            javafx.scene.layout.VBox slot = (javafx.scene.layout.VBox) hotbar.getChildren().get(i);
+            // Cada slot simplificado contiene exactamente: [hotkey], iconBox (StackPane) y lblNom (Label)
+            assertEquals(3, slot.getChildren().size(), "El slot debe contener unicamente tecla, imagen y nombre");
+
+            javafx.scene.control.Label lblKey = (javafx.scene.control.Label) slot.getChildren().get(0);
+            javafx.scene.layout.StackPane iconBox = (javafx.scene.layout.StackPane) slot.getChildren().get(1);
+            javafx.scene.control.Label lblNom = (javafx.scene.control.Label) slot.getChildren().get(2);
+
+            assertTrue(lblKey.getText().startsWith("["));
+            assertNotNull(iconBox);
+            assertFalse(lblNom.getText().isBlank());
+
+            // Ninguno de los hijos es texto de costos ni producción
+            assertFalse(lblNom.getText().contains("Requiere:"));
+            assertFalse(lblNom.getText().contains("Da/t:"));
+        }
+    }
+
+    @Test
+    void testHotbarRetractilToggleYVisibilidad() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
+        org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
+
+        assertFalse(hotbar.isRetraida(), "La barra debe iniciar expandida");
+        assertTrue(hotbar.isVisible(), "La barra debe ser visible inicialmente");
+        assertTrue(hotbar.isManaged(), "La barra debe estar gestionada en el layout inicialmente");
+
+        javafx.scene.control.Button btnToggle = hotbar.getBotonToggle();
+        assertNotNull(btnToggle);
+        assertEquals("Ocultar Planetas", btnToggle.getText());
+
+        // Retraer barra
+        hotbar.alternarRetraccion();
+        assertTrue(hotbar.isRetraida());
+        assertFalse(hotbar.isVisible(), "Al retraerse, la barra no debe ser visible");
+        assertFalse(hotbar.isManaged(), "Al retraerse, la barra no debe ocupar espacio en el layout");
+        assertEquals("Mostrar Planetas", btnToggle.getText());
+
+        // Expandir barra nuevamente
+        hotbar.alternarRetraccion();
+        assertFalse(hotbar.isRetraida());
+        assertTrue(hotbar.isVisible());
+        assertTrue(hotbar.isManaged());
+        assertEquals("Ocultar Planetas", btnToggle.getText());
+    }
+
+    @Test
+    void testVentanaDescripcionCaracteristicas() {
+        for (TipoCuerpo tipo : new TipoCuerpo[]{TipoCuerpo.ESTRELLA, TipoCuerpo.PLANETA_ROCOSO, TipoCuerpo.LUNA}) {
+            javafx.scene.layout.VBox caracBox = org.example.game.ui.VentanaDescripcionCuerpo.crearSeccionCaracteristicas(tipo);
+            assertNotNull(caracBox);
+            assertEquals(2, caracBox.getChildren().size());
+
+            javafx.scene.control.Label lblTitulo = (javafx.scene.control.Label) caracBox.getChildren().get(0);
+            assertEquals("CARACTERÍSTICAS Y PROPIEDADES FÍSICAS", lblTitulo.getText());
+
+            javafx.scene.layout.GridPane grid = (javafx.scene.layout.GridPane) caracBox.getChildren().get(1);
+            assertTrue(grid.getChildren().size() >= 14, "Debe contener al menos 7 propiedades (etiqueta + valor)");
+        }
+    }
+
+    @Test
+    void testControlTiempoWidgetCompactoYVelocidades() {
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
+        org.example.game.ui.ControlTiempoWidget widget = new org.example.game.ui.ControlTiempoWidget(sim);
+
+        // Debe contener exactamente 5 botones: Pausa, 1x, 2x, 3x, 4x y ningún Label de ticks
+        assertEquals(5, widget.getChildren().size());
+        for (javafx.scene.Node n : widget.getChildren()) {
+            assertTrue(n instanceof javafx.scene.control.Button, "Cada elemento debe ser un botón interactivo");
+            assertFalse(n instanceof javafx.scene.control.Label, "No debe mostrar etiquetas de texto con el tick actual");
+        }
+
+        assertEquals("||", widget.getBtnPause().getText());
+        assertEquals("1x", widget.getBtn1x().getText());
+        assertEquals("2x", widget.getBtn2x().getText());
+        assertEquals("3x", widget.getBtn3x().getText());
+        assertEquals("4x", widget.getBtn4x().getText());
+
+        // Probar cambio a 2x
+        widget.getBtn2x().fire();
+        assertEquals(2.0, sim.getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.isEnPausa());
+
+        // Probar cambio a 3x
+        widget.getBtn3x().fire();
+        assertEquals(3.0, sim.getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.isEnPausa());
+
+        // Probar cambio a 4x
+        widget.getBtn4x().fire();
+        assertEquals(4.0, sim.getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.isEnPausa());
+
+        // Probar pausar
+        widget.getBtnPause().fire();
+        assertTrue(sim.isEnPausa());
+        assertEquals(">", widget.getBtnPause().getText());
+
+        // Probar reanudar
+        widget.getBtnPause().fire();
+        assertFalse(sim.isEnPausa());
+        assertEquals("||", widget.getBtnPause().getText());
+
+        // Probar clic en 1x reanuda y setea 1.0
+        widget.getBtnPause().fire();
+        assertTrue(sim.isEnPausa());
+        widget.getBtn1x().fire();
+        assertFalse(sim.isEnPausa());
+        assertEquals(1.0, sim.getVelocidadSimulacion(), 1e-6);
     }
 }
 

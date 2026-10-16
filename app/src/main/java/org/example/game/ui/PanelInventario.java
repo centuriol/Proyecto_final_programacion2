@@ -12,6 +12,9 @@ import org.example.game.jugador.TipoRecurso;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.simulacion.ConfiguracionSimulacion;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Panel lateral de inventario y controles de spawn.
@@ -27,17 +30,15 @@ public class PanelInventario extends VBox {
     private final Label lblSpawn = new Label("CREAR CUERPO");
     private final VBox botonesSpawnBox = new VBox(5);
     private final Separator sep2 = new Separator();
-    private final Label lblMasa = new Label("FACTOR MASA: 1.0x");
-    private final Slider sliderMasa = new Slider(
-            ConfiguracionSimulacion.MASA_FACTOR_MIN,
-            ConfiguracionSimulacion.MASA_FACTOR_MAX,
-            ConfiguracionSimulacion.MASA_FACTOR_MIN
-    );
+    private final WidgetFactorMasa widgetMasa = new WidgetFactorMasa("FACTOR MASA:", 1.0, 0.0);
     private final Label lblInfoCosto = new Label("");
     private final Separator sep3 = new Separator();
     private final Label lblControles = new Label("CONTROLES");
     private final VBox controlesBox = new VBox(3);
 
+    private final Map<TipoRecurso, HBox> mapaFilasRecursos = new java.util.EnumMap<>(TipoRecurso.class);
+    private final Map<TipoRecurso, Label> mapaLabelsRecursos = new java.util.EnumMap<>(TipoRecurso.class);
+    private final List<Button> listaBotonesSpawn = new ArrayList<>();
     private TipoCuerpo tipoSeleccionado = null;
 
     public PanelInventario(SimulacionSolar simulacion) {
@@ -54,23 +55,34 @@ public class PanelInventario extends VBox {
         lblTitulo.setTextFill(Color.WHITE);
         lblSpawn.setFont(Font.font("System", FontWeight.BOLD, 12));
         lblSpawn.setTextFill(Color.web("#00ffff"));
-        lblMasa.setFont(Font.font("System", FontWeight.BOLD, 11));
-        lblMasa.setTextFill(Color.web("#ffd700"));
         lblControles.setFont(Font.font("System", FontWeight.BOLD, 12));
         lblControles.setTextFill(Color.web("#00ffff"));
 
-        // Slider masa
-        sliderMasa.setShowTickLabels(true);
-        sliderMasa.setShowTickMarks(true);
-        sliderMasa.setMajorTickUnit(1.0);
-        sliderMasa.setMinorTickCount(4);
-        sliderMasa.setSnapToTicks(false);
-        sliderMasa.valueProperty().addListener((obs, old, neu) -> {
-            double f = neu.doubleValue();
+        // Slider masa reutilizable
+        widgetMasa.setOnFactorCambiado(f -> {
             simulacion.setFactorMasaColocacion(f);
-            lblMasa.setText(String.format("FACTOR MASA: %.1fx", f));
             actualizarInfoCosto();
         });
+
+        // Inicializar estructura fija de filas de recursos para evitar recrear nodos en cada actualización
+        for (TipoRecurso tr : TipoRecurso.values()) {
+            HBox row = new HBox(5);
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            Label lblNombre = new Label(tr.nombre);
+            lblNombre.setTextFill(Color.WHITE);
+            lblNombre.setPrefWidth(120);
+            lblNombre.setFont(Font.font("System", FontWeight.NORMAL, 11));
+
+            Label lblCant = new Label("0.0");
+            lblCant.setTextFill(Color.web(tr.getColorHex()));
+            lblCant.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
+
+            row.getChildren().addAll(lblNombre, lblCant);
+            mapaFilasRecursos.put(tr, row);
+            mapaLabelsRecursos.put(tr, lblCant);
+            recursosBox.getChildren().add(row);
+        }
 
         // Botones de spawn
         crearBotonesSpawn();
@@ -80,12 +92,12 @@ public class PanelInventario extends VBox {
 
         getChildren().addAll(
                 lblTitulo, recursosBox, sep1,
-                lblSpawn, botonesSpawnBox, lblMasa, sliderMasa, lblInfoCosto, sep2,
+                lblSpawn, botonesSpawnBox, widgetMasa, lblInfoCosto, sep2,
                 lblControles, controlesBox
         );
 
-        // Actualizar periódicamente
-        simulacion.setOnTickCallback(this::actualizarRecursos);
+        // Actualizar periódicamente desacoplado de los ticks de física
+        simulacion.agregarListenerUI(this::actualizarRecursos);
         actualizarRecursos();
     }
 
@@ -137,20 +149,18 @@ public class PanelInventario extends VBox {
             }
         });
 
+        listaBotonesSpawn.add(btn);
         return btn;
     }
 
     private void actualizarSeleccionVisual(TipoCuerpo seleccionado) {
-        for (javafx.scene.Node n : botonesSpawnBox.getChildren()) {
-            if (n instanceof Button) {
-                Button b = (Button) n;
-                if (b.getText().contains(seleccionado.nombre.split(" ")[0]) ||
-                    (seleccionado == TipoCuerpo.AGUJERO_NEGRO && b.getText().contains("Agujero")) ||
-                    (seleccionado == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO && b.getText().contains("SMBH"))) {
-                    b.setStyle("-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-weight: bold;");
-                } else {
-                    b.setStyle("-fx-background-color: #0f3460; -fx-text-fill: white;");
-                }
+        for (Button b : listaBotonesSpawn) {
+            if (b.getText().contains(seleccionado.nombre.split(" ")[0]) ||
+                (seleccionado == TipoCuerpo.AGUJERO_NEGRO && b.getText().contains("Agujero")) ||
+                (seleccionado == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO && b.getText().contains("SMBH"))) {
+                b.setStyle("-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-weight: bold;");
+            } else {
+                b.setStyle("-fx-background-color: #0f3460; -fx-text-fill: white;");
             }
         }
     }
@@ -198,26 +208,24 @@ public class PanelInventario extends VBox {
         });
     }
 
-    private void actualizarRecursos() {
-        recursosBox.getChildren().clear();
+    public void actualizarRecursosParaPerfil() {
+        actualizarRecursos();
+    }
 
+    private void actualizarRecursos() {
         for (TipoRecurso tr : TipoRecurso.values()) {
             double cant = inventario.getRecurso(tr);
-            if (cant > 0 || tr == TipoRecurso.POBLACION || tr == TipoRecurso.CIENCIA || tr == TipoRecurso.MINERALES || tr == TipoRecurso.ENERGIA) {
-                HBox row = new HBox(5);
-                row.setAlignment(Pos.CENTER_LEFT);
-
-                Label lblNombre = new Label(tr.nombre);
-                lblNombre.setTextFill(Color.WHITE);
-                lblNombre.setPrefWidth(120);
-                lblNombre.setFont(Font.font("System", FontWeight.NORMAL, 11));
-
-                Label lblCant = new Label(String.format("%.1f", cant));
-                lblCant.setTextFill(Color.web(tr.getColorHex()));
-                lblCant.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
-
-                row.getChildren().addAll(lblNombre, lblCant);
-                recursosBox.getChildren().add(row);
+            HBox row = mapaFilasRecursos.get(tr);
+            Label lblCant = mapaLabelsRecursos.get(tr);
+            if (row != null && lblCant != null) {
+                boolean visible = cant > 0 || tr == TipoRecurso.POBLACION || tr == TipoRecurso.CIENCIA || tr == TipoRecurso.MINERALES || tr == TipoRecurso.ENERGIA;
+                if (row.isVisible() != visible) {
+                    row.setVisible(visible);
+                    row.setManaged(visible);
+                }
+                if (visible) {
+                    lblCant.setText(String.format(java.util.Locale.US, "%.1f", cant));
+                }
             }
         }
     }

@@ -29,6 +29,18 @@ public final class ConfiguracionSimulacion {
     public static final double VELOCIDAD_EYECCION_FRAGMENTOS = 150.0; // px/tick base de dispersión
     public static final double FRACCION_MASA_MINIMA_SOBREVIVIENTE = 0.05; // 5% de la masa base como piso mínimo en colisión asimétrica
 
+    // ===== Ganancia de masa en colision asimetrica (Tarea 2) =====
+    public static final double PORCENTAJE_GANANCIA_MASA_COLISION = 0.30; // El mayor absorbe 30% de la masa del menor
+
+    // ===== Transformacion de cuerpos (Easter egg, Tarea 4) =====
+    public static final double RADIO_TRANSFORMACION_AGUA_PORRO = 120.0; // Radio en px desde la estrella para transformar Agua -> Porro
+    public static final double RADIO_TRANSFORMACION_PORRO_LAVA = 70.0;  // Radio en px desde la estrella para transformar Porro -> Lava
+    public static final int TICKS_ESPERA_TRANSFORMACION_EASTER_EGG = 40; // Ticks acumulados dentro del radio para iniciar transformacion
+    public static final int TICKS_MIGRACION_ORBITA = 30; // Ticks de desplazamiento gradual hacia la orbita estable
+    public static final double MARGEN_SEGURIDAD_ORBITA_LIBRE = 15.0; // Distancia adicional minima respecto a otros cuerpos (px)
+    public static final double PASO_BUSQUEDA_ORBITA_PX = 25.0; // Incremento de radio en caso de orbita ocupada (px)
+    public static final int MAX_INTENTOS_ORBITA_LIBRE = 8; // Maximo de radios alternativos a evaluar
+
     // ===== Ticks y tiempo =====
     public static final int TICKS_POR_SEGUNDO_REAL = 20; // Velocidad base
     public static final double SEGUNDOS_REALES_POR_TICK = 1.0 / TICKS_POR_SEGUNDO_REAL;

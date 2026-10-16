@@ -5,12 +5,10 @@ import org.example.game.render.RenderizadorPixelArt;
 /**
  * SRP: Encapsula la acción de alternar la visualización de la cuadrícula o grilla espacial.
  */
-public class ComandoAlternarGrilla implements Comando {
-
-    private final RenderizadorPixelArt renderizador;
+public class ComandoAlternarGrilla extends ComandoRenderizador {
 
     public ComandoAlternarGrilla(RenderizadorPixelArt renderizador) {
-        this.renderizador = renderizador;
+        super(renderizador);
     }
 
     @Override

@@ -8,7 +8,9 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -19,6 +21,7 @@ import org.example.game.controlador.SincronizadorUI;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.*;
+import org.example.game.controlador.comando.ComandoDebugMaxRecursos;
 
 /**
  * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
@@ -74,33 +77,36 @@ public class App extends Application {
         panelNotificaciones = new PanelNotificaciones(simulacion);
 
         // 5. Controladores de entrada encapsulados según POO y SOLID
-        controladorMouse = new ControladorMouse(simulacion, hotbar, stage, anchoInicial, altoInicial);
+        controladorMouse = new ControladorMouse(
+                simulacion,
+                hotbar,
+                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage),
+                anchoInicial,
+                altoInicial
+        );
         controladorMouse.conectar(canvasJuego);
+        controladorMouse.setCamaraZoom(renderizador.getCamaraZoom());
 
         controladorTeclado = new ControladorTeclado();
         controladorTeclado.configurarAtajosPorDefecto(
                 simulacion, controlTiempo, hotbar, renderizador, controladorMouse
         );
 
+        // [TEMPORAL - Remover antes de la entrega final]
+        controladorTeclado.setComandoCtrlM(new ComandoDebugMaxRecursos(simulacion, renderizador));
+
         // Sincronizar dimensiones cuando el canvas cambie de tamaño
-        canvasJuego.widthProperty().addListener((obs, oldV, newV) -> {
-            double w = newV.doubleValue();
+        Runnable sincronizarDimensiones = () -> {
+            double w = canvasJuego.getWidth();
             double h = canvasJuego.getHeight();
             if (w > 0 && h > 0) {
                 renderizador.setDimensiones(w, h);
                 simulacion.setDimensionesMundo(w, h);
                 controladorMouse.setDimensiones(w, h);
             }
-        });
-        canvasJuego.heightProperty().addListener((obs, oldV, newV) -> {
-            double w = canvasJuego.getWidth();
-            double h = newV.doubleValue();
-            if (w > 0 && h > 0) {
-                renderizador.setDimensiones(w, h);
-                simulacion.setDimensionesMundo(w, h);
-                controladorMouse.setDimensiones(w, h);
-            }
-        });
+        };
+        canvasJuego.widthProperty().addListener((obs, oldV, newV) -> sincronizarDimensiones.run());
+        canvasJuego.heightProperty().addListener((obs, oldV, newV) -> sincronizarDimensiones.run());
 
         // 6. Layout Superpuesto (HUD sobre Canvas)
         BorderPane overlayUI = new BorderPane();
@@ -116,10 +122,28 @@ public class App extends Application {
         // Panel lateral izquierdo para notificaciones
         overlayUI.setLeft(panelNotificaciones);
 
-        // Barra Inferior: Control Tiempo (Ticks y velocidades) + Hotbar de Ítems (Todo centrado)
-        HBox bottomBar = new HBox(10, controlTiempo, hotbar);
-        bottomBar.setAlignment(Pos.BOTTOM_CENTER);
+        // Barra Inferior: Control Tiempo fijado en esquina inferior izquierda, Hotbar centrada
+        BorderPane bottomBar = new BorderPane();
         bottomBar.setPickOnBounds(false);
+
+        BorderPane.setAlignment(controlTiempo, Pos.BOTTOM_LEFT);
+        bottomBar.setLeft(controlTiempo);
+
+        VBox contenedorHotbar = new VBox(2, hotbar.getBotonToggle(), hotbar);
+        contenedorHotbar.setAlignment(Pos.BOTTOM_CENTER);
+        contenedorHotbar.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        contenedorHotbar.setPickOnBounds(false);
+        BorderPane.setAlignment(contenedorHotbar, Pos.BOTTOM_CENTER);
+        bottomBar.setCenter(contenedorHotbar);
+
+        // Espaciador derecho invisible para balancear horizontalmente el centro de la hotbar
+        Region balanceadorDerecho = new Region();
+        balanceadorDerecho.setPickOnBounds(false);
+        balanceadorDerecho.setMouseTransparent(true);
+        balanceadorDerecho.minWidthProperty().bind(controlTiempo.widthProperty());
+        balanceadorDerecho.prefWidthProperty().bind(controlTiempo.widthProperty());
+        bottomBar.setRight(balanceadorDerecho);
+
         overlayUI.setBottom(bottomBar);
 
         StackPane root = new StackPane(canvasJuego, overlayUI);
@@ -128,8 +152,8 @@ public class App extends Application {
         // Vincular el controlador de teclado al root pane
         root.setOnKeyPressed(controladorTeclado);
 
-        // 7. Sincronización de callbacks UI encapsulada
-        simulacion.setOnTickCallback(new SincronizadorUI(hudRecursos, controlTiempo));
+        // 7. Sincronización de callbacks UI encapsulada (Observer desacoplado)
+        simulacion.agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
 
         // 8. Bucle principal de animación (Ticks fijos + Render desacoplado)
         bucleJuego = new BucleJuego(simulacion, renderizador, canvasJuego, controladorMouse);

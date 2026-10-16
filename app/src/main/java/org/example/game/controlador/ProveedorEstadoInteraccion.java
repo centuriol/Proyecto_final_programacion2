@@ -12,4 +12,5 @@ import java.util.List;
 public interface ProveedorEstadoInteraccion {
     List<Vector2D> getTrayectoriaPreview();
     CuerpoCeleste getCuerpoSeleccionado();
+    default void setDimensiones(double ancho, double alto) {}
 }

@@ -34,6 +34,12 @@ public class Meteorito extends CuerpoCeleste {
         this.tiempoVidaRestante -= dt;
     }
 
+    @Override
+    public void actualizarEntidad(double dt) {
+        reducirVida(dt);
+    }
+
+    @Override
     public boolean estaExpirado() {
         return tiempoVidaRestante <= 0;
     }

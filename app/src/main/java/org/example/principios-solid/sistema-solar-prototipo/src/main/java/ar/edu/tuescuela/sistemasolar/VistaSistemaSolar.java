@@ -40,6 +40,7 @@ public class VistaSistemaSolar {
 
     /** Se llama en cada paso de la simulación para redibujar todo. */
     public void actualizar() {
+        if (nodos.isEmpty() || (pane.getParent() == null && pane.getScene() == null)) return;
         for (Map.Entry<CuerpoCeleste, Node> entrada : nodos.entrySet()) {
             renderizador.actualizarNodo(entrada.getValue(), entrada.getKey());
         }

@@ -5,12 +5,10 @@ import org.example.game.render.RenderizadorPixelArt;
 /**
  * SRP: Encapsula la acción de alternar el trazado de estelas orbitales detrás de los cuerpos.
  */
-public class ComandoAlternarEstelas implements Comando {
-
-    private final RenderizadorPixelArt renderizador;
+public class ComandoAlternarEstelas extends ComandoRenderizador {
 
     public ComandoAlternarEstelas(RenderizadorPixelArt renderizador) {
-        this.renderizador = renderizador;
+        super(renderizador);
     }
 
     @Override
