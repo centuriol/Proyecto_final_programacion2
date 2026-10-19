@@ -3,20 +3,20 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-10-17.
+> Generado: 2026-10-19.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad POO/SOLID | **2/100** |
-| Código (LOC) | 7,965 |
-| Archivos de código | 64 |
-| Clases (bien usadas) | 70 (24 OK) |
-| Código dentro de clases (%POO) | 92% |
+| Índice de calidad POO/SOLID | **1/100** |
+| Código (LOC) | 10,628 |
+| Archivos de código | 89 |
+| Clases (bien usadas) | 103 (38 OK) |
+| Código dentro de clases (%POO) | 91% |
 | Funciones fuera de clases | 0 |
-| Duplicación | 8.2% |
-| Señales S/O/L/I/D | 45/12/5/0/20 |
+| Duplicación | 6.6% |
+| Señales S/O/L/I/D | 64/7/5/0/28 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
 
@@ -33,8 +33,8 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
-| Código dentro de clases (%POO) | ≥ 85% | 92% | sí |
-| Duplicación | ≤ 10% | 4.3% | sí |
+| Código dentro de clases (%POO) | ≥ 85% | 91% | sí |
+| Duplicación | ≤ 10% | 1.7% | sí |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP), Override vacío / 'no implementado' (LSP) | no |
 
@@ -42,22 +42,22 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
-| Código dentro de clases (%POO) | ≥ 95% | 92% | no |
-| Duplicación | ≤ 5% | 8.2% | no |
+| Código dentro de clases (%POO) | ≥ 95% | 91% | no |
+| Duplicación | ≤ 5% | 6.6% | no |
 | Funciones fuera de clases | ≤ 0 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP), Override vacío / 'no implementado' (LSP) | no |
-| Índice de calidad POO/SOLID | ≥ 60 | 2/100 | no |
+| Índice de calidad POO/SOLID | ≥ 60 | 1/100 | no |
 
 ## 2. Autoría (RepoSense)
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| mateovarelac | 2 | 5,003 | 342 | 0 | 2 | 64% |
-| minibautista14-tech | 5 | 2,858 | 1,365 | 2 | 7 | 36% |
+| mateovarelac | 3 | 7,869 | 1,723 | 0 | 4 | 81% |
+| minibautista14-tech | 5 | 1,829 | 1,363 | 2 | 7 | 19% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
-> **Reparto del trabajo:** mateovarelac concentra el 64% de las líneas de código. Un reparto muy desigual suele indicar que la integración no fue realmente en equipo; vale la pena reconstruir cómo se coordinó.
+> **Reparto del trabajo:** mateovarelac concentra el 81% de las líneas de código. Un reparto muy desigual suele indicar que la integración no fue realmente en equipo; vale la pena reconstruir cómo se coordinó.
 
 ## 3. Aspectos evaluados
 
@@ -67,13 +67,13 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Un resumen numérico (0-100) que combina la riqueza de clases bien usadas con la penalización por señales POO/SOLID y duplicación, y luego aplica topes duros.
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
-- **Tu resultado:** índice **2/100**
+- **Tu resultado:** índice **1/100**
 
 ### 2. Duplicación (DRY) (duplicacion) — con señales
 
 - **Qué mide:** Porcentaje de bloques de código repetidos (similitud) en el repositorio.
 - **Por qué importa:** Cada copia se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
-- **Tu resultado:** **8.2%** de duplicación
+- **Tu resultado:** **6.6%** de duplicación
 - **Para investigar la causa:**
     - ¿El trabajo se repartió por pantallas o archivos y se integró copiando y pegando bloques?
     - ¿Qué zonas del sistema cambiaron juntas más de una vez (señal de lógica compartida)?
@@ -83,7 +83,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Qué porción del código vive dentro de clases (no de funciones sueltas).
 - **Por qué importa:** El diseño orientado a objetos es el eje de la materia: el comportamiento debería vivir como método de una clase.
-- **Tu resultado:** **92.4%** del código dentro de clases
+- **Tu resultado:** **90.7%** del código dentro de clases
 
 ### 4. Funciones fuera de clases (sueltas) — sin señales
 
@@ -95,7 +95,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Clases con muchas líneas, métodos o campos a la vez.
 - **Por qué importa:** Una clase que hace de todo cambia por muchos motivos y cuesta entenderla y probarla.
-- **Tu resultado:** **28** clase(s) demasiado grande(s)
+- **Tu resultado:** **37** clase(s) demasiado grande(s)
 - **Para investigar la causa:**
     - ¿La clase creció por acumulación de responsabilidades?
     - ¿Qué partes de la clase se usan siempre juntas y cuáles no?
@@ -105,7 +105,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Métodos y campos de una clase que casi no se relacionan entre sí.
 - **Por qué importa:** Una unidad que cambia por motivos distintos y comparte poca información suele esconder más de una responsabilidad.
-- **Tu resultado:** **20** clase(s) con baja cohesión
+- **Tu resultado:** **25** clase(s) con baja cohesión
 - **Para investigar la causa:**
     - ¿Qué métodos de la clase no comparten estado con el resto?
     - ¿Cambian por motivos distintos según la tarea?
@@ -115,7 +115,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Complejidad ciclomática: cantidad de caminos posibles dentro de un método o función (condicionales, bucles, casos).
 - **Por qué importa:** Muchos caminos = difícil de seguir y de probar; suelen esconderse casos sin cubrir.
-- **Tu resultado:** **33** método(s)/función(es) con complejidad alta
+- **Tu resultado:** **37** método(s)/función(es) con complejidad alta
 - **Para investigar la causa:**
     - ¿Se agregaron condiciones a medida que aparecían casos nuevos?
     - ¿Se probaron todos los caminos o solo el caso principal?
@@ -125,7 +125,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Tamaño de los métodos/funciones y cantidad de parámetros.
 - **Por qué importa:** Una función que hace varias cosas cuesta leerla, nombrarla y reutilizarla.
-- **Tu resultado:** **48** método(s)/función(es) largos o con muchos parámetros
+- **Tu resultado:** **61** método(s)/función(es) largos o con muchos parámetros
 - **Para investigar la causa:**
     - ¿La función creció por acumulación de pasos?
     - ¿Agrupa operaciones que podrían describirse por separado?
@@ -135,23 +135,27 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Cuánto depende una clase de otros tipos del proyecto.
 - **Por qué importa:** Piezas muy enlazadas hacen que un cambio se propague y que sea difícil reemplazar partes.
-- **Tu resultado:** **36** clase(s) muy acoplada(s)
+- **Tu resultado:** **50** clase(s) muy acoplada(s)
 - **Para investigar la causa:**
     - ¿La clase conoce detalles internos de muchas otras?
     - ¿Se puede cambiar una parte sin tocar las demás?
     - ¿Los colaboradores llegan como parámetros o se crean por dentro?
 
-### 10. Herencia profunda (DIT) (herencia) — sin señales
+### 10. Herencia profunda (DIT) (herencia) — con señales
 
 - **Qué mide:** Profundidad de la cadena de herencia de una clase.
 - **Por qué importa:** Jerarquías muy profundas vuelven difícil saber de dónde viene cada comportamiento.
-- **Tu resultado:** **0** clase(s) con herencia profunda
+- **Tu resultado:** **3** clase(s) con herencia profunda
+- **Para investigar la causa:**
+    - ¿La jerarquía creció para reutilizar código o para modelar una relación real 'es-un'?
+    - ¿Qué comportamiento cambia entre niveles de la jerarquía?
+    - ¿Se evaluó la composición como alternativa?
 
 ### 11. Switch sobre tipos (OCP) (ocp) — con señales
 
 - **Qué mide:** Chequeos repetidos de tipo (`instanceof`/`is`/`typeof`) que equivalen a un switch sobre el tipo.
 - **Por qué importa:** Cada tipo nuevo obliga a tocar varios lugares, en vez de extender con una implementación nueva.
-- **Tu resultado:** **12** clase(s) con switch sobre tipos
+- **Tu resultado:** **7** clase(s) con switch sobre tipos
 - **Para investigar la causa:**
     - ¿Qué operación se resuelve preguntando el tipo?
     - ¿Qué se toca cada vez que aparece un tipo o caso nuevo?
@@ -177,7 +181,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Instanciación directa de clases concretas y ausencia de interfaces o clases abstractas pese al acoplamiento.
 - **Por qué importa:** Depender de implementaciones concretas dificulta cambiar o probar una parte sin arrastrar las demás.
-- **Tu resultado:** **20** dependencia(s) de concretos sin abstracciones
+- **Tu resultado:** **28** dependencia(s) de concretos sin abstracciones
 - **Para investigar la causa:**
     - ¿La clase crea por dentro a sus colaboradores en vez de recibirlos?
     - ¿Hay puntos de variación que convendría expresar como abstracción?
@@ -207,7 +211,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Clases donde todos los métodos son estáticos.
 - **Por qué importa:** Es comportamiento procedural disfrazado de clase: no se instancia ni participa del modelo de objetos.
-- **Tu resultado:** **2** clase(s) solo con métodos estáticos
+- **Tu resultado:** **1** clase(s) solo con métodos estáticos
 - **Para investigar la causa:**
     - ¿Por qué no hace falta una instancia en esa clase?
     - ¿Los métodos operan sobre estado que podría vivir en un objeto?
@@ -217,20 +221,26 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 Archivos donde el análisis encontró cada señal (sin número de línea, a propósito):
 
-**Clase demasiado grande (SRP) (god)** — 27 archivo(s):
+**Clase demasiado grande (SRP) (god)** — 35 archivo(s):
 - `app/src/main/java/org/example/App.java`
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
+- `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java`
 - `app/src/main/java/org/example/game/controlador/ControladorMouse.java`
+- `app/src/main/java/org/example/game/controlador/ControladorTeclado.java`
 - `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java`
 - `app/src/main/java/org/example/game/cuerpo/EscudoProtector.java`
 - `app/src/main/java/org/example/game/cuerpo/Meteorito.java`
 - `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`
 - `app/src/main/java/org/example/game/jugador/InventarioJugador.java`
+- `app/src/main/java/org/example/game/motor/AsistenteOrbital.java`
 - `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+- `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/motor/Vector2D.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
+- `app/src/main/java/org/example/game/render/RenderizadorFondo.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
 - `app/src/main/java/org/example/game/simulacion/ConfiguracionSimulacion.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
@@ -245,8 +255,10 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/test/java/org/example/AppTest.java`
 - `app/src/test/java/org/example/ControladorEntradaTest.java`
 - `app/src/test/java/org/example/GestorImagenesTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
-**Baja cohesión (LCOM) (cohesion)** — 20 archivo(s):
+**Baja cohesión (LCOM) (cohesion)** — 24 archivo(s):
 - `app/src/main/java/org/example/App.java`
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
 - `app/src/main/java/org/example/game/controlador/BucleJuego.java`
@@ -255,44 +267,60 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/java/org/example/game/cuerpo/Meteorito.java`
 - `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`
 - `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`
-- `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
+- `app/src/main/java/org/example/game/render/RenderizadorFondo.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
 - `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java`
+- `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java`
 - `app/src/main/java/org/example/game/ui/HUDRecursosTop.java`
+- `app/src/main/java/org/example/game/ui/HUDSimulacion.java`
 - `app/src/main/java/org/example/game/ui/MenuSuperiorIzquierdo.java`
 - `app/src/main/java/org/example/game/ui/PanelInventario.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/CuerpoCeleste.java`
+- `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/Planeta.java`
 - `app/src/test/java/org/example/AppTest.java`
 - `app/src/test/java/org/example/ControladorEntradaTest.java`
 
-**Complejidad alta (complejidad)** — 14 archivo(s):
+**Complejidad alta (complejidad)** — 23 archivo(s):
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
 - `app/src/main/java/org/example/game/controlador/BucleJuego.java`
 - `app/src/main/java/org/example/game/controlador/ControladorMouse.java`
 - `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`
 - `app/src/main/java/org/example/game/jugador/InventarioJugador.java`
+- `app/src/main/java/org/example/game/jugador/ServicioReembolso.java`
+- `app/src/main/java/org/example/game/motor/AsistenteOrbital.java`
+- `app/src/main/java/org/example/game/motor/CalculadorGravedad.java`
 - `app/src/main/java/org/example/game/motor/IntegradorVelocityVerlet.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+- `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
+- `app/src/main/java/org/example/game/simulacion/GestorEconomia.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
+- `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java`
 - `app/src/main/java/org/example/game/ui/HUDSimulacion.java`
 - `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
-- `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/CuerpoCeleste.java`
+- `app/src/test/java/org/example/MedicionRendimientoTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/PerfilRendimientoTest.java`
 
-**Métodos/funciones largos o con muchos parámetros (tamano)** — 20 archivo(s):
+**Métodos/funciones largos o con muchos parámetros (tamano)** — 28 archivo(s):
 - `app/src/main/java/org/example/App.java`
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
 - `app/src/main/java/org/example/game/controlador/BucleJuego.java`
-- `app/src/main/java/org/example/game/controlador/ControladorMouse.java`
 - `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java`
-- `app/src/main/java/org/example/game/jugador/InventarioJugador.java`
+- `app/src/main/java/org/example/game/motor/AsistenteOrbital.java`
+- `app/src/main/java/org/example/game/motor/CalculadorGravedad.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+- `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
+- `app/src/main/java/org/example/game/render/RenderizadorFondo.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
 - `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java`
@@ -301,31 +329,45 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/java/org/example/game/ui/MenuSuperiorIzquierdo.java`
 - `app/src/main/java/org/example/game/ui/PanelInventario.java`
 - `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
+- `app/src/main/java/org/example/game/ui/WidgetFactorMasa.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/AgujeroNegro.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/CuerpoCeleste.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/Planeta.java`
 - `app/src/test/java/org/example/AppTest.java`
+- `app/src/test/java/org/example/MedicionRendimientoTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/PerfilRendimientoTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
-**Acoplamiento alto (CBO) (acoplamiento)** — 33 archivo(s):
+**Acoplamiento alto (CBO) (acoplamiento)** — 48 archivo(s):
 - `app/src/main/java/org/example/App.java`
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
 - `app/src/main/java/org/example/game/controlador/BucleJuego.java`
+- `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java`
 - `app/src/main/java/org/example/game/controlador/ControladorMouse.java`
 - `app/src/main/java/org/example/game/controlador/ControladorTeclado.java`
+- `app/src/main/java/org/example/game/controlador/comando/ComandoDebugMaxRecursos.java`
 - `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java`
 - `app/src/main/java/org/example/game/cuerpo/Meteorito.java`
 - `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`
 - `app/src/main/java/org/example/game/jugador/InventarioJugador.java`
+- `app/src/main/java/org/example/game/jugador/ServicioReembolso.java`
 - `app/src/main/java/org/example/game/jugador/TipoRecurso.java`
+- `app/src/main/java/org/example/game/motor/AsistenteOrbital.java`
+- `app/src/main/java/org/example/game/motor/CalculadorGravedad.java`
 - `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`
 - `app/src/main/java/org/example/game/motor/CuerpoFisico.java`
 - `app/src/main/java/org/example/game/motor/IntegradorVelocityVerlet.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+- `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/motor/TrayectoriaPredictor.java`
+- `app/src/main/java/org/example/game/render/GestorEstelas.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
 - `app/src/main/java/org/example/game/simulacion/ConfiguracionSimulacion.java`
+- `app/src/main/java/org/example/game/simulacion/GeneradorEventosCosmicos.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
 - `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java`
 - `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java`
@@ -335,40 +377,46 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/java/org/example/game/ui/PanelInventario.java`
 - `app/src/main/java/org/example/game/ui/PanelNotificaciones.java`
 - `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
+- `app/src/main/java/org/example/game/ui/WidgetFactorMasa.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/CuerpoCeleste.java`
 - `app/src/main/java/org/example/principios-solid/sistema-solar-prototipo/src/main/java/ar/edu/tuescuela/sistemasolar/Planeta.java`
 - `app/src/test/java/org/example/AppTest.java`
 - `app/src/test/java/org/example/ControladorEntradaTest.java`
 - `app/src/test/java/org/example/GestorImagenesTest.java`
+- `app/src/test/java/org/example/MedicionRendimientoTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/PerfilRendimientoTest.java`
+- `app/src/test/java/org/example/RendimientoRegresionTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
-**Switch sobre tipos (OCP) (ocp)** — 12 archivo(s):
-- `app/src/main/java/org/example/game/controlador/BucleJuego.java`
-- `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
-- `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+**Herencia profunda (DIT) (herencia)** — 2 archivo(s):
+- `app/src/main/java/org/example/game/ui/HUDRecursosTop.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
+
+**Switch sobre tipos (OCP) (ocp)** — 7 archivo(s):
+- `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java`
 - `app/src/main/java/org/example/game/motor/Vector2D.java`
-- `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
-- `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
-- `app/src/main/java/org/example/game/ui/HUDSimulacion.java`
-- `app/src/main/java/org/example/game/ui/PanelInventario.java`
-- `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
 - `app/src/test/java/org/example/AppTest.java`
 - `app/src/test/java/org/example/ControladorEntradaTest.java`
 - `app/src/test/java/org/example/GestorImagenesTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
-**Override vacío o 'no implementado' (LSP) (lsp)** — 5 archivo(s):
-- `app/src/main/java/org/example/App.java`
-- `app/src/main/java/org/example/game/motor/MotorFisicaNewtoniana.java`
-- `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
+**Override vacío o 'no implementado' (LSP) (lsp)** — 4 archivo(s):
+- `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java`
 - `app/src/main/java/org/example/game/ui/PanelInventario.java`
-- `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
-**Dependencia de concretos y falta de abstracciones (DIP) (dip)** — 20 archivo(s):
+**Dependencia de concretos y falta de abstracciones (DIP) (dip)** — 28 archivo(s):
 - `app/src/main/java/org/example/App.java`
-- `app/src/main/java/org/example/game/controlador/ControladorTeclado.java`
+- `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java`
 - `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java`
+- `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`
 - `app/src/main/java/org/example/game/jugador/InventarioJugador.java`
+- `app/src/main/java/org/example/game/motor/AsistenteOrbital.java`
 - `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java`
-- `app/src/main/java/org/example/game/motor/TrayectoriaPredictor.java`
+- `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java`
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
 - `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java`
 - `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java`
@@ -380,9 +428,15 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/java/org/example/game/ui/PanelInventario.java`
 - `app/src/main/java/org/example/game/ui/PanelNotificaciones.java`
 - `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
+- `app/src/main/java/org/example/game/ui/WidgetFactorMasa.java`
 - `app/src/test/java/org/example/AppTest.java`
 - `app/src/test/java/org/example/ControladorEntradaTest.java`
 - `app/src/test/java/org/example/GestorImagenesTest.java`
+- `app/src/test/java/org/example/MedicionRendimientoTest.java`
+- `app/src/test/java/org/example/MejorasMotorFisicaYMecanicasTest.java`
+- `app/src/test/java/org/example/PerfilRendimientoTest.java`
+- `app/src/test/java/org/example/RendimientoRegresionTest.java`
+- `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java`
 
 **Clase sin métodos (solo datos) (data)** — 1 archivo(s):
 - `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`
@@ -394,20 +448,19 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`
 - `app/src/main/java/org/example/game/simulacion/ConfiguracionSimulacion.java`
 
-**Clase solo con métodos estáticos (utilitaria) (static)** — 2 archivo(s):
+**Clase solo con métodos estáticos (utilitaria) (static)** — 1 archivo(s):
 - `app/src/main/java/org/example/game/render/GestorImagenes.java`
-- `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java`
 
 ## 5. Evolución por commit
 
-Métricas calculadas sobre el estado de `main` en **cada commit** (6 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
+Métricas calculadas sobre el estado de `main` en **cada commit** (7 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
 
 ```mermaid
 xychart-beta
     title "Índice POO/SOLID a lo largo de los commits"
-    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e"]
+    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e", "1b7118e"]
     y-axis "Índice" 0 --> 100
-    line [0, 0, 2, 2, 2, 2]
+    line [0, 0, 2, 2, 2, 2, 1]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
@@ -418,6 +471,7 @@ xychart-beta
 | 4 | 2026-09-07 | `3f34b49` | minibautista14-tech | 6,476 | 2 | 94% | 7.2% | 0 |
 | 5 | 2026-09-25 | `35383e8` | mateovarelac | 7,073 | 2 | 92% | 8.0% | 0 |
 | 6 | 2026-10-05 | `052c78e` | minibautista14-tech | 7,965 | 2 | 92% | 8.2% | 0 |
+| 7 | 2026-10-19 | `1b7118e` | mateovarelac | 10,628 | 1 | 91% | 6.6% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
