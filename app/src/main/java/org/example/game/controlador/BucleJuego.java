@@ -59,14 +59,17 @@ public class BucleJuego extends AnimationTimer {
             }
         }
 
+        // Notificar observadores de UI exactamente una vez por frame desacoplada de la física
+        simulacion.notificarListenersUI();
+
         // Sincronizar dimensiones si el lienzo se adapta a la ventana/pantalla
         double anchoActual = canvas.getWidth();
         double altoActual = canvas.getHeight();
         if (anchoActual > 0 && altoActual > 0 && (anchoActual != renderizador.getAnchoCanvas() || altoActual != renderizador.getAltoCanvas())) {
             renderizador.setDimensiones(anchoActual, altoActual);
             simulacion.setDimensionesMundo(anchoActual, altoActual);
-            if (proveedorEstado instanceof ControladorMouse cm) {
-                cm.setDimensiones(anchoActual, altoActual);
+            if (proveedorEstado != null) {
+                proveedorEstado.setDimensiones(anchoActual, altoActual);
             }
         }
 

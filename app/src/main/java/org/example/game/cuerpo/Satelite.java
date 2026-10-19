@@ -15,6 +15,11 @@ public class Satelite extends CuerpoCeleste {
         super(nombre, masa, x, y, TipoCuerpo.SATELITE);
     }
 
+    @Override
+    public void actualizarEntidad(double dt) {
+        producirRecursos(dt);
+    }
+
     /** Genera recursos pasivos periódicamente */
     public void producirRecursos(double dt) {
         cienciaGenerada += 0.05 * dt;

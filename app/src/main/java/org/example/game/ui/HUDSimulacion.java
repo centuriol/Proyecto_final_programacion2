@@ -12,8 +12,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.Planeta;
 import org.example.game.jugador.TipoRecurso;
+import java.util.List;
 
 /**
  * HUD superior con información de estado de la simulación.
@@ -72,8 +72,12 @@ public class HUDSimulacion extends HBox {
 
         getChildren().addAll(btnTick, lblPoblacion, lblCuerpos, btnEstado, lblVelocidad, lblAlertas);
 
-        // Callback de actualización
-        simulacion.setOnTickCallback(this::actualizar);
+        // Observer de actualización UI
+        simulacion.agregarListenerUI(this::actualizar);
+        actualizar();
+    }
+
+    public void actualizarParaPerfil() {
         actualizar();
     }
 
@@ -81,57 +85,55 @@ public class HUDSimulacion extends HBox {
         // Tick
         btnTick.setText("Tick: " + simulacion.getTickActual());
 
-        // Población total
-        long popTotal = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c instanceof org.example.Planeta)
-                .map(c -> (org.example.Planeta) c)
-                .filter(Planeta::tieneCivilizacion)
-                .mapToLong(p -> (long) p.getCivilizacion().getPoblacion())
-                .sum();
+        long popTotal = 0;
+        int estrellas = 0;
+        int planetas = 0;
+        int agujeros = 0;
+        int meteoritos = 0;
+        StringBuilder alertas = new StringBuilder();
+
+        List<org.example.CuerpoCeleste> cuerpos = simulacion.getSistemaSolar().getCuerpos();
+        for (int i = 0; i < cuerpos.size(); i++) {
+            org.example.CuerpoCeleste c = cuerpos.get(i);
+            if (c == null) continue;
+            org.example.game.cuerpo.TipoCuerpo tipo = c.getTipoCuerpo();
+            if (tipo == org.example.game.cuerpo.TipoCuerpo.ESTRELLA) {
+                estrellas++;
+            } else if (tipo != null && tipo.esAgujeroNegro()) {
+                agujeros++;
+            } else if (tipo == org.example.game.cuerpo.TipoCuerpo.METEORITO) {
+                meteoritos++;
+            } else if (tipo != null && tipo.esPlaneta()) {
+                planetas++;
+            }
+
+            if (c.tieneCivilizacion() && c.getCivilizacion() != null) {
+                popTotal += (long) c.getCivilizacion().getPoblacion();
+                var estado = c.getCivilizacion().getEstado();
+                if (estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.EN_PELIGRO
+                        || estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.LUCHANDO) {
+                    alertas.append("[!] ").append(c.getNombre()).append(": ").append(estado.nombre).append("  ");
+                }
+            }
+        }
+
         lblPoblacion.setText("Pop: " + formatNumber(popTotal));
-
-        // Cuenta de cuerpos por tipo
-        long estrellas = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA).count();
-        long planetas = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c instanceof org.example.Planeta).count();
-        long agujeros = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.AGUJERO_NEGRO
-                        || c.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO).count();
-        long meteoritos = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c instanceof org.example.game.cuerpo.Meteorito).count();
-
         lblCuerpos.setText(String.format("Cuerpos: Est:%d Plan:%d Aguj:%d Met:%d", estrellas, planetas, agujeros, meteoritos));
 
         // Estado simulación
-        btnEstado.setText(simulacion.isEnPausa() ? "[PAUSADO]" : "[EJECUTANDO]");
-        btnEstado.setTextFill(simulacion.isEnPausa() ? Color.web("#ffa500") : Color.web("#32cd32"));
+        boolean enPausa = simulacion.isEnPausa();
+        btnEstado.setText(enPausa ? "[PAUSADO]" : "[EJECUTANDO]");
+        btnEstado.setTextFill(enPausa ? Color.web("#ffa500") : Color.web("#32cd32"));
 
         // Velocidad
         lblVelocidad.setText(String.format("Vel: %.1fx", simulacion.getVelocidadSimulacion()));
 
         // Alertas
-        StringBuilder alertas = new StringBuilder();
-        for (org.example.CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
-            if (c instanceof org.example.Planeta) {
-                org.example.Planeta p = (org.example.Planeta) c;
-                if (p.getCivilizacion() != null) {
-                    var estado = p.getCivilizacion().getEstado();
-                    if (estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.EN_PELIGRO
-                            || estado == org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.LUCHANDO) {
-                        alertas.append("[!] ").append(p.getNombre()).append(": ").append(estado.nombre).append("  ");
-                    }
-                }
-            }
-        }
         lblAlertas.setText(alertas.toString());
     }
 
     private String formatNumber(long n) {
-        if (n >= 1_000_000_000) return String.format("%.1fB", n / 1e9);
-        if (n >= 1_000_000) return String.format("%.1fM", n / 1e6);
-        if (n >= 1_000) return String.format("%.1fK", n / 1e3);
-        return String.valueOf(n);
+        return FormateadorNumero.formatear(n);
     }
 
     private void mostrarInfoTick() {

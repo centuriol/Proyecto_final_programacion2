@@ -8,7 +8,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import org.example.Planeta;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
@@ -61,52 +60,29 @@ public class HUDRecursosTop extends HBox {
     }
 
     private String formatPop(long n) {
-        if (n >= 1_000_000_000) return String.format("%.1fB", n / 1e9);
-        if (n >= 1_000_000) return String.format("%.1fM", n / 1e6);
-        if (n >= 1_000) return String.format("%.1fK", n / 1e3);
-        return String.valueOf(n);
+        return FormateadorNumero.formatear(n);
     }
 
     /**
-     * Componente reutilizable que representa el contador de un recurso individual.
+     * Clase base reutilizable para items contadores del HUD superior.
      */
-    public static class ItemRecursoWidget extends VBox {
-        private final TipoRecurso tipo;
-        private final Label lblNombre;
-        private final Label lblValor;
+    public abstract static class ItemContadorBase extends VBox {
+        protected final Label lblNombre;
+        protected final Label lblValor;
 
-        public ItemRecursoWidget(TipoRecurso tipo) {
-            this.tipo = tipo;
+        public ItemContadorBase(String titulo, String colorValorHex) {
             setAlignment(Pos.CENTER);
             setSpacing(1);
 
-            lblNombre = new Label(tipo.nombre.toUpperCase());
+            lblNombre = new Label(titulo);
             lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
             lblNombre.setTextFill(Color.web("#8c92a4"));
 
             lblValor = new Label("0");
             lblValor.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-            lblValor.setTextFill(Color.web(tipo.getColorHex()));
+            lblValor.setTextFill(Color.web(colorValorHex));
 
             getChildren().addAll(lblNombre, lblValor);
-        }
-
-        public void actualizar(double cantidad) {
-            if (cantidad >= 1_000_000_000) {
-                lblValor.setText(String.format("%.1fB", cantidad / 1e9));
-            } else if (cantidad >= 1_000_000) {
-                lblValor.setText(String.format("%.1fM", cantidad / 1e6));
-            } else if (cantidad >= 10_000) {
-                lblValor.setText(String.format("%.1fK", cantidad / 1e3));
-            } else if (cantidad < 100) {
-                lblValor.setText(String.format("%.1f", cantidad));
-            } else {
-                lblValor.setText(String.format("%.0f", cantidad));
-            }
-        }
-
-        public TipoRecurso getTipo() {
-            return tipo;
         }
 
         public String getNombreLabelText() {
@@ -119,25 +95,31 @@ public class HUDRecursosTop extends HBox {
     }
 
     /**
+     * Componente reutilizable que representa el contador de un recurso individual.
+     */
+    public static class ItemRecursoWidget extends ItemContadorBase {
+        private final TipoRecurso tipo;
+
+        public ItemRecursoWidget(TipoRecurso tipo) {
+            super(tipo.nombre.toUpperCase(), tipo.getColorHex());
+            this.tipo = tipo;
+        }
+
+        public void actualizar(double cantidad) {
+            lblValor.setText(FormateadorNumero.formatear(cantidad));
+        }
+
+        public TipoRecurso getTipo() {
+            return tipo;
+        }
+    }
+
+    /**
      * Componente reutilizable para el contador de poblacion galactica.
      */
-    public static class ItemPoblacionWidget extends VBox {
-        private final Label lblNombre;
-        private final Label lblValor;
-
+    public static class ItemPoblacionWidget extends ItemContadorBase {
         public ItemPoblacionWidget() {
-            setAlignment(Pos.CENTER);
-            setSpacing(1);
-
-            lblNombre = new Label("POBLACION");
-            lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
-            lblNombre.setTextFill(Color.web("#8c92a4"));
-
-            lblValor = new Label("0");
-            lblValor.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-            lblValor.setTextFill(Color.web("#50fa7b"));
-
-            getChildren().addAll(lblNombre, lblValor);
+            super("POBLACION", "#50fa7b");
         }
 
         public void actualizar(String textoPoblacion) {

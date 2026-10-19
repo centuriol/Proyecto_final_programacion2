@@ -3,52 +3,86 @@ package org.example.game.controlador;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import org.example.game.controlador.comando.*;
-import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.controlador.comando.Comando;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Controlador que encapsula la recepción y procesamiento de eventos de teclado.
+ * Controlador que encapsula la recepcion y procesamiento de eventos de teclado.
  *
  * Principios SOLID:
- * - SRP: Encapsula la gestión de atajos de teclado sin mezclar lógica de interfaz ni de física.
- * - OCP: El mapeo de teclas se basa en el patrón Command; se pueden asociar o modificar comandos sin editar esta clase.
- * - DIP: Depende de la interfaz Comando, permitiendo inyectar cualquier acción desacoplada.
+ * - SRP: Encapsula exclusivamente el despacho de eventos de teclado a comandos.
+ * - OCP: El mapeo soporta cualquier combinacion de teclas y modificadores via CombinacionTeclas.
+ * - DIP: Depende de la interfaz Comando, permitiendo inyectar cualquier accion desacoplada.
  */
 public class ControladorTeclado implements EventHandler<KeyEvent> {
 
-    private final Map<KeyCode, Comando> mapaComandos = new EnumMap<>(KeyCode.class);
+    private final Map<CombinacionTeclas, Comando> mapaComandos = new HashMap<>();
+
+    public void registrarComando(CombinacionTeclas combinacion, Comando comando) {
+        if (combinacion != null && comando != null) {
+            mapaComandos.put(combinacion, comando);
+        }
+    }
 
     public void registrarComando(KeyCode tecla, Comando comando) {
         if (tecla != null && comando != null) {
-            mapaComandos.put(tecla, comando);
+            registrarComando(CombinacionTeclas.de(tecla), comando);
+        }
+    }
+
+    public void desregistrarComando(CombinacionTeclas combinacion) {
+        if (combinacion != null) {
+            mapaComandos.remove(combinacion);
         }
     }
 
     public void desregistrarComando(KeyCode tecla) {
         if (tecla != null) {
-            mapaComandos.remove(tecla);
+            desregistrarComando(CombinacionTeclas.de(tecla));
         }
     }
 
+    public Comando obtenerComando(CombinacionTeclas combinacion) {
+        return mapaComandos.get(combinacion);
+    }
+
     public Comando obtenerComando(KeyCode tecla) {
-        return mapaComandos.get(tecla);
+        return tecla != null ? mapaComandos.get(CombinacionTeclas.de(tecla)) : null;
+    }
+
+    public boolean tieneComando(CombinacionTeclas combinacion) {
+        return mapaComandos.containsKey(combinacion);
     }
 
     public boolean tieneComando(KeyCode tecla) {
-        return mapaComandos.containsKey(tecla);
+        return tecla != null && mapaComandos.containsKey(CombinacionTeclas.de(tecla));
+    }
+
+    /**
+     * Registra un comando con el modificador Control (ej: Ctrl+M).
+     */
+    public void setComandoCtrlM(Comando comando) {
+        registrarComando(CombinacionTeclas.ctrl(KeyCode.M), comando);
     }
 
     @Override
     public void handle(KeyEvent event) {
-        if (event == null) return;
-        Comando comando = mapaComandos.get(event.getCode());
+        if (event == null || event.getCode() == null) return;
+
+        CombinacionTeclas combExacta = CombinacionTeclas.de(event);
+        Comando comando = mapaComandos.get(combExacta);
+
+        // Si no hay comando con modificador especifico, pero la tecla sola fue registrada
+        if (comando == null && !event.isControlDown() && !event.isAltDown() && !event.isShiftDown() && !event.isMetaDown()) {
+            comando = mapaComandos.get(CombinacionTeclas.de(event.getCode()));
+        }
+
         if (comando != null) {
             comando.ejecutar();
             event.consume();
@@ -56,31 +90,12 @@ public class ControladorTeclado implements EventHandler<KeyEvent> {
     }
 
     /**
-     * Configura los comandos y atajos de teclado predeterminados del juego.
+     * Configura los comandos y atajos de teclado predeterminados del juego delegando a ConfiguradorAtajosTeclado (SRP).
      */
     public void configurarAtajosPorDefecto(
-            SimulacionSolar simulacion,
-            ControlTiempoWidget controlTiempo,
-            BarraInventarioHotbar hotbar,
-            RenderizadorPixelArt renderizador,
-            ControladorMouse controladorMouse
+            SimulacionSolar sim, ControlTiempoWidget tiempo, BarraInventarioHotbar bar,
+            RenderizadorPixelArt render, ControladorMouse mouse
     ) {
-        registrarComando(KeyCode.SPACE, new ComandoAlternarPausa(simulacion, controlTiempo));
-        registrarComando(KeyCode.S, new ComandoAvanzarPaso(simulacion, controlTiempo));
-        registrarComando(KeyCode.ESCAPE, new ComandoCancelar(simulacion, hotbar, controladorMouse));
-
-        registrarComando(KeyCode.DIGIT1, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.ESTRELLA));
-        registrarComando(KeyCode.DIGIT2, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_ROCOSO));
-        registrarComando(KeyCode.DIGIT3, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.LUNA));
-        registrarComando(KeyCode.DIGIT4, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_AGUA));
-        registrarComando(KeyCode.DIGIT5, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_LAVA));
-
-        registrarComando(KeyCode.G, new ComandoAlternarGrilla(renderizador));
-        registrarComando(KeyCode.T, new ComandoAlternarEstelas(renderizador));
-        registrarComando(KeyCode.H, new ComandoAlternarZonasHabitables(renderizador));
-
-        registrarComando(KeyCode.PLUS, new ComandoAjustarFactorMasa(simulacion, 1.15));
-        registrarComando(KeyCode.EQUALS, new ComandoAjustarFactorMasa(simulacion, 1.15));
-        registrarComando(KeyCode.MINUS, new ComandoAjustarFactorMasa(simulacion, 1.0 / 1.15));
+        ConfiguradorAtajosTeclado.configurar(this, sim, tiempo, bar, render, mouse);
     }
 }

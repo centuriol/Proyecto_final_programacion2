@@ -191,29 +191,103 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
 
     @Override
     public double getRadioFisico() {
-        return tipoCuerpo.radioFisicoBase;
+        TipoCuerpo tipoActual = getTipoCuerpo();
+        return tipoActual != null ? tipoActual.radioFisicoBase : 6.37e6;
     }
 
     @Override
     public double getRadioAtraccion() {
-        double factorMasa = 1.0;
-        if (tipoCuerpo != null && tipoCuerpo.masaBase > 0) {
-            factorMasa = Math.max(0.01, masa / tipoCuerpo.masaBase);
-        }
-        if (tipoCuerpo == TipoCuerpo.ESTRELLA) {
-            return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
-        } else if (tipoCuerpo == TipoCuerpo.PLANETA_ROCOSO || tipoCuerpo == TipoCuerpo.PLANETA_GASEOSO
-                || tipoCuerpo == TipoCuerpo.PLANETA_HELADO || tipoCuerpo == TipoCuerpo.PLANETA_AGUA
-                || tipoCuerpo == TipoCuerpo.PLANETA_LAVA) {
-            return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
-        } else if (tipoCuerpo == TipoCuerpo.LUNA) {
-            return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
-        } else if (tipoCuerpo == TipoCuerpo.AGUJERO_NEGRO || tipoCuerpo == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
-            return Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
-        } else {
-            return Math.max(20.0, 35.0 * Math.sqrt(factorMasa));
-        }
+        TipoCuerpo tipoActual = getTipoCuerpo();
+        if (tipoActual == null) return 20.0;
+        double factorMasa = (tipoActual.masaBase > 0) ? Math.max(0.01, masa / tipoActual.masaBase) : 1.0;
+        return Math.max(tipoActual.getRadioAtraccionMin(), tipoActual.getRadioAtraccionMax() * Math.sqrt(factorMasa));
     }
+
+    /**
+     * Actualiza la entidad dinámicamente por tick polimórficamente (LSP / OCP).
+     * Sobreescrito por entidades con comportamientos pasivos (satélites, escudos, meteoritos).
+     */
+    public void actualizarEntidad(double dt) {
+        // No-op por defecto
+    }
+
+    /**
+     * Indica si este cuerpo cumplió su tiempo de vida y debe ser removido (LSP).
+     */
+    public boolean estaExpirado() {
+        return false;
+    }
+
+    /**
+     * Indica si este cuerpo celeste alberga una civilización activa (LSP).
+     */
+    public boolean tieneCivilizacion() {
+        return false;
+    }
+
+    /**
+     * Obtiene el componente de civilización si lo tiene, o null (LSP).
+     */
+    public org.example.game.civilizacion.CivilizacionComponent getCivilizacion() {
+        return null;
+    }
+
+    /**
+     * Actualiza la civilización asociada si el cuerpo es civilizable (LSP/OCP).
+     */
+    public void actualizarCivilizacion(java.util.List<CuerpoCeleste> cuerpos) {
+        // No-op por defecto
+    }
+
+    /**
+     * Indica si este cuerpo fue transformado por un evento del sistema (LSP).
+     */
+    public boolean isTransformadoPorEvento() {
+        return false;
+    }
+
+    /**
+     * Establece el estado de transformación por evento (LSP).
+     */
+    public void setTransformadoPorEvento(boolean transformado) {
+        // No-op por defecto
+    }
+
+    /**
+     * Indica si el jugador puede recibir un reembolso de recursos al desmantelar este cuerpo.
+     */
+    public boolean permiteReembolso() {
+        return !isTransformadoPorEvento();
+    }
+
+    /**
+     * Radio efectivo de defensa de estructuras con escudo (LSP).
+     */
+    public double getRadioEscudo() {
+        return 65.0;
+    }
+
+    /**
+     * Fase de animación de pulso visual de estructuras defensivas (LSP).
+     */
+    public double getPulsoVisual() {
+        return 0.0;
+    }
+
+    /**
+     * Indica si este cuerpo puede transformarse por condiciones del entorno (LSP / OCP).
+     */
+    public boolean esTransformable() {
+        return false;
+    }
+
+    /**
+     * Transforma polimórficamente el cuerpo a un nuevo tipo astronómico (LSP / OCP).
+     */
+    public void transformarA(TipoCuerpo nuevoTipo) {
+        // No-op por defecto
+    }
+
 
     // ===== Métodos abstractos para vista =====
 

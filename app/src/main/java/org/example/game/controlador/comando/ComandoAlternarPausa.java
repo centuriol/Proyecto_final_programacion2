@@ -7,14 +7,10 @@ import org.example.game.ui.ControlTiempoWidget;
  * SRP: Encapsula la acción de alternar el estado de pausa de la simulación
  * y sincronizar la selección visual en el widget de control de tiempo.
  */
-public class ComandoAlternarPausa implements Comando {
-
-    private final SimulacionSolar simulacion;
-    private final ControlTiempoWidget controlTiempo;
+public class ComandoAlternarPausa extends ComandoSimulacionConTiempo {
 
     public ComandoAlternarPausa(SimulacionSolar simulacion, ControlTiempoWidget controlTiempo) {
-        this.simulacion = simulacion;
-        this.controlTiempo = controlTiempo;
+        super(simulacion, controlTiempo);
     }
 
     @Override

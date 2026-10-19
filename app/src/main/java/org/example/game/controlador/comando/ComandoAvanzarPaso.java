@@ -7,14 +7,10 @@ import org.example.game.ui.ControlTiempoWidget;
  * SRP: Encapsula la acción de avanzar un único tick (paso discreto)
  * en la simulación física y actualizar el contador de ticks en la interfaz.
  */
-public class ComandoAvanzarPaso implements Comando {
-
-    private final SimulacionSolar simulacion;
-    private final ControlTiempoWidget controlTiempo;
+public class ComandoAvanzarPaso extends ComandoSimulacionConTiempo {
 
     public ComandoAvanzarPaso(SimulacionSolar simulacion, ControlTiempoWidget controlTiempo) {
-        this.simulacion = simulacion;
-        this.controlTiempo = controlTiempo;
+        super(simulacion, controlTiempo);
     }
 
     @Override
@@ -22,8 +18,6 @@ public class ComandoAvanzarPaso implements Comando {
         if (simulacion != null) {
             simulacion.step();
         }
-        if (controlTiempo != null) {
-            controlTiempo.actualizarTick();
-        }
+        actualizarTickWidget();
     }
 }

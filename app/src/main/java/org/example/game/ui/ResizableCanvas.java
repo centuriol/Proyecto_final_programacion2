@@ -54,7 +54,11 @@ public class ResizableCanvas extends Canvas {
 
     @Override
     public void resize(double width, double height) {
-        super.setWidth(width);
-        super.setHeight(height);
+        if (Double.compare(width, getWidth()) != 0) {
+            super.setWidth(width);
+        }
+        if (Double.compare(height, getHeight()) != 0) {
+            super.setHeight(height);
+        }
     }
 }

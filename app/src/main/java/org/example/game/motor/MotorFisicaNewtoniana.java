@@ -1,7 +1,6 @@
 package org.example.game.motor;
 
 import org.example.CuerpoCeleste;
-import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.CuerpoFisico;
 
@@ -14,14 +13,12 @@ import java.util.List;
  * SRP: Solo calcula física. No sabe de UI, juego, ni economía.
  * DIP: Implementa interfaz MotorFisica, no depende de implementaciones concretas.
  */
-public class MotorFisicaNewtoniana implements org.example.MotorFisica {
+public class MotorFisicaNewtoniana extends MotorFisicaBase {
 
     private final IntegradorVelocityVerlet integrador;
-    private final double radioMundo;
-    private final List<Runnable> listenersColision = new ArrayList<>();
 
     public MotorFisicaNewtoniana(double radioMundo) {
-        this.radioMundo = radioMundo;
+        super(radioMundo);
         // Usar constantes centralizadas (SRP)
         this.integrador = new IntegradorVelocityVerlet(
                 1.0,
@@ -39,8 +36,8 @@ public class MotorFisicaNewtoniana implements org.example.MotorFisica {
         // Filtrar solo cuerpos simulables (que implementan CuerpoFisico)
         List<CuerpoFisico> cuerposFisicos = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
-            if (c instanceof CuerpoFisico && ((CuerpoFisico) c).esSimulado()) {
-                cuerposFisicos.add((CuerpoFisico) c);
+            if (c != null && c.esSimulado()) {
+                cuerposFisicos.add(c);
             }
         }
 
@@ -107,20 +104,22 @@ public class MotorFisicaNewtoniana implements org.example.MotorFisica {
             return;
         }
 
-        // Meteorito impactando cuerpo
-        if (a instanceof Meteorito && !(b instanceof Meteorito)) {
-            impactarMeteorito((Meteorito) a, b, aEliminar, todos);
-            return;
-        }
-        if (b instanceof Meteorito && !(a instanceof Meteorito)) {
-            impactarMeteorito((Meteorito) b, a, aEliminar, todos);
+        // Meteoritos
+        boolean aEsMeteorito = a.getTipoCuerpo() == TipoCuerpo.METEORITO;
+        boolean bEsMeteorito = b.getTipoCuerpo() == TipoCuerpo.METEORITO;
+
+        if (aEsMeteorito && bEsMeteorito) {
+            aEliminar.add((CuerpoCeleste) a);
+            aEliminar.add((CuerpoCeleste) b);
             return;
         }
 
-        // Choque meteorito-meteorito: ambos se destruyen
-        if (a instanceof Meteorito && b instanceof Meteorito) {
-            aEliminar.add((CuerpoCeleste) a);
-            aEliminar.add((CuerpoCeleste) b);
+        if (aEsMeteorito) {
+            impactarMeteorito(a, b, aEliminar, todos);
+            return;
+        }
+        if (bEsMeteorito) {
+            impactarMeteorito(b, a, aEliminar, todos);
             return;
         }
 
@@ -145,7 +144,7 @@ public class MotorFisicaNewtoniana implements org.example.MotorFisica {
                 + " | Nueva masa: " + String.format("%.2e", nuevaMasa) + " kg");
     }
 
-    private void impactarMeteorito(Meteorito meteorito, CuerpoFisico objetivo,
+    private void impactarMeteorito(CuerpoFisico meteorito, CuerpoFisico objetivo,
                                     List<CuerpoCeleste> aEliminar,
                                     List<CuerpoCeleste> todos) {
         // Transferir momento al objetivo
@@ -155,77 +154,21 @@ public class MotorFisicaNewtoniana implements org.example.MotorFisica {
         );
         objetivo.setVelocidad(nuevaVelObjetivo);
 
-        // Daño a civilización si la hay (futuro)
-        if (objetivo instanceof org.example.Planeta) {
-            org.example.Planeta planeta = (org.example.Planeta) objetivo;
-            if (planeta.tieneCivilizacion()) {
-                System.out.println("⚠ IMPACTO en " + planeta.getNombre() + "! Civilización en peligro.");
-                // TODO: Reducir población/estabilidad
-            }
+        // Daño a civilización si la hay polimórficamente (LSP)
+        if (objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
+            System.out.println("IMPACTO en " + objetivo.getNombre() + "! Civilizacion en peligro.");
+            objetivo.getCivilizacion().recibirImpactoMeteorito();
         }
 
-        aEliminar.add(meteorito);
-        System.out.println("💥 " + meteorito.getNombre() + " impactó en " + objetivo.getNombre());
+        aEliminar.add((CuerpoCeleste) meteorito);
+        System.out.println("Impacto: " + meteorito.getNombre() + " impacto en " + objetivo.getNombre());
     }
 
     private void reboteElastico(CuerpoFisico a, CuerpoFisico b) {
-        // Colisión elástica 2D simplificada (aproximación 1D en eje de colisión)
-        Vector2D normal = b.getPosicion().restar(a.getPosicion()).normalizar();
-        Vector2D relativo = a.getVelocidad().restar(b.getVelocidad());
-        double velocidadNormal = relativo.productoPunto(normal);
-
-        if (velocidadNormal > 0) return; // Ya separándose
-
-        double e = 0.5; // Coeficiente de restitución (0.5 = parcialmente elástico)
-        double j = -(1 + e) * velocidadNormal / (1/a.getMasa() + 1/b.getMasa());
-        Vector2D impulso = normal.multiplicar(j);
-
-        a.setVelocidad(a.getVelocidad().restar(impulso.dividir(a.getMasa())));
-        b.setVelocidad(b.getVelocidad().sumar(impulso.dividir(b.getMasa())));
-
-        // Separar ligeramente para evitar colisiones repetidas
-        double overlap = (a.getRadioFisico() + b.getRadioFisico()) - a.getPosicion().distanciaA(b.getPosicion());
-        if (overlap > 0) {
-            Vector2D separacion = normal.multiplicar(overlap * 0.5);
-            a.setPosicion(a.getPosicion().restar(separacion));
-            b.setPosicion(b.getPosicion().sumar(separacion));
-        }
+        ResolvedorColisiones.reboteElastico(a, b);
     }
 
-    private void limpiarCuerposExpirados(List<CuerpoCeleste> cuerpos) {
-        Iterator<CuerpoCeleste> it = cuerpos.iterator();
-        while (it.hasNext()) {
-            CuerpoCeleste c = it.next();
 
-            // Meteoritos con vida agotada
-            if (c instanceof Meteorito && ((Meteorito) c).estaExpirado()) {
-                it.remove();
-                continue;
-            }
-
-            // Cuerpos que escapan del mundo (demasiado lejos)
-            if (c instanceof CuerpoFisico) {
-                CuerpoFisico cf = (CuerpoFisico) c;
-                double distCentro = cf.getPosicion().magnitud();
-                if (distCentro > radioMundo * ConstantesFisicas.LIMITE_ESCAPE_FACTOR) {
-                    it.remove();
-                    System.out.println(c.getNombre() + " escapó del sistema (distancia: " + (int)distCentro + "px)");
-                }
-            }
-        }
-    }
-
-    // ===== Eventos =====
-
-    public void agregarListenerColision(Runnable listener) {
-        listenersColision.add(listener);
-    }
-
-    private void notificarColision(CuerpoCeleste cuerpo) {
-        for (Runnable l : listenersColision) {
-            try { l.run(); } catch (Exception e) { e.printStackTrace(); }
-        }
-    }
 
     // ===== Configuración =====
 

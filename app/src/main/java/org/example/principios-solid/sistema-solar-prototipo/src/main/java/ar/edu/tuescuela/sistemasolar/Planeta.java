@@ -5,7 +5,8 @@ import org.example.game.civilizacion.CivilizacionComponent;
 
 public class Planeta extends CuerpoCeleste implements Civilizable {
     private boolean tieneCivilizacion = false;
-    private final TipoCuerpo subTipo;
+    private TipoCuerpo subTipo;
+    private boolean transformadoPorEvento = false;
     private CivilizacionComponent civilizacion;
 
     public Planeta(String nombre, double masa, double x, double y) {
@@ -19,6 +20,8 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
 
     @Override
     public void desarrollarCivilizacion() {
+        // Tarea 5: Un planeta transformado por evento no puede desarrollar civilizacion
+        if (transformadoPorEvento) return;
         this.tieneCivilizacion = true;
         if (civilizacion == null) {
             civilizacion = new CivilizacionComponent(this);
@@ -34,6 +37,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
         return civilizacion;
     }
 
+    @Override
     public void actualizarCivilizacion(java.util.List<org.example.CuerpoCeleste> cuerpos) {
         if (civilizacion != null) {
             civilizacion.actualizar(cuerpos);
@@ -78,5 +82,45 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
 
     public TipoCuerpo getSubTipo() {
         return subTipo;
+    }
+
+    @Override
+    public TipoCuerpo getTipoCuerpo() {
+        return subTipo;
+    }
+
+    /**
+     * Transforma este planeta a un nuevo subtipo preservando posicion, velocidad y estado fisico.
+     * Marca el planeta como transformado por evento para que no genere recursos,
+     * no desarrolle civilizacion y no de reembolso al eliminarlo (Tarea 5).
+     *
+     * @param nuevoTipo El nuevo subtipo de planeta.
+     */
+    @Override
+    public boolean esTransformable() {
+        return true;
+    }
+
+    @Override
+    public void transformarA(TipoCuerpo nuevoTipo) {
+        if (nuevoTipo != null) {
+            this.subTipo = nuevoTipo;
+            this.transformadoPorEvento = true;
+            // Destruir civilizacion existente: un planeta transformado no debe tenerla
+            if (civilizacion != null) {
+                civilizacion.destruir();
+                this.tieneCivilizacion = false;
+            }
+        }
+    }
+
+    @Override
+    public boolean isTransformadoPorEvento() {
+        return transformadoPorEvento;
+    }
+
+    @Override
+    public void setTransformadoPorEvento(boolean transformadoPorEvento) {
+        this.transformadoPorEvento = transformadoPorEvento;
     }
 }

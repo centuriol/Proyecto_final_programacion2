@@ -25,48 +25,22 @@ public class InventarioJugador {
     }
 
     private void inicializarCostos() {
-        // Costos en recursos base (se multiplican por factor de masa)
-        costos.put(TipoCuerpo.ESTRELLA,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA)
-                .agregar(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA));
-
-        costos.put(TipoCuerpo.PLANETA_ROCOSO,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA));
-
-        costos.put(TipoCuerpo.PLANETA_AGUA,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA));
-
-        costos.put(TipoCuerpo.PLANETA_LAVA,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_LAVA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_LAVA_ENERGIA));
-
-        costos.put(TipoCuerpo.PLANETA_GASEOSO,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * 2)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA * 2));
-
-        costos.put(TipoCuerpo.PLANETA_HELADO,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA));
-
-        costos.put(TipoCuerpo.LUNA,
-            new CostoCreacion(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_MINERALES)
-                .agregar(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_ENERGIA));
-
-        costos.put(TipoCuerpo.SATELITE,
-            new CostoCreacion(TipoRecurso.MINERALES, 40)
-                .agregar(TipoRecurso.ENERGIA, 30)
-                .agregar(TipoRecurso.CIENCIA, 10));
-
-        costos.put(TipoCuerpo.ESCUDO_DOME,
-            new CostoCreacion(TipoRecurso.ENERGIA, 150)
-                .agregar(TipoRecurso.CIENCIA, 50));
-
-        costos.put(TipoCuerpo.METEORITO,
-            new CostoCreacion(TipoRecurso.MINERALES, 10)
-                .agregar(TipoRecurso.ENERGIA, 5));
+        for (TipoCuerpo tc : TipoCuerpo.values()) {
+            Map<TipoRecurso, Double> cBase = tc.getCostosBase();
+            if (!cBase.isEmpty()) {
+                CostoCreacion cc = null;
+                for (Map.Entry<TipoRecurso, Double> entry : cBase.entrySet()) {
+                    if (cc == null) {
+                        cc = new CostoCreacion(entry.getKey(), entry.getValue());
+                    } else {
+                        cc.agregar(entry.getKey(), entry.getValue());
+                    }
+                }
+                if (cc != null) {
+                    costos.put(tc, cc);
+                }
+            }
+        }
     }
 
     private void darRecursosIniciales() {
@@ -88,49 +62,7 @@ public class InventarioJugador {
      */
     public static Map<TipoRecurso, Double> getCostosBase(TipoCuerpo tipo) {
         if (tipo == null) return Map.of();
-        Map<TipoRecurso, Double> map = new java.util.LinkedHashMap<>();
-        switch (tipo) {
-            case ESTRELLA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA);
-                map.put(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA);
-            }
-            case PLANETA_ROCOSO, PLANETA_HELADO -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA);
-            }
-            case PLANETA_AGUA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA);
-            }
-            case PLANETA_LAVA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_LAVA_MINERALES);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_LAVA_ENERGIA);
-            }
-            case PLANETA_GASEOSO -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * 2);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA * 2);
-            }
-            case LUNA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_MINERALES);
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.COSTO_LUNA_ENERGIA);
-            }
-            case SATELITE -> {
-                map.put(TipoRecurso.MINERALES, 40.0);
-                map.put(TipoRecurso.ENERGIA, 30.0);
-                map.put(TipoRecurso.CIENCIA, 10.0);
-            }
-            case ESCUDO_DOME -> {
-                map.put(TipoRecurso.ENERGIA, 150.0);
-                map.put(TipoRecurso.CIENCIA, 50.0);
-            }
-            case METEORITO -> {
-                map.put(TipoRecurso.MINERALES, 10.0);
-                map.put(TipoRecurso.ENERGIA, 5.0);
-            }
-            default -> {}
-        }
-        return Map.copyOf(map);
+        return tipo.getCostosBase();
     }
 
     /**
@@ -155,31 +87,7 @@ public class InventarioJugador {
      */
     public static Map<TipoRecurso, Double> getProduccionBasePorTick(TipoCuerpo tipo) {
         if (tipo == null) return Map.of();
-        Map<TipoRecurso, Double> map = new java.util.LinkedHashMap<>();
-        switch (tipo) {
-            case ESTRELLA -> {
-                map.put(TipoRecurso.ENERGIA, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA);
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES);
-            }
-            case PLANETA_ROCOSO, PLANETA_GASEOSO, PLANETA_HELADO -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_MINERALES);
-                map.put(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_CIENCIA);
-                map.put(TipoRecurso.POBLACION, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION);
-            }
-            case PLANETA_AGUA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES);
-                map.put(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA);
-            }
-            case PLANETA_LAVA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES);
-                map.put(TipoRecurso.CIENCIA, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA);
-            }
-            case LUNA -> {
-                map.put(TipoRecurso.MINERALES, org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_LUNA_MINERALES);
-            }
-            default -> {}
-        }
-        return Map.copyOf(map);
+        return tipo.getProduccionBase();
     }
 
     /**

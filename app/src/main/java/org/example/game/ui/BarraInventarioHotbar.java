@@ -2,20 +2,32 @@ package org.example.game.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
+import javafx.scene.Cursor;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.SimulacionSolar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Barra de inventario inferior (Hotbar) estilo RimWorld.
@@ -23,9 +35,29 @@ import java.util.List;
  */
 public class BarraInventarioHotbar extends HBox {
 
+    private static final Background BG_BARRA = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4), Insets.EMPTY));
+    private static final Border BORDER_BARRA = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
+
+    private static final Background BG_SLOT_NORMAL = new Background(new BackgroundFill(Color.web("#2b2d3a"), new CornerRadii(4), Insets.EMPTY));
+    private static final Background BG_SLOT_HOVER = new Background(new BackgroundFill(Color.web("#3b3d4f"), new CornerRadii(4), Insets.EMPTY));
+    private static final Background BG_SLOT_SELECTED = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4), Insets.EMPTY));
+
+    private static final Border BORDER_SLOT_NORMAL = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
+    private static final Border BORDER_SLOT_HOVER = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
+    private static final Border BORDER_SLOT_SELECTED = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
+
+    private static final DropShadow SHADOW_SELECTED = new DropShadow(6, Color.web("#5be3ff"));
+
+    private static final Background BG_BTN_TOGGLE = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4, 4, 0, 0, false), Insets.EMPTY));
+    private static final Background BG_BTN_TOGGLE_HOVER = new Background(new BackgroundFill(Color.web("#2b2d3a"), new CornerRadii(4, 4, 0, 0, false), Insets.EMPTY));
+    private static final Border BORDER_BTN_TOGGLE = new Border(new BorderStroke(Color.web("#3b3d4f"), BorderStrokeStyle.SOLID, new CornerRadii(4, 4, 0, 0, false), new BorderWidths(1, 1, 0, 1)));
+    private static final Border BORDER_BTN_TOGGLE_HOVER = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4, 4, 0, 0, false), new BorderWidths(1, 1, 0, 1)));
+
     private final SimulacionSolar simulacion;
     private final List<VBox> slotCards = new ArrayList<>();
     private TipoCuerpo tipoSeleccionado = null;
+    private boolean retraida = false;
+    private Button btnToggleRetraccion;
 
     private static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
@@ -45,7 +77,8 @@ public class BarraInventarioHotbar extends HBox {
         setAlignment(Pos.CENTER);
         setPadding(new Insets(6, 12, 6, 12));
         setSpacing(8);
-        setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+        setBackground(BG_BARRA);
+        setBorder(BORDER_BARRA);
 
         // Slots de inventario
         for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
@@ -59,74 +92,89 @@ public class BarraInventarioHotbar extends HBox {
         }
     }
 
+    public Button getBotonToggle() {
+        if (btnToggleRetraccion == null) {
+            btnToggleRetraccion = new Button("Ocultar Planetas");
+            btnToggleRetraccion.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            actualizarEstiloBotonToggle();
+            btnToggleRetraccion.setOnMouseEntered(e -> {
+                btnToggleRetraccion.setBackground(BG_BTN_TOGGLE_HOVER);
+                btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE_HOVER);
+            });
+            btnToggleRetraccion.setOnMouseExited(e -> {
+                btnToggleRetraccion.setBackground(BG_BTN_TOGGLE);
+                btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE);
+            });
+            btnToggleRetraccion.setOnAction(e -> alternarRetraccion());
+        }
+        return btnToggleRetraccion;
+    }
+
+    public void alternarRetraccion() {
+        setRetraida(!retraida);
+    }
+
+    public void setRetraida(boolean retraida) {
+        this.retraida = retraida;
+        setVisible(!retraida);
+        setManaged(!retraida);
+        if (btnToggleRetraccion != null) {
+            btnToggleRetraccion.setText(retraida ? "Mostrar Planetas" : "Ocultar Planetas");
+            actualizarEstiloBotonToggle();
+        }
+    }
+
+    public boolean isRetraida() {
+        return retraida;
+    }
+
+    private void actualizarEstiloBotonToggle() {
+        if (btnToggleRetraccion == null) return;
+        btnToggleRetraccion.setBackground(BG_BTN_TOGGLE);
+        btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE);
+        btnToggleRetraccion.setTextFill(Color.web(retraida ? "#5be3ff" : "#8c92a4"));
+        btnToggleRetraccion.setCursor(Cursor.HAND);
+        btnToggleRetraccion.setPadding(new Insets(3, 12, 3, 12));
+    }
+
     private VBox crearSlot(TipoCuerpo tipo, String icono, int hotkey) {
-        VBox slot = new VBox(2);
+        VBox slot = new VBox(4);
         slot.setAlignment(Pos.CENTER);
-        slot.setPrefSize(160, 82);
-        slot.setPadding(new Insets(3, 6, 3, 6));
-        slot.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 2px; -fx-cursor: hand;");
+        slot.setPrefSize(100, 84);
+        slot.setPadding(new Insets(5, 8, 5, 8));
+        slot.setBackground(BG_SLOT_NORMAL);
+        slot.setBorder(BORDER_SLOT_NORMAL);
+        slot.setCursor(Cursor.HAND);
 
-        // Cabecera: Nombre centrado con la tecla a la izquierda
-        javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
-        header.setMaxWidth(Double.MAX_VALUE);
-
+        // Tecla de acceso rápido
         Label lblKey = new Label("[" + hotkey + "]");
         lblKey.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
         lblKey.setTextFill(Color.web("#8c92a4"));
-        javafx.scene.layout.StackPane.setAlignment(lblKey, Pos.CENTER_LEFT);
 
+        // Icono / Imagen del cuerpo celeste
+        javafx.scene.layout.StackPane iconBox = org.example.game.render.GestorImagenes.crearContenedorIcono(tipo, 40, 40);
+
+        // Nombre del cuerpo celeste
         Label lblNom = new Label(tipo.nombre.toUpperCase());
         lblNom.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblNom.setTextFill(Color.web(tipo.getColorHexString()));
         lblNom.setAlignment(Pos.CENTER);
         lblNom.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-        javafx.scene.layout.StackPane.setAlignment(lblNom, Pos.CENTER);
 
-        header.getChildren().addAll(lblNom, lblKey);
+        slot.getChildren().addAll(lblKey, iconBox, lblNom);
 
-        // Contenido con imagen a la izquierda y detalles a la derecha, centrado
-        HBox contenido = new HBox(6);
-        contenido.setAlignment(Pos.CENTER);
-
-        javafx.scene.layout.StackPane iconBox = org.example.game.render.GestorImagenes.crearContenedorIcono(tipo, 38, 38);
-
-        VBox detalles = new VBox(1);
-        detalles.setAlignment(Pos.CENTER_LEFT);
-
-        // Necesitas (Costo para colocarlo)
-        String textoCosto = formatearResumenCosto(tipo);
-        Label lblCosto = new Label(textoCosto);
-        lblCosto.setFont(Font.font("System", FontWeight.NORMAL, 9));
-        lblCosto.setTextFill(Color.web("#ffd700"));
-
-        // Da por tick (Producción)
-        String textoProd = formatearResumenProduccion(tipo);
-        Label lblProd = new Label(textoProd);
-        lblProd.setFont(Font.font("System", FontWeight.NORMAL, 9));
-        lblProd.setTextFill(Color.web("#50fa7b"));
-
-        // Hint click
-        Label lblInfo = new Label("[Click: Configurar]");
-        lblInfo.setFont(Font.font("Monospace", FontWeight.NORMAL, 8));
-        lblInfo.setTextFill(Color.web("#718096"));
-
-        detalles.getChildren().addAll(lblCosto, lblProd, lblInfo);
-        contenido.getChildren().addAll(iconBox, detalles);
-
-        slot.getChildren().addAll(header, contenido);
-
-        // Sin tooltip al pasar el cursor (solo se abre la descripción al hacer click)
-
-        // Hover y Click
+        // Hover y Click sin invalidar CSS
         slot.setOnMouseEntered(e -> {
             if (tipoSeleccionado != tipo) {
-                slot.setStyle("-fx-background-color: #3b3d4f; -fx-border-color: #5be3ff; -fx-border-width: 2px; -fx-cursor: hand;");
+                slot.setBackground(BG_SLOT_HOVER);
+                slot.setBorder(BORDER_SLOT_HOVER);
             }
         });
 
         slot.setOnMouseExited(e -> {
             if (tipoSeleccionado != tipo) {
-                slot.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 2px; -fx-cursor: hand;");
+                slot.setBackground(BG_SLOT_NORMAL);
+                slot.setBorder(BORDER_SLOT_NORMAL);
             }
         });
 
@@ -137,30 +185,26 @@ public class BarraInventarioHotbar extends HBox {
         return slot;
     }
 
-    public static String formatearResumenCosto(TipoCuerpo tipo) {
-        java.util.Map<org.example.game.jugador.TipoRecurso, Double> costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
-        if (costos.isEmpty()) return "Costo: Gratis";
-        StringBuilder sb = new StringBuilder("Requiere: ");
+    private static String formatearMapaRecursos(String prefijo, String formatoValor, Map<TipoRecurso, Double> mapa, String siVacio) {
+        if (mapa == null || mapa.isEmpty()) return siVacio;
+        StringBuilder sb = new StringBuilder(prefijo);
         int i = 0;
-        for (var e : costos.entrySet()) {
+        for (var e : mapa.entrySet()) {
             if (i > 0) sb.append(", ");
-            sb.append(String.format("%.0f ", e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
+            sb.append(String.format(formatoValor, e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
             i++;
         }
         return sb.toString();
     }
 
+    public static String formatearResumenCosto(TipoCuerpo tipo) {
+        Map<TipoRecurso, Double> costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
+        return formatearMapaRecursos("Requiere: ", "%.0f ", costos, "Costo: Gratis");
+    }
+
     public static String formatearResumenProduccion(TipoCuerpo tipo) {
-        java.util.Map<org.example.game.jugador.TipoRecurso, Double> prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
-        if (prod.isEmpty()) return "Da/t: Ninguno";
-        StringBuilder sb = new StringBuilder("Da/t: ");
-        int i = 0;
-        for (var e : prod.entrySet()) {
-            if (i > 0) sb.append(", ");
-            sb.append(String.format("+%.2f ", e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
-            i++;
-        }
-        return sb.toString();
+        Map<TipoRecurso, Double> prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
+        return formatearMapaRecursos("Da/t: ", "+%.2f ", prod, "Da/t: Ninguno");
     }
 
     public static String formatearTooltipDetallado(TipoCuerpo tipo, int hotkey) {
@@ -212,9 +256,13 @@ public class BarraInventarioHotbar extends HBox {
             VBox slot = slotCards.get(i);
             TipoCuerpo tipo = CUERPOS_HOTBAR[i];
             if (tipo == tipoSeleccionado) {
-                slot.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 2px; -fx-effect: dropshadow(three-pass-box, #5be3ff, 6, 0, 0, 0);");
+                slot.setBackground(BG_SLOT_SELECTED);
+                slot.setBorder(BORDER_SLOT_SELECTED);
+                slot.setEffect(SHADOW_SELECTED);
             } else {
-                slot.setStyle("-fx-background-color: #2b2d3a; -fx-border-color: #000000; -fx-border-width: 2px;");
+                slot.setBackground(BG_SLOT_NORMAL);
+                slot.setBorder(BORDER_SLOT_NORMAL);
+                slot.setEffect(null);
             }
         }
     }

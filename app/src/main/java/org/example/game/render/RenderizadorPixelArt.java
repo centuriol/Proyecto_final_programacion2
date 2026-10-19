@@ -8,13 +8,6 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.StrokeLineCap;
 import org.example.CuerpoCeleste;
-import org.example.Estrella;
-import org.example.Planeta;
-import org.example.AgujeroNegro;
-import org.example.game.cuerpo.EscudoProtector;
-import org.example.game.cuerpo.Luna;
-import org.example.game.cuerpo.Meteorito;
-import org.example.game.cuerpo.Satelite;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.Vector2D;
@@ -37,51 +30,93 @@ public class RenderizadorPixelArt {
     private boolean mostrarZonasHabitables = true;
     private boolean mostrarOrbitsGuia = true;
 
-    // Historial de estelas por cuerpo (últimas posiciones)
-    private final Map<CuerpoCeleste, Deque<Vector2D>> estelas = new HashMap<>();
-    private static final int MAX_PUNTOS_ESTELA = 45;
+    // [TEMPORAL - Remover antes de la entrega final]
+    private boolean mostrarAnilloEasterEgg = false;
 
-    // Imagen de fondo espacial y rotación continua
-    private Image imagenFondo;
-    private double desplazamientoFondoX = 0.0;
-    private double velocidadBaseFondo = 1.0; // px/s base para movimiento de fondo ultra lento (bajado de 4.0 a 1.0)
+    // Componente de camara para zoom (Tarea 8)
+    private final CamaraZoom camaraZoom = new CamaraZoom();
+
+    // Componentes delegados (SRP / DIP)
+    private final RenderizadorFondo renderizadorFondo;
+    private final GestorEstelas gestorEstelas;
+    private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
+
+    /**
+     * Radios base de referencia orbital alrededor de estrellas (en px a escala 1.0).
+     * Compartidos entre dibujarZonasHabitables() y dibujarGhostPreview() para
+     * evitar desincronizacion entre ambos metodos (Tarea 7).
+     */
+    private static final double[] RADIOS_REFERENCIA_ORBITAL = { 160.0, 280.0, 400.0 };
+
+    // Cache y constantes de colores para optimizar rendimiento de renderizado por frame (Tarea 4)
+    private static final Map<String, Color> CACHE_COLORES = new HashMap<>();
+    private static final Map<Integer, Color> CACHE_COLORES_RGB = new HashMap<>();
+
+    public static Color colorWeb(String hex) {
+        if (hex == null || hex.isBlank()) return Color.WHITE;
+        return CACHE_COLORES.computeIfAbsent(hex, Color::web);
+    }
+
+    public static Color colorRgb(int r, int g, int b) {
+        int key = ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+        return CACHE_COLORES_RGB.computeIfAbsent(key, k -> Color.rgb(r, g, b));
+    }
+
+    public static Color colorRgb(int r, int g, int b, double opacity) {
+        int op = (int) Math.round(opacity * 255.0);
+        int key = ((op & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+        return CACHE_COLORES_RGB.computeIfAbsent(key, k -> Color.rgb(r, g, b, opacity));
+    }
+
+    private static final Color COLOR_FONDO_ESPACIAL = Color.web("#0e1017");
+    private static final Color COLOR_GRILLA_LINEA = Color.web("#2b2d3a");
+    private static final Color COLOR_GRILLA_EJE = Color.web("#5be3ff");
+    private static final Color COLOR_TEXTO_ETIQUETA = Color.web("#e8e4d8");
+    private static final Color COLOR_ACENTO_CYAN = Color.web("#5be3ff");
+    private static final Color COLOR_VERDE_EXITO = Color.web("#50fa7b");
+    private static final Color COLOR_NARANJA_LANZAMIENTO = Color.web("#ffb86c");
+    private static final Color COLOR_AREA_ESTRELLA = Color.rgb(255, 215, 0, 0.16);
+    private static final Color COLOR_AREA_LUNA = Color.rgb(200, 210, 225, 0.15);
+    private static final Color COLOR_AREA_PLANETA = Color.rgb(91, 227, 255, 0.14);
+    private static final Color COLOR_SOMBRA_PLANETA = Color.rgb(10, 20, 40, 0.45);
+    private static final Color COLOR_NEBULOSA_1 = Color.rgb(40, 20, 60, 0.22);
+    private static final Color COLOR_NEBULOSA_2 = Color.rgb(15, 45, 65, 0.18);
+    private static final Color COLOR_ANILLO_AGUA = Color.rgb(0, 191, 255, 0.6);
+    private static final Color COLOR_ANILLO_LAVA = Color.rgb(255, 69, 0, 0.6);
 
     // Tiempo acumulado de animación para rotación sobre su propio eje de los ítems
     private double tiempoAnimacionSegundos = 0.0;
 
-    // Estrellas estáticas de fondo con brillo aleatorio
-    private final List<EstrellaFondo> estrellasFondo = new ArrayList<>();
-
-    private static class EstrellaFondo {
-        final double x, y, size;
-        final double brilloBase;
-        final double velocidadParpadeo;
-
-        EstrellaFondo(double x, double y, double size, double brilloBase, double vel) {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-            this.brilloBase = brilloBase;
-            this.velocidadParpadeo = vel;
-        }
+    public RenderizadorPixelArt(double ancho, double alto, RenderizadorFondo renderizadorFondo, GestorEstelas gestorEstelas) {
+        this.anchoCanvas = ancho;
+        this.altoCanvas = alto;
+        this.renderizadorFondo = renderizadorFondo != null ? renderizadorFondo : new RenderizadorFondo(ancho, alto);
+        this.gestorEstelas = gestorEstelas != null ? gestorEstelas : new GestorEstelas();
+        inicializarRenderizadoresCuerpo();
     }
 
     public RenderizadorPixelArt(double ancho, double alto) {
-        this.anchoCanvas = ancho;
-        this.altoCanvas = alto;
-        this.imagenFondo = GestorImagenes.getImagenFondo();
-        generarEstrellasFondo();
+        this(ancho, alto, null, null);
     }
 
-    private void generarEstrellasFondo() {
-        Random rand = new Random(42); // Semilla fija para consistencia visual
-        for (int i = 0; i < 180; i++) {
-            double x = rand.nextDouble() * anchoCanvas;
-            double y = rand.nextDouble() * altoCanvas;
-            double size = rand.nextDouble() < 0.8 ? 1.5 : (rand.nextDouble() < 0.9 ? 2.5 : 3.5);
-            double brillo = 0.2 + rand.nextDouble() * 0.6;
-            double vel = 0.5 + rand.nextDouble() * 2.0;
-            estrellasFondo.add(new EstrellaFondo(x, y, size, brillo, vel));
+    private void inicializarRenderizadoresCuerpo() {
+        registrarRenderizadorCuerpo(TipoCuerpo.ESTRELLA, (gc, c, tipo, r, tick) -> dibujarEstrellaPixel(gc, 0, 0, r, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_ROCOSO, (gc, c, tipo, r, tick) -> dibujarPlanetaRocosoPixel(gc, 0, 0, c, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_AGUA, (gc, c, tipo, r, tick) -> dibujarPlanetaAguaPixel(gc, 0, 0, c, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_LAVA, (gc, c, tipo, r, tick) -> dibujarPlanetaLavaPixel(gc, 0, 0, c, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_GASEOSO, (gc, c, tipo, r, tick) -> dibujarGiganteGaseosoPixel(gc, 0, 0, r, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_HELADO, (gc, c, tipo, r, tick) -> dibujarPlanetaHeladoPixel(gc, 0, 0, r));
+        registrarRenderizadorCuerpo(TipoCuerpo.LUNA, (gc, c, tipo, r, tick) -> dibujarLunaPixel(gc, 0, 0, r));
+        registrarRenderizadorCuerpo(TipoCuerpo.SATELITE, (gc, c, tipo, r, tick) -> dibujarSatelitePixel(gc, 0, 0, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.ESCUDO_DOME, (gc, c, tipo, r, tick) -> dibujarEscudoDomePixel(gc, 0, 0, c, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.METEORITO, (gc, c, tipo, r, tick) -> dibujarMeteoritoPixel(gc, 0, 0, c, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.AGUJERO_NEGRO, (gc, c, tipo, r, tick) -> dibujarAgujeroNegroPixel(gc, 0, 0, r, tick));
+        registrarRenderizadorCuerpo(TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO, (gc, c, tipo, r, tick) -> dibujarAgujeroNegroPixel(gc, 0, 0, r, tick));
+    }
+
+    public void registrarRenderizadorCuerpo(TipoCuerpo tipo, RenderizadorCuerpo renderizador) {
+        if (tipo != null && renderizador != null) {
+            this.renderizadoresCuerpo.put(tipo, renderizador);
         }
     }
 
@@ -97,6 +132,16 @@ public class RenderizadorPixelArt {
                               String previewNombre,
                               Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
                               CuerpoCeleste cuerpoSeleccionado) {
+
+        // Aplicar zoom como transformacion de escala centrada en el canvas (Tarea 8)
+        double zoom = camaraZoom.getNivelZoom();
+        if (!camaraZoom.esZoomNeutro()) {
+            gc.save();
+            double cx = anchoCanvas / 2.0;
+            double cy = altoCanvas / 2.0;
+            gc.translate(cx * (1.0 - zoom), cy * (1.0 - zoom));
+            gc.scale(zoom, zoom);
+        }
 
         // 1. Fondo espacial en rotación continua hacia la derecha
         dibujarFondo(gc, tick);
@@ -149,68 +194,23 @@ public class RenderizadorPixelArt {
         if (previewTipo != null && previewPosFisica != null) {
             dibujarGhostPreview(gc, previewPosFisica, previewTipo, previewFactorMasa, previewNombre, tick);
         }
+
+        // Restaurar transform de zoom (Tarea 8)
+        if (!camaraZoom.esZoomNeutro()) {
+            gc.restore();
+        }
     }
 
     private void dibujarFondo(GraphicsContext gc, long tick) {
-        // Fondo base espacial oscuro
-        gc.setFill(Color.web("#0e1017"));
-        gc.fillRect(0, 0, anchoCanvas, altoCanvas);
-
-        Image fondo = getImagenFondo();
-        if (fondo != null) {
-            // Dos fondos del mismo tamaño desplazándose continuamente hacia la derecha
-            double x1 = desplazamientoFondoX;
-            double x2 = desplazamientoFondoX - anchoCanvas;
-
-            // anchoCanvas + 1 px para prevenir posibles líneas de separación subpíxel
-            gc.drawImage(fondo, x1, 0, anchoCanvas + 1, altoCanvas);
-            gc.drawImage(fondo, x2, 0, anchoCanvas + 1, altoCanvas);
-        } else {
-            // Nebulosas procedimentales de respaldo si no hay imagen de fondo disponible
-            dibujarNebulosas(gc, tick);
-        }
-    }
-
-    private void dibujarNebulosas(GraphicsContext gc, long tick) {
-        // Nube violeta oscura en esquina
-        gc.setFill(Color.rgb(40, 20, 60, 0.22));
-        gc.fillOval(anchoCanvas * 0.1, altoCanvas * 0.15, 450, 300);
-
-        // Nube cyan oscura en esquina opuesta
-        gc.setFill(Color.rgb(15, 45, 65, 0.18));
-        gc.fillOval(anchoCanvas * 0.65, altoCanvas * 0.55, 550, 380);
+        renderizadorFondo.dibujarFondo(gc, anchoCanvas, altoCanvas, tick);
     }
 
     private void dibujarGrilla(GraphicsContext gc) {
-        gc.setStroke(Color.web("#2b2d3a"));
-        gc.setLineWidth(1.0);
-        gc.setGlobalAlpha(0.25);
-
-        int tamanoCelda = 32;
-        for (double x = 0; x < anchoCanvas; x += tamanoCelda) {
-            gc.strokeLine(x, 0, x, altoCanvas);
-        }
-        for (double y = 0; y < altoCanvas; y += tamanoCelda) {
-            gc.strokeLine(0, y, anchoCanvas, y);
-        }
-
-        // Ejes centrales destacados sutilmente
-        gc.setStroke(Color.web("#5be3ff"));
-        gc.setGlobalAlpha(0.18);
-        gc.strokeLine(anchoCanvas / 2.0, 0, anchoCanvas / 2.0, altoCanvas);
-        gc.strokeLine(0, altoCanvas / 2.0, anchoCanvas, altoCanvas / 2.0);
-
-        gc.setGlobalAlpha(1.0);
+        renderizadorFondo.dibujarGrilla(gc, anchoCanvas, altoCanvas);
     }
 
     private void dibujarEstrellasFondo(GraphicsContext gc, long tick) {
-        for (EstrellaFondo ef : estrellasFondo) {
-            double alpha = ef.brilloBase + 0.25 * Math.sin(tick * 0.05 * ef.velocidadParpadeo);
-            alpha = Math.max(0.1, Math.min(1.0, alpha));
-
-            gc.setFill(Color.color(0.91, 0.89, 0.85, alpha)); // #e8e4d8
-            gc.fillRect((int) ef.x, (int) ef.y, (int) ef.size, (int) ef.size);
-        }
+        renderizadorFondo.dibujarEstrellasFondo(gc, tick);
     }
 
     private void dibujarZonasHabitables(GraphicsContext gc, List<CuerpoCeleste> cuerpos, long tick) {
@@ -225,8 +225,8 @@ public class RenderizadorPixelArt {
                 }
                 double escala = Math.sqrt(factorMasa);
 
-                // Líneas de referencia orbitales casi transparentes para planetas (reducidas a 2 órbitas)
-                double[] radiosReferencia = { 160.0, 280.0 };
+                // Líneas de referencia orbitales casi transparentes para planetas (3 órbitas de referencia)
+                double[] radiosReferencia = RADIOS_REFERENCIA_ORBITAL;
 
                 gc.setLineWidth(1.0);
                 gc.setLineDashes(3, 5);
@@ -234,11 +234,25 @@ public class RenderizadorPixelArt {
                 for (double rBase : radiosReferencia) {
                     double rOrbita = rBase * escala;
                     // Línea casi transparente sutil, consistente con las áreas de atracción ("que apenas se vean")
-                    gc.setStroke(Color.rgb(91, 227, 255, 0.14));
+                    gc.setStroke(COLOR_AREA_PLANETA);
                     gc.strokeOval(sx - rOrbita, sy - rOrbita, rOrbita * 2.0, rOrbita * 2.0);
                 }
 
                 gc.setLineDashes(null);
+
+                // [TEMPORAL - Remover antes de la entrega final]
+                // Anillo del radio de activacion del easter egg (Ctrl+M toggle)
+                if (mostrarAnilloEasterEgg) {
+                    gc.setLineDashes(6, 4);
+                    gc.setLineWidth(1.5);
+                    double radioEgg1 = org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_AGUA_PORRO * escala;
+                    gc.setStroke(COLOR_ANILLO_AGUA);
+                    gc.strokeOval(sx - radioEgg1, sy - radioEgg1, radioEgg1 * 2.0, radioEgg1 * 2.0);
+                    double radioEgg2 = org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA * escala;
+                    gc.setStroke(COLOR_ANILLO_LAVA);
+                    gc.strokeOval(sx - radioEgg2, sy - radioEgg2, radioEgg2 * 2.0, radioEgg2 * 2.0);
+                    gc.setLineDashes(null);
+                }
             }
         }
     }
@@ -256,11 +270,11 @@ public class RenderizadorPixelArt {
             // Color sutil según el tipo de cuerpo con muy baja opacidad ("que apenas se vean")
             Color colorArea;
             if (c.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
-                colorArea = Color.rgb(255, 215, 0, 0.16); // Dorado muy tenue
+                colorArea = COLOR_AREA_ESTRELLA;
             } else if (c.getTipoCuerpo() == TipoCuerpo.LUNA) {
-                colorArea = Color.rgb(200, 210, 225, 0.15); // Plateado muy tenue
+                colorArea = COLOR_AREA_LUNA;
             } else {
-                colorArea = Color.rgb(91, 227, 255, 0.14); // Cyan muy tenue para planetas
+                colorArea = COLOR_AREA_PLANETA;
             }
 
             gc.setStroke(colorArea);
@@ -272,45 +286,11 @@ public class RenderizadorPixelArt {
     }
 
     private void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
-        // Limpiar cuerpos eliminados
-        estelas.keySet().removeIf(c -> !cuerpos.contains(c));
-
-        for (CuerpoCeleste c : cuerpos) {
-            Deque<Vector2D> cola = estelas.computeIfAbsent(c, k -> new ArrayDeque<>());
-            cola.addLast(new Vector2D(c.getPosicionX(), c.getPosicionY()));
-            if (cola.size() > MAX_PUNTOS_ESTELA) {
-                cola.removeFirst();
-            }
-        }
+        gestorEstelas.actualizar(cuerpos);
     }
 
     private void dibujarEstelas(GraphicsContext gc) {
-        for (Map.Entry<CuerpoCeleste, Deque<Vector2D>> entry : estelas.entrySet()) {
-            CuerpoCeleste c = entry.getKey();
-            Deque<Vector2D> pts = entry.getValue();
-            if (pts.size() < 2) continue;
-
-            Color baseCol = Color.web(c.getColorHex());
-            int i = 0;
-            int total = pts.size();
-
-            Vector2D prev = null;
-            for (Vector2D pt : pts) {
-                if (prev != null) {
-                    double progress = (double) i / total;
-                    double x1 = ConstantesFisicas.fisicaAXJavaFX(prev.x, anchoCanvas);
-                    double y1 = ConstantesFisicas.fisicaAYJavaFX(prev.y, altoCanvas);
-                    double x2 = ConstantesFisicas.fisicaAXJavaFX(pt.x, anchoCanvas);
-                    double y2 = ConstantesFisicas.fisicaAYJavaFX(pt.y, altoCanvas);
-
-                    gc.setStroke(Color.color(baseCol.getRed(), baseCol.getGreen(), baseCol.getBlue(), progress * 0.45));
-                    gc.setLineWidth(Math.max(1.0, progress * 2.5));
-                    gc.strokeLine(x1, y1, x2, y2);
-                }
-                prev = pt;
-                i++;
-            }
-        }
+        gestorEstelas.dibujar(gc, anchoCanvas, altoCanvas);
     }
 
     // ===== Renderizado Pixel Art de Cada Cuerpo Celeste =====
@@ -335,49 +315,17 @@ public class RenderizadorPixelArt {
             gc.rotate(angulo);
         }
 
-        switch (tipo) {
-            case ESTRELLA:
-                dibujarEstrellaPixel(gc, 0, 0, r, tick);
-                break;
-            case PLANETA_ROCOSO:
-                dibujarPlanetaRocosoPixel(gc, 0, 0, c, tick);
-                break;
-            case PLANETA_AGUA:
-                dibujarPlanetaAguaPixel(gc, 0, 0, c, tick);
-                break;
-            case PLANETA_LAVA:
-                dibujarPlanetaLavaPixel(gc, 0, 0, c, tick);
-                break;
-            case PLANETA_GASEOSO:
-                dibujarGiganteGaseosoPixel(gc, 0, 0, r, tick);
-                break;
-            case LUNA:
-                dibujarLunaPixel(gc, 0, 0, r);
-                break;
-            case SATELITE:
-                dibujarSatelitePixel(gc, 0, 0, tick);
-                break;
-            case ESCUDO_DOME:
-                dibujarEscudoDomePixel(gc, 0, 0, (EscudoProtector) c, tick);
-                break;
-            case METEORITO:
-                dibujarMeteoritoPixel(gc, 0, 0, (Meteorito) c, tick);
-                break;
-            case AGUJERO_NEGRO:
-            case AGUJERO_NEGRO_SUPERMASIVO:
-                dibujarAgujeroNegroPixel(gc, 0, 0, r, tick);
-                break;
-            case PLANETA_HELADO:
-                dibujarPlanetaHeladoPixel(gc, 0, 0, r);
-                break;
-            default:
-                dibujarCuerpoGenerico(gc, 0, 0, c);
+        RenderizadorCuerpo renderer = renderizadoresCuerpo.get(tipo);
+        if (renderer != null) {
+            renderer.dibujar(gc, c, tipo, r, tick);
+        } else {
+            dibujarCuerpoGenerico(gc, 0, 0, c);
         }
 
         gc.restore();
 
         // Etiqueta compacta con nombre debajo, centrada con el cuerpo
-        gc.setFill(Color.web("#e8e4d8"));
+        gc.setFill(COLOR_TEXTO_ETIQUETA);
         gc.setGlobalAlpha(0.85);
         gc.setTextAlign(javafx.scene.text.TextAlignment.CENTER);
         gc.fillText(c.getNombre(), x, y + c.getRadio() + 14);
@@ -398,69 +346,67 @@ public class RenderizadorPixelArt {
         double pulso = 1.0 + 0.12 * Math.sin(tick * 0.15);
         double rCorona = r * 1.5 * pulso;
 
-        gc.setFill(Color.rgb(255, 215, 0, 0.18));
+        gc.setFill(colorRgb(255, 215, 0, 0.18));
         gc.fillOval(cx - rCorona, cy - rCorona, rCorona * 2, rCorona * 2);
 
         // Rayos de destello pixel art (4 direcciones + diagonales)
-        gc.setStroke(Color.rgb(255, 230, 100, 0.7));
+        gc.setStroke(colorRgb(255, 230, 100, 0.7));
         gc.setLineWidth(2.0);
         double rayoLen = r * 1.8 * pulso;
         gc.strokeLine(cx - rayoLen, cy, cx + rayoLen, cy);
         gc.strokeLine(cx, cy - rayoLen, cx, cy + rayoLen);
 
         // Núcleo solar (borde negro 2px + tonos dorados)
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#ffaa00"));
 
-        gc.setFill(Color.web("#ffaa00"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
-
-        gc.setFill(Color.web("#ffd700"));
+        gc.setFill(colorWeb("#ffd700"));
         gc.fillOval(cx - r * 0.75, cy - r * 0.75, r * 1.5, r * 1.5);
 
-        gc.setFill(Color.web("#ffffff"));
+        gc.setFill(colorWeb("#ffffff"));
         gc.fillOval(cx - r * 0.35, cy - r * 0.45, r * 0.7, r * 0.7);
     }
 
-    private void dibujarPlanetaRocosoPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
-        javafx.scene.image.Image imgPlaneta = GestorImagenes.getImagen(TipoCuerpo.PLANETA_ROCOSO);
-        if (imgPlaneta != null) {
-            double r = c.getRadio();
-            double tam = Math.max(22.0, r * 2.0);
-            gc.drawImage(imgPlaneta, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
-
-            // Si tiene civilización: luces de ciudades en la superficie
-            if (c instanceof Planeta && ((Planeta) c).tieneCivilizacion()) {
-                gc.setFill(Color.web("#5be3ff"));
-                gc.fillRect(cx - r * 0.3, cy - r * 0.2, 2, 2);
-                gc.fillRect(cx + r * 0.2, cy + r * 0.1, 2, 2);
-            }
-            return;
-        }
-
+    private boolean intentarDibujarSpritePlaneta(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, TipoCuerpo tipo) {
+        Image imgPlaneta = GestorImagenes.getImagen(tipo);
+        if (imgPlaneta == null) return false;
         double r = c.getRadio();
+        double tam = Math.max(22.0, r * 2.0);
+        gc.drawImage(imgPlaneta, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
+        if (c.tieneCivilizacion()) {
+            gc.setFill(colorWeb("#5be3ff"));
+            gc.fillRect(cx - r * 0.3, cy - r * 0.2, 2, 2);
+            gc.fillRect(cx + r * 0.2, cy + r * 0.1, 2, 2);
+        }
+        return true;
+    }
 
-        // Borde 2px negro estilo RimWorld
+    private void dibujarDiscoConContorno(GraphicsContext gc, double cx, double cy, double r, Color colorInterior) {
         gc.setFill(Color.BLACK);
         gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-
-        // Océano azul base
-        gc.setFill(Color.web("#2b6cb0"));
+        gc.setFill(colorInterior);
         gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+    }
+
+    private void dibujarPlanetaRocosoPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
+        if (intentarDibujarSpritePlaneta(gc, cx, cy, c, TipoCuerpo.PLANETA_ROCOSO)) return;
+        double r = c.getRadio();
+
+        // Fallback procedural planeta rocoso
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#2b6cb0"));
 
         // Continentes en pixel art
-        gc.setFill(Color.web("#48bb78"));
+        gc.setFill(colorWeb("#48bb78"));
         gc.fillRect(cx - r * 0.5, cy - r * 0.3, r * 0.7, r * 0.5);
         gc.fillRect(cx + r * 0.1, cy - r * 0.6, r * 0.5, r * 0.4);
         gc.fillRect(cx - r * 0.2, cy + r * 0.2, r * 0.6, r * 0.4);
 
         // Sombra lateral (dithering)
-        gc.setFill(Color.rgb(10, 20, 40, 0.45));
+        gc.setFill(COLOR_SOMBRA_PLANETA);
         gc.fillArc(cx - r, cy - r, r * 2, r * 2, 90, 180, javafx.scene.shape.ArcType.ROUND);
 
         // Si tiene civilización: luces de ciudades en el lado oscuro
-        if (c instanceof Planeta && ((Planeta) c).tieneCivilizacion()) {
-            gc.setFill(Color.web("#5be3ff"));
+        if (c.tieneCivilizacion()) {
+            gc.setFill(colorWeb("#5be3ff"));
             gc.fillRect(cx - r * 0.4, cy - r * 0.1, 2, 2);
             gc.fillRect(cx - r * 0.2, cy + r * 0.3, 2, 2);
             gc.fillRect(cx + r * 0.2, cy + r * 0.1, 3, 2);
@@ -468,68 +414,45 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarPlanetaAguaPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
-        javafx.scene.image.Image imgAgua = GestorImagenes.getImagen(TipoCuerpo.PLANETA_AGUA);
-        if (imgAgua != null) {
-            double r = c.getRadio();
-            double tam = Math.max(22.0, r * 2.0);
-            gc.drawImage(imgAgua, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
-            return;
-        }
-
+        if (intentarDibujarSpritePlaneta(gc, cx, cy, c, TipoCuerpo.PLANETA_AGUA)) return;
         double r = c.getRadio();
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-        gc.setFill(Color.web("#00bfff"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
-        gc.setFill(Color.web("#1e90ff"));
+
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#00bfff"));
+        gc.setFill(colorWeb("#1e90ff"));
         gc.fillRect(cx - r * 0.4, cy - r * 0.2, r * 0.8, r * 0.4);
     }
 
     private void dibujarPlanetaLavaPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste c, long tick) {
-        javafx.scene.image.Image imgLava = GestorImagenes.getImagen(TipoCuerpo.PLANETA_LAVA);
-        if (imgLava != null) {
-            double r = c.getRadio();
-            double tam = Math.max(22.0, r * 2.0);
-            gc.drawImage(imgLava, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
-            return;
-        }
-
+        if (intentarDibujarSpritePlaneta(gc, cx, cy, c, TipoCuerpo.PLANETA_LAVA)) return;
         double r = c.getRadio();
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-        gc.setFill(Color.web("#ff4500"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
-        gc.setFill(Color.web("#ffd700"));
+
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#ff4500"));
+        gc.setFill(colorWeb("#ffd700"));
         gc.fillRect(cx - r * 0.3, cy - r * 0.2, r * 0.6, r * 0.4);
     }
 
     private void dibujarGiganteGaseosoPixel(GraphicsContext gc, double cx, double cy, double r, long tick) {
-        // Borde negro exterior
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-
-        // Bandas gaseosas
-        gc.setFill(Color.web("#d69e2e"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        // Borde negro exterior y bandas gaseosas base
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#d69e2e"));
 
         // Franjas horizontales de nubes
-        gc.setFill(Color.web("#dd6b20"));
+        gc.setFill(colorWeb("#dd6b20"));
         gc.fillRect(cx - r * 0.85, cy - r * 0.5, r * 1.7, r * 0.3);
         gc.fillRect(cx - r * 0.95, cy + r * 0.1, r * 1.9, r * 0.35);
 
-        gc.setFill(Color.web("#fbd38d"));
+        gc.setFill(colorWeb("#fbd38d"));
         gc.fillRect(cx - r * 0.9, cy - r * 0.15, r * 1.8, r * 0.2);
 
         // Gran Mancha Roja
-        gc.setFill(Color.web("#9b2c2c"));
+        gc.setFill(colorWeb("#9b2c2c"));
         gc.fillOval(cx + r * 0.2, cy + r * 0.15, r * 0.45, r * 0.3);
 
         // Anillos planetarios elípticos inclinados
-        gc.setStroke(Color.rgb(237, 137, 54, 0.85));
+        gc.setStroke(colorRgb(237, 137, 54, 0.85));
         gc.setLineWidth(3.0);
         gc.strokeOval(cx - r * 1.7, cy - r * 0.45, r * 3.4, r * 0.9);
 
-        gc.setStroke(Color.rgb(254, 235, 200, 0.9));
+        gc.setStroke(colorRgb(254, 235, 200, 0.9));
         gc.setLineWidth(1.5);
         gc.strokeOval(cx - r * 1.5, cy - r * 0.38, r * 3.0, r * 0.76);
     }
@@ -542,14 +465,10 @@ public class RenderizadorPixelArt {
             return;
         }
 
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-
-        gc.setFill(Color.web("#a0aec0"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#a0aec0"));
 
         // Cráteres oscuros
-        gc.setFill(Color.web("#4a5568"));
+        gc.setFill(colorWeb("#4a5568"));
         gc.fillOval(cx - r * 0.4, cy - r * 0.3, r * 0.4, r * 0.4);
         gc.fillOval(cx + r * 0.1, cy + r * 0.2, r * 0.5, r * 0.5);
         gc.fillOval(cx - r * 0.2, cy + r * 0.3, r * 0.3, r * 0.3);
@@ -559,37 +478,37 @@ public class RenderizadorPixelArt {
         // Cuerpo metálico central
         gc.setFill(Color.BLACK);
         gc.fillRect(cx - 5, cy - 5, 10, 10);
-        gc.setFill(Color.web("#e2e8f0"));
+        gc.setFill(colorWeb("#e2e8f0"));
         gc.fillRect(cx - 4, cy - 4, 8, 8);
 
         // Paneles solares laterales
-        gc.setFill(Color.web("#2b6cb0"));
+        gc.setFill(colorWeb("#2b6cb0"));
         gc.fillRect(cx - 14, cy - 3, 8, 6);
         gc.fillRect(cx + 6, cy - 3, 8, 6);
 
         // Borde dorado de paneles
-        gc.setStroke(Color.web("#ffd700"));
+        gc.setStroke(colorWeb("#ffd700"));
         gc.setLineWidth(1.0);
         gc.strokeRect(cx - 14, cy - 3, 8, 6);
         gc.strokeRect(cx + 6, cy - 3, 8, 6);
 
         // Baliza intermitente cyan
         if ((tick / 8) % 2 == 0) {
-            gc.setFill(Color.web("#5be3ff"));
+            gc.setFill(COLOR_ACENTO_CYAN);
             gc.fillRect(cx - 1, cy - 7, 2, 2);
         }
     }
 
-    private void dibujarEscudoDomePixel(GraphicsContext gc, double cx, double cy, EscudoProtector escudo, long tick) {
+    private void dibujarEscudoDomePixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste escudo, long tick) {
         double rEfectivo = escudo.getRadioEscudo();
         double pulso = 0.8 + 0.2 * Math.sin(escudo.getPulsoVisual());
 
         // Cúpula translúcida
-        gc.setFill(Color.rgb(91, 227, 255, 0.15 * pulso));
+        gc.setFill(colorRgb(91, 227, 255, 0.15 * pulso));
         gc.fillOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
 
         // Borde brillante hexagonal/circular
-        gc.setStroke(Color.web("#5be3ff"));
+        gc.setStroke(COLOR_ACENTO_CYAN);
         gc.setLineWidth(2.0);
         gc.setLineDashes(8, 4);
         gc.strokeOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
@@ -598,11 +517,11 @@ public class RenderizadorPixelArt {
         // Generador central del escudo
         gc.setFill(Color.BLACK);
         gc.fillOval(cx - 7, cy - 7, 14, 14);
-        gc.setFill(Color.web("#5be3ff"));
+        gc.setFill(COLOR_ACENTO_CYAN);
         gc.fillOval(cx - 5, cy - 5, 10, 10);
     }
 
-    private void dibujarMeteoritoPixel(GraphicsContext gc, double cx, double cy, Meteorito m, long tick) {
+    private void dibujarMeteoritoPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste m, long tick) {
         Vector2D vel = m.getVelocidad();
         Vector2D dirOpuesta = vel.normalizar().multiplicar(-1.0);
 
@@ -611,18 +530,18 @@ public class RenderizadorPixelArt {
         double fx = cx + dirOpuesta.x * lenCola;
         double fy = cy + dirOpuesta.y * lenCola;
 
-        gc.setStroke(Color.rgb(255, 100, 20, 0.8));
+        gc.setStroke(colorRgb(255, 100, 20, 0.8));
         gc.setLineWidth(4.0);
         gc.strokeLine(cx, cy, fx, fy);
 
-        gc.setStroke(Color.rgb(255, 220, 50, 0.9));
+        gc.setStroke(colorRgb(255, 220, 50, 0.9));
         gc.setLineWidth(2.0);
         gc.strokeLine(cx, cy, cx + dirOpuesta.x * lenCola * 0.6, cy + dirOpuesta.y * lenCola * 0.6);
 
         // Roca del meteorito
         gc.setFill(Color.BLACK);
         gc.fillOval(cx - 5, cy - 5, 10, 10);
-        gc.setFill(Color.web("#718096"));
+        gc.setFill(colorWeb("#718096"));
         gc.fillOval(cx - 4, cy - 4, 8, 8);
     }
 
@@ -631,11 +550,11 @@ public class RenderizadorPixelArt {
         double rDisco = r * 2.2;
         double anguloGiro = tick * 2.5;
 
-        gc.setStroke(Color.rgb(189, 147, 249, 0.7)); // Violeta
+        gc.setStroke(colorRgb(189, 147, 249, 0.7)); // Violeta
         gc.setLineWidth(3.0);
         gc.strokeArc(cx - rDisco, cy - rDisco * 0.6, rDisco * 2, rDisco * 1.2, anguloGiro, 120, javafx.scene.shape.ArcType.OPEN);
 
-        gc.setStroke(Color.rgb(91, 227, 255, 0.85)); // Cyan
+        gc.setStroke(colorRgb(91, 227, 255, 0.85)); // Cyan
         gc.setLineWidth(2.0);
         gc.strokeArc(cx - rDisco * 0.8, cy - rDisco * 0.5, rDisco * 1.6, rDisco * 1.0, anguloGiro + 180, 140, javafx.scene.shape.ArcType.OPEN);
 
@@ -643,17 +562,13 @@ public class RenderizadorPixelArt {
         gc.setFill(Color.BLACK);
         gc.fillOval(cx - r, cy - r, r * 2, r * 2);
 
-        gc.setStroke(Color.web("#bd93f9"));
+        gc.setStroke(colorWeb("#bd93f9"));
         gc.setLineWidth(1.5);
         gc.strokeOval(cx - r, cy - r, r * 2, r * 2);
     }
 
     private void dibujarPlanetaHeladoPixel(GraphicsContext gc, double cx, double cy, double r) {
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-
-        gc.setFill(Color.web("#90cdf4"));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        dibujarDiscoConContorno(gc, cx, cy, r, colorWeb("#90cdf4"));
 
         // Grietas glaciares
         gc.setStroke(Color.WHITE);
@@ -663,11 +578,7 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarCuerpoGenerico(GraphicsContext gc, double cx, double cy, CuerpoCeleste c) {
-        double r = c.getRadio();
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - r - 2, cy - r - 2, (r + 2) * 2, (r + 2) * 2);
-        gc.setFill(Color.web(c.getColorHex()));
-        gc.fillOval(cx - r, cy - r, r * 2, r * 2);
+        dibujarDiscoConContorno(gc, cx, cy, c.getRadio(), colorWeb(c.getColorHex()));
     }
 
     // ===== Overlays de Interacción (Selección, Slingshot, Ghost Preview) =====
@@ -678,7 +589,7 @@ public class RenderizadorPixelArt {
         double r = c.getRadio() + 8.0;
 
         // Retícula de 4 esquinas cyan estilo RimWorld
-        gc.setStroke(Color.web("#5be3ff"));
+        gc.setStroke(COLOR_ACENTO_CYAN);
         gc.setLineWidth(2.0);
 
         double len = 6.0;
@@ -713,7 +624,7 @@ public class RenderizadorPixelArt {
                 double y0 = ConstantesFisicas.fisicaAYJavaFX(prev.y, altoCanvas);
 
                 double alpha = 1.0 - ((double) i / total) * 0.75;
-                gc.setStroke(Color.rgb(91, 227, 255, alpha));
+                gc.setStroke(colorRgb(91, 227, 255, alpha));
                 if (i % 2 == 0) {
                     gc.strokeLine(x0, y0, x, y);
                 }
@@ -734,12 +645,12 @@ public class RenderizadorPixelArt {
         double vy = y0 - (y1 - y0);
 
         // Línea elástica
-        gc.setStroke(Color.web("#ffb86c"));
+        gc.setStroke(COLOR_NARANJA_LANZAMIENTO);
         gc.setLineWidth(2.5);
         gc.strokeLine(x0, y0, x1, y1);
 
         // Flecha de impulso resultante
-        gc.setStroke(Color.web("#5be3ff"));
+        gc.setStroke(COLOR_ACENTO_CYAN);
         gc.setLineWidth(3.0);
         gc.strokeLine(x0, y0, vx, vy);
         gc.fillOval(vx - 4, vy - 4, 8, 8);
@@ -757,7 +668,7 @@ public class RenderizadorPixelArt {
         double pulso = 1.0 + 0.15 * Math.sin(tick * 0.25);
         double rPulsante = r * pulso;
 
-        gc.setStroke(Color.web(tipo.getColorHexString()));
+        gc.setStroke(colorWeb(tipo.getColorHexString()));
         gc.setLineWidth(2.0);
         gc.setLineDashes(4, 4);
         gc.strokeOval(x - rPulsante, y - rPulsante, rPulsante * 2, rPulsante * 2);
@@ -801,7 +712,7 @@ public class RenderizadorPixelArt {
         }
 
         // Círculo sutil ("que apenas se vea") de área de colapso para preview
-        gc.setStroke(Color.rgb(255, 255, 255, 0.20));
+        gc.setStroke(colorRgb(255, 255, 255, 0.20));
         gc.setLineWidth(1.0);
         gc.setLineDashes(3, 5);
         gc.strokeOval(x - rAtraccion, y - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
@@ -809,8 +720,8 @@ public class RenderizadorPixelArt {
         // Si se está colocando una Estrella, mostrar también las líneas de referencia orbitales casi transparentes
         if (tipo == TipoCuerpo.ESTRELLA) {
             double escala = Math.sqrt(Math.max(0.1, factorMasa));
-            double[] radiosReferencia = { 160.0, 280.0 };
-            gc.setStroke(Color.rgb(91, 227, 255, 0.12));
+            double[] radiosReferencia = RADIOS_REFERENCIA_ORBITAL;
+            gc.setStroke(colorRgb(91, 227, 255, 0.12));
             for (double rBase : radiosReferencia) {
                 double rOrbita = rBase * escala;
                 gc.strokeOval(x - rOrbita, y - rOrbita, rOrbita * 2.0, rOrbita * 2.0);
@@ -824,15 +735,15 @@ public class RenderizadorPixelArt {
         String linea1 = textoNombre + " (" + String.format("%.1fx", factorMasa) + ")";
         double tagWidth = Math.max(130.0, linea1.length() * 8.0 + 20.0);
 
-        gc.setFill(Color.rgb(26, 28, 38, 0.9));
+        gc.setFill(colorRgb(26, 28, 38, 0.9));
         gc.fillRect(x + r + 8, y - 20, tagWidth, 42);
-        gc.setStroke(Color.web("#5be3ff"));
+        gc.setStroke(COLOR_ACENTO_CYAN);
         gc.setLineWidth(1.0);
         gc.strokeRect(x + r + 8, y - 20, tagWidth, 42);
 
-        gc.setFill(Color.web("#e8e4d8"));
+        gc.setFill(COLOR_TEXTO_ETIQUETA);
         gc.fillText(linea1, x + r + 14, y - 4);
-        gc.setFill(Color.web("#50fa7b"));
+        gc.setFill(COLOR_VERDE_EXITO);
         gc.fillText("Click para colocar", x + r + 14, y + 14);
     }
 
@@ -842,15 +753,20 @@ public class RenderizadorPixelArt {
     public void toggleEstelas() { mostrarEstelas = !mostrarEstelas; }
     public void toggleZonasHabitables() { mostrarZonasHabitables = !mostrarZonasHabitables; }
 
+    // [TEMPORAL - Remover antes de la entrega final]
+    public void toggleAnilloEasterEgg() { mostrarAnilloEasterEgg = !mostrarAnilloEasterEgg; }
+    public boolean isMostrarAnilloEasterEgg() { return mostrarAnilloEasterEgg; }
+
+    public CamaraZoom getCamaraZoom() { return camaraZoom; }
+
     public void setDimensiones(double w, double h) {
         if (w > 0 && h > 0 && (w != this.anchoCanvas || h != this.altoCanvas)) {
             this.anchoCanvas = w;
             this.altoCanvas = h;
+            renderizadorFondo.generarEstrellasFondo(w, h);
             if (w > 0) {
-                this.desplazamientoFondoX = this.desplazamientoFondoX % w;
+                renderizadorFondo.setDesplazamientoFondoX(renderizadorFondo.getDesplazamientoFondoX() % w);
             }
-            estrellasFondo.clear();
-            generarEstrellasFondo();
         }
     }
 
@@ -861,13 +777,7 @@ public class RenderizadorPixelArt {
         tiempoAnimacionSegundos += deltaTime * multiplicadorVelocidad;
 
         // 2. Avanzar desplazamiento continuo del fondo hacia la derecha
-        if (anchoCanvas > 0) {
-            double deltaX = velocidadBaseFondo * multiplicadorVelocidad * deltaTime;
-            desplazamientoFondoX = (desplazamientoFondoX + deltaX) % anchoCanvas;
-            if (desplazamientoFondoX < 0) {
-                desplazamientoFondoX += anchoCanvas;
-            }
-        }
+        renderizadorFondo.avanzarDesplazamiento(deltaTime, multiplicadorVelocidad, anchoCanvas);
     }
 
     public void avanzarFondo(double deltaTime, double multiplicadorVelocidad) {
@@ -883,19 +793,19 @@ public class RenderizadorPixelArt {
     }
 
     public double getDesplazamientoFondoX() {
-        return desplazamientoFondoX;
+        return renderizadorFondo.getDesplazamientoFondoX();
     }
 
     public void setDesplazamientoFondoX(double desplazamiento) {
-        this.desplazamientoFondoX = desplazamiento;
+        renderizadorFondo.setDesplazamientoFondoX(desplazamiento);
     }
 
     public double getVelocidadBaseFondo() {
-        return velocidadBaseFondo;
+        return renderizadorFondo.getVelocidadBaseFondo();
     }
 
     public void setVelocidadBaseFondo(double vel) {
-        this.velocidadBaseFondo = vel;
+        renderizadorFondo.setVelocidadBaseFondo(vel);
     }
 
     public double getAnchoCanvas() {
@@ -907,13 +817,10 @@ public class RenderizadorPixelArt {
     }
 
     public Image getImagenFondo() {
-        if (imagenFondo == null) {
-            imagenFondo = GestorImagenes.getImagenFondo();
-        }
-        return imagenFondo;
+        return renderizadorFondo.getImagenFondo();
     }
 
     public void setImagenFondo(Image imagenFondo) {
-        this.imagenFondo = imagenFondo;
+        renderizadorFondo.setImagenFondo(imagenFondo);
     }
 }

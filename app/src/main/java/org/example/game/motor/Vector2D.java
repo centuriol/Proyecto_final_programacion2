@@ -59,6 +59,10 @@ public final class Vector2D {
         return this.restar(otro).magnitudCuadrado();
     }
 
+    public Vector2D interpolar(Vector2D destino, double t) {
+        return new Vector2D(this.x + (destino.x - this.x) * t, this.y + (destino.y - this.y) * t);
+    }
+
     @Override
     public String toString() {
         return String.format("Vector2D(%.3f, %.3f)", x, y);

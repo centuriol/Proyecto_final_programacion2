@@ -45,7 +45,7 @@ public class CivilizacionComponent {
         }
 
         public String getColorHex() {
-            return String.format("#%06X", color);
+            return String.format("#%06X", (0xFFFFFF & color));
         }
     }
 
@@ -265,10 +265,20 @@ public class CivilizacionComponent {
         emitirEvento("Catastrofe meteorica en " + planeta.getNombre() + "! Poblacion restante: " + (int)poblacion, MensajeEvento.TipoMensaje.PELIGRO);
     }
 
+    /**
+     * Destruye la civilizacion de forma explicita, poniendo la poblacion en 0
+     * y marcando el estado como EXTINGUIDA.
+     * Invocado al eliminar o destruir el planeta por cualquier via
+     * (borrado manual, absorcion, colision, meteorito destructivo).
+     */
+    public void destruir() {
+        this.poblacion = 0;
+        this.estado = EstadoCivilizacion.EXTINGUIDA;
+    }
+
     private void extinguir() {
         estado = EstadoCivilizacion.EXTINGUIDA;
         poblacion = 0;
-        planeta.setSimulado(false); // El planeta sigue ahí pero sin civ
         emitirEvento("Civilizacion en " + planeta.getNombre() + " se ha extinguido.", MensajeEvento.TipoMensaje.PELIGRO);
     }
 
