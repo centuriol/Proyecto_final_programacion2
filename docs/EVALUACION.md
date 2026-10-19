@@ -15,7 +15,7 @@
 | Clases (bien usadas) | 103 (38 OK) |
 | Código dentro de clases (%POO) | 91% |
 | Funciones fuera de clases | 0 |
-| Duplicación | 6.6% |
+| Duplicación lógica | 1.1% |
 | Señales S/O/L/I/D | 64/7/5/0/28 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
@@ -27,14 +27,14 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Semáforo | Resultado |
 |---|---|
 | Aprobar (`estandar`) | **no cumple** — 3/4 |
-| Destacar (`exigente`) | **no cumple** — 1/5 |
+| Destacar (`exigente`) | **no cumple** — 2/5 |
 
 **Criterios para aprobar**
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
 | Código dentro de clases (%POO) | ≥ 85% | 91% | sí |
-| Duplicación | ≤ 10% | 1.7% | sí |
+| Duplicación lógica | ≤ 10% | 1.1% | sí |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP), Override vacío / 'no implementado' (LSP) | no |
 
@@ -43,7 +43,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
 | Código dentro de clases (%POO) | ≥ 95% | 91% | no |
-| Duplicación | ≤ 5% | 6.6% | no |
+| Duplicación lógica | ≤ 5% | 1.1% | sí |
 | Funciones fuera de clases | ≤ 0 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP), Override vacío / 'no implementado' (LSP) | no |
 | Índice de calidad POO/SOLID | ≥ 60 | 1/100 | no |
@@ -69,11 +69,11 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
 - **Tu resultado:** índice **1/100**
 
-### 2. Duplicación (DRY) (duplicacion) — con señales
+### 2. Duplicación lógica (DRY) (duplicacion) — con señales
 
-- **Qué mide:** Porcentaje de bloques de código repetidos (similitud) en el repositorio.
-- **Por qué importa:** Cada copia se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
-- **Tu resultado:** **6.6%** de duplicación
+- **Qué mide:** Porcentaje de bloques de LÓGICA repetidos. Quedan fuera imports/includes, anotaciones, declaraciones de campos y comentarios/Javadoc/docstrings: esos bloques son boilerplate, no lógica.
+- **Por qué importa:** Cada copia de lógica se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
+- **Tu resultado:** **1.1%** de duplicación lógica
 - **Para investigar la causa:**
     - ¿El trabajo se repartió por pantallas o archivos y se integró copiando y pegando bloques?
     - ¿Qué zonas del sistema cambiaron juntas más de una vez (señal de lógica compartida)?
@@ -467,11 +467,11 @@ xychart-beta
 |---|---|---|---|---:|---:|---:|---:|---:|
 | 1 | 2026-08-14 | `f322f1e` | minibautista14-tech | 0 | 0 | 0% | 0.0% | 0 |
 | 2 | 2026-08-24 | `c2ce669` | dqmdz-etec | 0 | 0 | 0% | 0.0% | 0 |
-| 3 | 2026-08-28 | `9675cae` | minibautista14-tech | 4,178 | 2 | 90% | 7.7% | 0 |
-| 4 | 2026-09-07 | `3f34b49` | minibautista14-tech | 6,476 | 2 | 94% | 7.2% | 0 |
-| 5 | 2026-09-25 | `35383e8` | mateovarelac | 7,073 | 2 | 92% | 8.0% | 0 |
-| 6 | 2026-10-05 | `052c78e` | minibautista14-tech | 7,965 | 2 | 92% | 8.2% | 0 |
-| 7 | 2026-10-19 | `1b7118e` | mateovarelac | 10,628 | 1 | 91% | 6.6% | 0 |
+| 3 | 2026-08-28 | `9675cae` | minibautista14-tech | 4,178 | 2 | 90% | 2.2% | 0 |
+| 4 | 2026-09-07 | `3f34b49` | minibautista14-tech | 6,476 | 2 | 94% | 2.0% | 0 |
+| 5 | 2026-09-25 | `35383e8` | mateovarelac | 7,073 | 2 | 92% | 1.9% | 0 |
+| 6 | 2026-10-05 | `052c78e` | minibautista14-tech | 7,965 | 2 | 92% | 2.6% | 0 |
+| 7 | 2026-10-19 | `1b7118e` | mateovarelac | 10,628 | 1 | 91% | 1.1% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
