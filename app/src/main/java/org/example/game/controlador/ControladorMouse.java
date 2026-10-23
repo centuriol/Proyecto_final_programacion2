@@ -91,7 +91,38 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         actualizarPreviewColocacion(e.getX(), e.getY());
     }
 
+    private org.example.Planeta planetaOrigenColonizacion = null;
+
+    public void iniciarModoColonizacion(org.example.Planeta origen) {
+        this.planetaOrigenColonizacion = origen;
+        if (simulacion != null) {
+            simulacion.notificarEvento("Modo Colonización: Haz click en un planeta destino. [ESC] o click derecho para cancelar.", org.example.game.simulacion.MensajeEvento.TipoMensaje.INFO);
+        }
+    }
+
+    public boolean isModoColonizacion() {
+        return planetaOrigenColonizacion != null;
+    }
+
+    public void cancelarModoColonizacion() {
+        this.planetaOrigenColonizacion = null;
+    }
+
     public void manejarMousePresionado(MouseEvent e) {
+        if (planetaOrigenColonizacion != null) {
+            if (e.getButton() == MouseButton.PRIMARY) {
+                seleccionarCuerpoBajoCursor(e.getX(), e.getY());
+                if (cuerpoSeleccionado != null) {
+                    simulacion.getGestorColonizacion().lanzar(planetaOrigenColonizacion, cuerpoSeleccionado, simulacion.getInventario(), simulacion::notificarEvento, simulacion.getTickActual());
+                    cancelarModoColonizacion();
+                }
+            } else if (e.getButton() == MouseButton.SECONDARY) {
+                cancelarModoColonizacion();
+                simulacion.notificarEvento("Misión de colonización cancelada.", org.example.game.simulacion.MensajeEvento.TipoMensaje.INFO);
+            }
+            return;
+        }
+
         if (e.getButton() == MouseButton.PRIMARY) {
             if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
                 // Colocación directa asistida (sin lanzamientos)

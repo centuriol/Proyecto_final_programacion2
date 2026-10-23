@@ -21,7 +21,13 @@ import org.example.game.controlador.SincronizadorUI;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.*;
+import org.example.game.controlador.comando.ComandoAbrirProgresion;
+import org.example.game.controlador.comando.ComandoCancelar;
 import org.example.game.controlador.comando.ComandoDebugMaxRecursos;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /**
  * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
@@ -66,6 +72,8 @@ public class App extends Application {
 
         // 2. Renderizador Pixel Art
         renderizador = new RenderizadorPixelArt(anchoInicial, altoInicial);
+        renderizador.setProveedorNaves(() -> simulacion.getGestorColonizacion().getNaves());
+        renderizador.setGestorEfectos(simulacion.getGestorEfectos());
 
         // 3. Canvas principal de juego redimensionable (ocupa el 100% de la ventana sin recortes ni zoom)
         ResizableCanvas canvasJuego = new ResizableCanvas(anchoInicial, altoInicial);
@@ -80,7 +88,7 @@ public class App extends Application {
         controladorMouse = new ControladorMouse(
                 simulacion,
                 hotbar,
-                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage),
+                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage, controladorMouse),
                 anchoInicial,
                 altoInicial
         );
@@ -113,11 +121,56 @@ public class App extends Application {
         overlayUI.setPadding(new Insets(12));
         overlayUI.setPickOnBounds(false); // Permite click-through al canvas
 
-        // Barra Superior: Recursos Der
-        HBox topBar = new HBox(EspaciadorUI.crearHorizontal(), hudRecursos);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
+        // 6.2 Pantalla del Árbol de Investigación (Apartado dedicado)
+        PantallaArbolProgresion pantallaArbol = new PantallaArbolProgresion(simulacion, null);
+
+        // Botones de Navegación de Vistas Principales (Simulador vs Árbol de Investigación)
+        HBox navTabs = new HBox(8);
+        navTabs.setAlignment(Pos.CENTER_LEFT);
+        navTabs.setPickOnBounds(true);
+
+        Button btnTabSimulador = new Button("[SIMULADOR]");
+        btnTabSimulador.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+
+        Button btnTabArbol = new Button("[ÁRBOL DE INVESTIGACIÓN (P)]");
+        btnTabArbol.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+
+        String estiloTabActiva = "-fx-background-color: #172a38; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
+        String estiloTabInactiva = "-fx-background-color: #1a1c26; -fx-text-fill: #8c92a4; -fx-border-color: #2b2d3a; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
+
+        btnTabSimulador.setStyle(estiloTabActiva);
+        btnTabArbol.setStyle(estiloTabInactiva);
+
+        Runnable sincronizarTabs = () -> {
+            boolean arbolVisible = pantallaArbol.isVisible();
+            btnTabSimulador.setStyle(arbolVisible ? estiloTabInactiva : estiloTabActiva);
+            btnTabArbol.setStyle(arbolVisible ? estiloTabActiva : estiloTabInactiva);
+        };
+
+        pantallaArbol.visibleProperty().addListener((obs, oldV, newV) -> sincronizarTabs.run());
+
+        btnTabSimulador.setOnAction(e -> pantallaArbol.ocultar());
+        btnTabArbol.setOnAction(e -> pantallaArbol.mostrar());
+
+        navTabs.getChildren().addAll(btnTabSimulador, btnTabArbol);
+
+        // Barra Superior: Navegación Izq, Recursos Der
+        HBox topBar = new HBox(navTabs, EspaciadorUI.crearHorizontal(), hudRecursos);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPickOnBounds(false);
         overlayUI.setTop(topBar);
+
+        // Conectar el comando de atajo P y selección de hotbar a la pantalla del árbol
+        controladorTeclado.registrarComando(KeyCode.P, new ComandoAbrirProgresion(simulacion, pantallaArbol::alternar));
+        hotbar.setAccionAbrirArbol(pantallaArbol::mostrar);
+
+        ComandoCancelar comandoCancelar = new ComandoCancelar(simulacion, hotbar, controladorMouse);
+        comandoCancelar.setAccionExtra(() -> {
+            if (pantallaArbol.isVisible()) {
+                pantallaArbol.ocultar();
+            }
+        });
+        controladorTeclado.registrarComando(KeyCode.ESCAPE, comandoCancelar);
 
         // Panel lateral izquierdo para notificaciones
         overlayUI.setLeft(panelNotificaciones);
@@ -146,7 +199,11 @@ public class App extends Application {
 
         overlayUI.setBottom(bottomBar);
 
-        StackPane root = new StackPane(canvasJuego, overlayUI);
+        // 6.5 Pantalla de Game Over
+        PantallaGameOver pantallaGameOver = new PantallaGameOver(simulacion);
+        simulacion.setOnGameOver(pantallaGameOver::mostrar);
+
+        StackPane root = new StackPane(canvasJuego, overlayUI, pantallaArbol, pantallaGameOver);
         root.setStyle("-fx-background-color: #0e1017;");
 
         // Vincular el controlador de teclado al root pane

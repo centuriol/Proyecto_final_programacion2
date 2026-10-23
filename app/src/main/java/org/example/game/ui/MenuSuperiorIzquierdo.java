@@ -59,7 +59,24 @@ public class MenuSuperiorIzquierdo extends HBox {
         configurarBoton(btnLimpiar, "Eliminar todos los cuerpos celestes", this::confirmarLimpieza);
         btnLimpiar.setStyle("-fx-background-color: #3b2028; -fx-text-fill: #ff6b6b; -fx-border-color: #000000; -fx-border-width: 1px; -fx-cursor: hand;");
 
-        getChildren().addAll(lblTitulo, new Separator(), btnPresets, btnGrilla, btnZonas, btnEstelas, btnLimpiar);
+        // Botón Investigación / Árbol de Progresión
+        Button btnInvestigar = new Button("Investigar [P]");
+        configurarBoton(btnInvestigar, "Abrir Árbol de Investigación Científica (P)", () -> {
+            if (accionAbrirArbol != null) {
+                accionAbrirArbol.run();
+            } else {
+                VentanaProgresion.mostrar(simulacion, getScene() != null ? getScene().getWindow() : null);
+            }
+        });
+        btnInvestigar.setStyle("-fx-background-color: #172a38; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-font-weight: bold;");
+
+        getChildren().addAll(lblTitulo, new Separator(), btnPresets, btnGrilla, btnZonas, btnEstelas, btnLimpiar, new Separator(), btnInvestigar);
+    }
+
+    private Runnable accionAbrirArbol;
+
+    public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
+        this.accionAbrirArbol = accionAbrirArbol;
     }
 
     private void configurarBoton(Button btn, String tooltip, Runnable accion) {
@@ -83,16 +100,6 @@ public class MenuSuperiorIzquierdo extends HBox {
 
     private void cargarPresetBasico() {
         simulacion.cargarPresetSistemaBasico();
-        if (onResetCallback != null) onResetCallback.run();
-    }
-
-    private void cargarPresetBinaria() {
-        simulacion.cargarPresetEstrellaBinaria();
-        if (onResetCallback != null) onResetCallback.run();
-    }
-
-    private void cargarPresetAgujero() {
-        simulacion.cargarPresetAgujeroNegro();
         if (onResetCallback != null) onResetCallback.run();
     }
 }

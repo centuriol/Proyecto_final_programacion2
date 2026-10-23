@@ -92,20 +92,9 @@ public enum TipoCuerpo {
         0x5BE3FF,      // Cyan acento
         CategoriaCuerpo.ESTRUCTURA
     ),
-    ESCUDO_DOME(
-        "Cupula de Escudo",
-        1.0e5,         // Masa virtual
-        500.0,         // Radio cobertura
-        0,
-        false,
-        false,
-        false,
-        0x5BE3FF,      // Cyan barrera
-        CategoriaCuerpo.ESTRUCTURA
-    ),
     METEORITO(
         "Meteorito",
-        1e12,          // 1 billon kg (pequeno asteroide)
+        1e20,          // Asteroide masivo de alta densidad y capacidad destructiva
         50,            // 50m radio
         200,
         false,
@@ -196,12 +185,12 @@ public enum TipoCuerpo {
         DESCRIPTORES.put(ESTRELLA, new DescriptorTipoCuerpo(
                 Map.of(
                         TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA,
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA
+                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA
                 ),
                 Map.of(
                         TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA,
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES
+                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_CIENCIA
                 ),
                 65.0, 85.0,
                 "Sol", "[SOL]",
@@ -229,12 +218,13 @@ public enum TipoCuerpo {
                 ),
                 Map.of(
                         TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES,
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA
+                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_ENERGIA
                 ),
                 35.0, 55.0,
                 "Planeta de Agua", "[AGU]",
-                "Planeta de Agua • Oceano Global Rico en Minerales y Ciencia",
-                "Planeta de Agua: Un mundo oceanico cubierto en su totalidad por vastos y profundos mares hidrotermales. Su ensamblaje geologico requiere una reducida cantidad de recursos (50 de mineral y 25 de energia), produciendo a cambio una extraccion moderada de minerales y valiosos datos de investigacion marina, sin sustentar una poblacion colonizadora terrestre permanente.",
+                "Planeta de Agua • Océano Global Rico en Recursos y Ciencia",
+                "Planeta de Agua: Un mundo oceánico cubierto en su totalidad por vastos mares hidrotermales. Aporta minerales, energía geotérmica inicial y valiosos datos científicos marinos para sustentar el desarrollo temprano del sistema solar.",
                 "audio/planeta_agua.mp3"
         ));
 
@@ -299,29 +289,17 @@ public enum TipoCuerpo {
         // Satelite
         DESCRIPTORES.put(SATELITE, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, 40.0,
-                        TipoRecurso.ENERGIA, 30.0,
-                        TipoRecurso.CIENCIA, 10.0
+                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_SATELITE_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_SATELITE_ENERGIA
                 ),
-                Map.of(),
-                20.0, 35.0,
-                "Sonda-1", "[SAT]",
-                "Objeto Astronomico",
-                "Cuerpo celeste en el sistema.",
-                null
-        ));
-
-        // Cupula de Escudo
-        DESCRIPTORES.put(ESCUDO_DOME, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.ENERGIA, 150.0,
-                        TipoRecurso.CIENCIA, 50.0
+                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_SATELITE_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_SATELITE_ENERGIA
                 ),
-                Map.of(),
-                20.0, 35.0,
-                "Aegis", "[ESC]",
-                "Objeto Astronomico",
-                "Cuerpo celeste en el sistema.",
+                18.0, 30.0,
+                "Satélite", "[SAT]",
+                "Satélite Artificial • Generador Científico y Energético",
+                "Satélite Científico: Sonda orbital artificial no tripulada de masa fija (1.0 t). Equipada con paneles fotovoltaicos y sensores de investigación que generan ciencia continua y un suministro modesto de energía. Su estructura estandarizada no admite modificar su masa.",
                 null
         ));
 
@@ -396,6 +374,18 @@ public enum TipoCuerpo {
 
     public String getColorHexString() {
         return String.format("#%06X", colorHex);
+    }
+
+    private static final Map<TipoCuerpo, Double> FACTORES_CAPACIDAD_POBLACION = new EnumMap<>(TipoCuerpo.class);
+
+    static {
+        FACTORES_CAPACIDAD_POBLACION.put(PLANETA_ROCOSO, 1.0);
+        FACTORES_CAPACIDAD_POBLACION.put(PLANETA_AGUA, 0.6);
+        FACTORES_CAPACIDAD_POBLACION.put(PLANETA_LAVA, 0.3);
+    }
+
+    public double getFactorCapacidadPoblacion() {
+        return FACTORES_CAPACIDAD_POBLACION.getOrDefault(this, 0.0);
     }
 
     public boolean esPlaneta() {

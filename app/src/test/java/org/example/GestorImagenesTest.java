@@ -193,6 +193,6 @@ class GestorImagenesTest {
 
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
         org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
-        assertEquals(5, hotbar.getChildren().size());
+        assertEquals(org.example.game.ui.BarraInventarioHotbar.CUERPOS_HOTBAR.length, hotbar.getChildren().size());
     }
 }

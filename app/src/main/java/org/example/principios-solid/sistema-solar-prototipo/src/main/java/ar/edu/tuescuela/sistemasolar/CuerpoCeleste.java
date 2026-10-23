@@ -39,9 +39,12 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     @Deprecated
     private double velocidadAngular = 0.3;
 
+    private final double masaInicial;
+
     public CuerpoCeleste(String nombre, double masa, double posicionX, double posicionY, TipoCuerpo tipoCuerpo) {
         this.nombre = nombre;
         this.masa = masa;
+        this.masaInicial = masa;
         this.posicionX = posicionX;
         this.posicionY = posicionY;
         this.tipoCuerpo = tipoCuerpo;
@@ -86,6 +89,10 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     @Override
     public double getMasa() {
         return masa;
+    }
+
+    public double getMasaInicial() {
+        return masaInicial;
     }
 
     public void setMasa(double masa) {
@@ -258,6 +265,40 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
      */
     public boolean permiteReembolso() {
         return !isTransformadoPorEvento();
+    }
+
+    /**
+     * Métodos polimórficos de Escudo por planeta (LSP / OCP).
+     */
+    public boolean tieneEscudo() {
+        return false;
+    }
+
+    public int getGolpesEscudoRestantes() {
+        return 0;
+    }
+
+    public void activarEscudo(int golpes) {
+        // No-op por defecto
+    }
+
+    public boolean absorberGolpeEscudo() {
+        return false;
+    }
+
+    public boolean puedeRecibirEscudo() {
+        return false;
+    }
+
+    /**
+     * Métodos polimórficos de Colonización (LSP / OCP).
+     */
+    public boolean puedeSerColonizado() {
+        return false;
+    }
+
+    public void recibirColonos(double poblacionColonos) {
+        // No-op por defecto
     }
 
     /**

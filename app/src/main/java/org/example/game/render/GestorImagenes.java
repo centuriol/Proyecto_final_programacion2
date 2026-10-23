@@ -138,6 +138,11 @@ public class GestorImagenes {
         contenedor.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 1px; -fx-background-radius: 3px; -fx-border-radius: 3px;");
         if (iv != null) {
             contenedor.getChildren().add(iv);
+        } else if (tipo != null) {
+            javafx.scene.control.Label lbl = new javafx.scene.control.Label(tipo.getIcono());
+            lbl.setFont(javafx.scene.text.Font.font("Monospace", javafx.scene.text.FontWeight.BOLD, 10));
+            lbl.setTextFill(javafx.scene.paint.Color.web(tipo.getColorHexString()));
+            contenedor.getChildren().add(lbl);
         }
         return contenedor;
     }

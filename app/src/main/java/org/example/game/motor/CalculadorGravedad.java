@@ -53,6 +53,11 @@ public class CalculadorGravedad {
                     continue;
                 }
 
+                // Satélites artificiales entre sí no ejercen atracción gravitatoria ni colapso arcade
+                if (ci.getTipoCuerpo() == TipoCuerpo.SATELITE && cj.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+                    continue;
+                }
+
                 // 2. Gravedad newtoniana base para cuerpos no enlazados en órbita
                 double fuerzaMag = G * ci.getMasa() * cj.getMasa() / r2;
                 double factorDir = fuerzaMag / rMag;

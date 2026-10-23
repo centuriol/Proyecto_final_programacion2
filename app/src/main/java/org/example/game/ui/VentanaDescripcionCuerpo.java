@@ -86,8 +86,20 @@ public class VentanaDescripcionCuerpo {
                     Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, simulacion.getFactorMasaColocacion()));
         }
 
-        WidgetFactorMasa widgetMasa = new WidgetFactorMasa("MASA DEL CUERPO:", masaInicial, tipo.masaBase);
-        campoMasaBox.getChildren().add(widgetMasa);
+        double masaMax = (simulacion != null && simulacion.getProgresion() != null)
+                ? simulacion.getProgresion().getLimiteMasaActual()
+                : ConfiguracionSimulacion.MASA_FACTOR_MAX;
+        WidgetFactorMasa widgetMasa = new WidgetFactorMasa("MASA DEL CUERPO:", masaInicial, tipo.masaBase, masaMax);
+        if (tipo == TipoCuerpo.SATELITE) {
+            Label lblSateliteFijo = new Label("ESTRUCTURA DE MASA FIJA: 1.0 t (No modificable)");
+            lblSateliteFijo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            lblSateliteFijo.setTextFill(Color.web("#5be3ff"));
+            lblSateliteFijo.setPadding(new Insets(8));
+            lblSateliteFijo.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
+            campoMasaBox.getChildren().add(lblSateliteFijo);
+        } else {
+            campoMasaBox.getChildren().add(widgetMasa);
+        }
         formBox.getChildren().addAll(campoNombreBox, campoMasaBox);
 
         // 4. Ficha Técnica Dinámica: Costos y Producción Escalados
@@ -144,7 +156,7 @@ public class VentanaDescripcionCuerpo {
 
         // Lógica de Actualización Dinámica
         Runnable actualizarDatosDinamicos = () -> {
-            double factorMasa = widgetMasa.getFactorMasa();
+            double factorMasa = (tipo == TipoCuerpo.SATELITE) ? 1.0 : widgetMasa.getFactorMasa();
 
             // Actualizar lista de costos
             listaCostos.getChildren().clear();
@@ -201,7 +213,7 @@ public class VentanaDescripcionCuerpo {
             if (nombreFinal.isBlank()) {
                 nombreFinal = obtenerNombrePorDefecto(tipo);
             }
-            double factorMasaFinal = widgetMasa.getFactorMasa();
+            double factorMasaFinal = (tipo == TipoCuerpo.SATELITE) ? 1.0 : widgetMasa.getFactorMasa();
 
             if (simulacion != null) {
                 simulacion.entrarModoColocacion(tipo, factorMasaFinal, nombreFinal);
@@ -239,6 +251,10 @@ public class VentanaDescripcionCuerpo {
      * permitiendo eliminarlo y recuperar el 50% de los materiales requeridos para colocarlo.
      */
     public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
+        mostrarParaInspeccionar(cuerpo, simulacion, owner, null);
+    }
+
+    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, org.example.game.controlador.ControladorMouse controladorMouse) {
         if (cuerpo == null) return;
         TipoCuerpo tipo = cuerpo.getTipoCuerpo();
         if (tipo == null) return;
@@ -313,6 +329,59 @@ public class VentanaDescripcionCuerpo {
 
             civBox.getChildren().addAll(lblCivTitulo, lblPob, lblEst);
             datosFisicos.getChildren().add(civBox);
+        }
+
+        // Defensa por Escudo
+        if (cuerpo.puedeRecibirEscudo()) {
+            VBox escudoBox = new VBox(6);
+            escudoBox.setPadding(new Insets(10));
+            escudoBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
+
+            Label lblEscudoTitulo = new Label("DEFENSA PLANETARIA (ESCUDO)");
+            lblEscudoTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            lblEscudoTitulo.setTextFill(Color.web("#5be3ff"));
+
+            String estadoEscudo = cuerpo.tieneEscudo()
+                    ? "Escudo: " + cuerpo.getGolpesEscudoRestantes() + " golpes restantes"
+                    : "Escudo: Inactivo";
+            Label lblEstadoEscudo = new Label(estadoEscudo);
+            lblEstadoEscudo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+            lblEstadoEscudo.setTextFill(Color.web(cuerpo.tieneEscudo() ? "#50fa7b" : "#8c92a4"));
+
+            double costoEscudo = (cuerpo instanceof org.example.Planeta p)
+                    ? org.example.game.cuerpo.ServicioEscudo.calcularCostoEscudo(p)
+                    : ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
+            Button btnActivarEscudo = new Button(cuerpo.tieneEscudo()
+                    ? String.format("Reactivar Escudo (%.0f ENE)", costoEscudo)
+                    : String.format("Activar Escudo (%.0f ENE)", costoEscudo));
+            btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            btnActivarEscudo.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 4 10 4 10;");
+            btnActivarEscudo.setOnAction(e -> {
+                if (cuerpo instanceof org.example.Planeta p) {
+                    if (org.example.game.cuerpo.ServicioEscudo.activar(simulacion, p)) {
+                        stage.close();
+                    }
+                }
+            });
+
+            escudoBox.getChildren().addAll(lblEscudoTitulo, lblEstadoEscudo, btnActivarEscudo);
+            datosFisicos.getChildren().add(escudoBox);
+        }
+
+        // Misión de Colonización
+        if (cuerpo instanceof org.example.Planeta p && simulacion != null && simulacion.getGestorColonizacion() != null) {
+            if (simulacion.getGestorColonizacion().puedeColonizar(p, simulacion.getInventario())) {
+                Button btnColonizar = new Button("Colonizar otro planeta");
+                btnColonizar.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+                btnColonizar.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #50fa7b; -fx-border-color: #50fa7b; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 4 10 4 10;");
+                btnColonizar.setOnAction(e -> {
+                    stage.close();
+                    if (controladorMouse != null) {
+                        controladorMouse.iniciarModoColonizacion(p);
+                    }
+                });
+                datosFisicos.getChildren().add(btnColonizar);
+            }
         }
 
         // Sección de Reembolso / Reciclaje por Eliminación delegada al servicio de dominio (SRP / DRY)

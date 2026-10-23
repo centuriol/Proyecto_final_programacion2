@@ -3,30 +3,32 @@ package org.example.game.simulacion;
 import org.example.CuerpoCeleste;
 import org.example.Estrella;
 import org.example.Planeta;
-import org.example.AgujeroNegro;
-import org.example.Civilizable;
-import org.example.game.cuerpo.*;
+import org.example.SistemaSolar;
+import org.example.MotorFisica;
+import org.example.game.colonizacion.GestorColonizacion;
+import org.example.game.cuerpo.Luna;
+import org.example.game.cuerpo.Satelite;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.efectos.GestorEfectos;
 import org.example.game.jugador.InventarioJugador;
-import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.MotorFisicaPermisiva;
 import org.example.game.motor.TrayectoriaPredictor;
-import org.example.game.motor.TransformadorCuerpos;
 import org.example.game.motor.Vector2D;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.MotorFisica;
-import org.example.SistemaSolar;
-import org.example.VistaSistemaSolar;
+import org.example.game.progresion.SistemaProgresion;
 import org.example.RenderizadorCircular;
+import org.example.VistaSistemaSolar;
+import org.example.game.motor.TransformadorCuerpos;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
  * Orquestador principal de la simulación "Órbita".
- * SRP: Coordina el bucle de simulación, gestión de cuerpos, economía y presets.
- * DIP: Depende de interfaces MotorFisica e Inventario.
+ * SRP: Coordina el bucle de simulación, gestión de cuerpos, progresión tecnológica, economía y presets.
+ * DIP: Depende de interfaces MotorFisica e Inventario; colaboradores inyectados con valores por defecto.
  */
 public class SimulacionSolar {
     private final SistemaSolar sistemaSolar;
@@ -39,9 +41,11 @@ public class SimulacionSolar {
 
     // Estado de simulación
     private long tickActual = 0;
-    private boolean enPausa = false; // Arrancar listo para jugar
+    private boolean enPausa = false;
     private boolean pasoUnico = false;
     private double velocidadSimulacion = 1.0;
+    private boolean gameOverDisparado = false;
+    private Runnable onGameOver;
 
     // Modo de colocación
     private ModoColocacion modoColocacion = ModoColocacion.NINGUNO;
@@ -53,8 +57,11 @@ public class SimulacionSolar {
     // Componentes delegados (SRP / DIP)
     private final GestorEconomia gestorEconomia;
     private final GeneradorEventosCosmicos generadorEventosCosmicos;
+    private final SistemaProgresion progresion;
+    private final GestorColonizacion gestorColonizacion;
+    private final GestorEfectos gestorEfectos;
 
-    // Callbacks y listeners para UI y eventos (Patron Observer / SRP / ISP)
+    // Callbacks y listeners para UI y eventos (Patrón Observer / SRP / ISP)
     private final List<Runnable> listenersUI = new java.util.concurrent.CopyOnWriteArrayList<>();
     private Runnable onTickCallback;
     private Runnable onCambioEstadoCallback;
@@ -71,7 +78,10 @@ public class SimulacionSolar {
                            TrayectoriaPredictor predictor,
                            TransformadorCuerpos transformadorCuerpos,
                            GestorEconomia gestorEconomia,
-                           GeneradorEventosCosmicos generadorEventosCosmicos) {
+                           GeneradorEventosCosmicos generadorEventosCosmicos,
+                           SistemaProgresion progresion,
+                           GestorColonizacion gestorColonizacion,
+                           GestorEfectos gestorEfectos) {
         this.anchoMundo = anchoMundo;
         this.altoMundo = altoMundo;
         this.motorFisica = motorFisica != null ? motorFisica : new MotorFisicaPermisiva(Math.max(anchoMundo, altoMundo));
@@ -82,24 +92,36 @@ public class SimulacionSolar {
         this.transformadorCuerpos = transformadorCuerpos != null ? transformadorCuerpos : new TransformadorCuerpos();
         this.gestorEconomia = gestorEconomia != null ? gestorEconomia : new GestorEconomia();
         this.generadorEventosCosmicos = generadorEventosCosmicos != null ? generadorEventosCosmicos : new GeneradorEventosCosmicos();
+        this.progresion = progresion != null ? progresion : new SistemaProgresion();
+        this.gestorColonizacion = gestorColonizacion != null ? gestorColonizacion : new GestorColonizacion();
+        this.gestorEfectos = gestorEfectos != null ? gestorEfectos : new GestorEfectos();
 
         this.transformadorCuerpos.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
         this.motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-        this.motorFisica.setListenerDefensaEscudo(this::procesarDefensaEscudo);
+        if (this.motorFisica instanceof MotorFisicaPermisiva mfp) {
+            mfp.setListenerNotificacion(this::notificarEvento);
+            mfp.setListenerExplosion(this.gestorEfectos::agregarExplosion);
+        }
 
         this.motorFisica.agregarListenerColision(() -> {
             if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
         });
     }
 
-    public SimulacionSolar(double anchoMundo, double altoMundo) {
-        this(anchoMundo, altoMundo, null, null, null, null, null, null, null, null);
+    public SimulacionSolar(double anchoMundo, double altoMundo,
+                           MotorFisica motorFisica,
+                           SistemaSolar sistemaSolar,
+                           InventarioJugador inventario,
+                           VistaSistemaSolar vista,
+                           TrayectoriaPredictor predictor,
+                           TransformadorCuerpos transformadorCuerpos,
+                           GestorEconomia gestorEconomia,
+                           GeneradorEventosCosmicos generadorEventosCosmicos) {
+        this(anchoMundo, altoMundo, motorFisica, sistemaSolar, inventario, vista, predictor, transformadorCuerpos, gestorEconomia, generadorEventosCosmicos, null, null, null);
     }
 
-    private void procesarDefensaEscudo() {
-        inventario.gastarRecurso(TipoRecurso.ENERGIA, ConfiguracionSimulacion.CONSUMO_ENERGIA_ESCUDO_IMPACTO);
-        inventario.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.RECOMPENSA_CIENCIA_ESCUDO_IMPACTO);
-        notificarEvento("Escudo intercepto impacto. Consumo: " + (int)ConfiguracionSimulacion.CONSUMO_ENERGIA_ESCUDO_IMPACTO + " Energia | +" + (int)ConfiguracionSimulacion.RECOMPENSA_CIENCIA_ESCUDO_IMPACTO + " Ciencia", MensajeEvento.TipoMensaje.EXITO);
+    public SimulacionSolar(double anchoMundo, double altoMundo) {
+        this(anchoMundo, altoMundo, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public void agregarListenerEvento(java.util.function.Consumer<MensajeEvento> listener) {
@@ -139,15 +161,29 @@ public class SimulacionSolar {
 
         // 3. Economía pasiva y satélites
         actualizarEconomia();
-        actualizarGeneracionPorMasa();
 
-        // 4. Eventos cósmicos aleatorios (desactivados para mantener solo estrella, planeta rocoso y luna)
-        // generarEventosCosmicos();
+        // 4. Misiones de colonización en curso
+        gestorColonizacion.actualizar(this::notificarEvento, tickActual);
 
-        // 5. Actualizar vista legacy
+        // 5. Partículas y efectos visuales temporales
+        gestorEfectos.actualizar();
+
+        // 6. Eventos cósmicos (meteoritos periódicos dirigidos)
+        generarEventosCosmicos();
+
+        // 7. Actualizar vista legacy
         vista.actualizar();
 
-        // 6. Callbacks de eventos o estado
+        // 8. Condición de derrota / Game Over
+        if (estaPerdida() && !gameOverDisparado) {
+            gameOverDisparado = true;
+            enPausa = true;
+            if (onGameOver != null) {
+                onGameOver.run();
+            }
+        }
+
+        // 9. Callbacks de eventos o estado
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
 
         pasoUnico = false;
@@ -175,10 +211,6 @@ public class SimulacionSolar {
         gestorEconomia.actualizarEconomia(sistemaSolar.getCuerpos(), inventario);
     }
 
-    private void actualizarGeneracionPorMasa() {
-        // En este modelo economico, los recursos provienen exclusivamente de los tipos de cuerpos
-    }
-
     private void generarEventosCosmicos() {
         generadorEventosCosmicos.actualizarEventosCosmicos(
                 sistemaSolar.getCuerpos(),
@@ -192,11 +224,43 @@ public class SimulacionSolar {
 
     // ===== Gestión de Cuerpos (Spawn y Presets) =====
 
+    public int getCantidadPlanetasActuales() {
+        int count = 0;
+        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            if (c != null && c.esSimulado() && c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public boolean spawnCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
         return spawnCuerpo(tipo, null, x, y, factorMasa, velocidadInicial);
     }
 
     public boolean spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        if (tipo == TipoCuerpo.SATELITE) {
+            factorMasa = 1.0; // Satélite es una estructura fija no modificable en masa
+        }
+        if (!progresion.estaDesbloqueado(tipo)) {
+            notificarEvento("Cuerpo bloqueado: " + (tipo != null ? tipo.nombre : "Desconocido") + ". Desbloquéalo con ciencia.", MensajeEvento.TipoMensaje.ADVERTENCIA);
+            return false;
+        }
+
+        if (tipo != null && tipo.esPlaneta()) {
+            int actual = getCantidadPlanetasActuales();
+            int maximo = progresion != null ? progresion.getLimitePlanetas() : ConfiguracionSimulacion.PLANETAS_INICIALES_MAX;
+            if (actual >= maximo) {
+                notificarEvento("Límite de planetas alcanzado (" + actual + "/" + maximo + "). Amplía la capacidad en el Árbol de Investigación [P].", MensajeEvento.TipoMensaje.ADVERTENCIA);
+                return false;
+            }
+        }
+
+        if (tipo != TipoCuerpo.SATELITE && factorMasa > progresion.getLimiteMasaActual() + 1e-6) {
+            notificarEvento("Límite de masa excedido (" + String.format("%.1fx", factorMasa) + " > " + String.format("%.1fx", progresion.getLimiteMasaActual()) + ").", MensajeEvento.TipoMensaje.ADVERTENCIA);
+            return false;
+        }
+
         if (!inventario.puedeCrear(tipo, factorMasa)) {
             notificarEvento("Recursos insuficientes para " + tipo.nombre, MensajeEvento.TipoMensaje.ADVERTENCIA);
             return false;
@@ -207,16 +271,14 @@ public class SimulacionSolar {
             return false;
         }
 
-        if (cuerpo != null) {
-            if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {
-                cuerpo.setNombre(nombrePersonalizado.trim());
-            }
-            if (inventario.gastarParaCrear(tipo, factorMasa)) {
-                agregarCuerpo(cuerpo);
-                salirModoColocacion();
-                notificarEvento("Cuerpo colocado: " + cuerpo.getNombre() + " (" + tipo.nombre + ")", MensajeEvento.TipoMensaje.INFO);
-                return true;
-            }
+        if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {
+            cuerpo.setNombre(nombrePersonalizado.trim());
+        }
+        if (inventario.gastarParaCrear(tipo, factorMasa)) {
+            agregarCuerpo(cuerpo);
+            salirModoColocacion();
+            notificarEvento("Cuerpo colocado: " + cuerpo.getNombre() + " (" + tipo.nombre + ")", MensajeEvento.TipoMensaje.INFO);
+            return true;
         }
         return false;
     }
@@ -228,17 +290,28 @@ public class SimulacionSolar {
     }
 
     public void eliminarCuerpo(CuerpoCeleste cuerpo) {
-        // Tarea 3: Destruir civilizacion explicitamente antes de eliminar
-        if (cuerpo != null && cuerpo.getCivilizacion() != null) {
+        if (cuerpo == null) return;
+        cuerpo.setSimulado(false);
+        cuerpo.setMasa(0);
+        if (cuerpo.getCivilizacion() != null) {
             cuerpo.getCivilizacion().destruir();
         }
         sistemaSolar.getCuerpos().remove(cuerpo);
         vista.removerCuerpo(cuerpo);
+
+        List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
             if (c.getCuerpoOrbitado() == cuerpo) {
+                if (c.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+                    satelitesAEliminar.add(c);
+                }
                 c.setCuerpoOrbitado(null);
             }
         }
+        for (CuerpoCeleste s : satelitesAEliminar) {
+            eliminarCuerpo(s);
+        }
+
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
     }
 
@@ -265,9 +338,9 @@ public class SimulacionSolar {
         tierra.desarrollarCivilizacion();
         agregarCuerpo(tierra);
 
-        // 3. Luna orbitando a la Tierra (velocidad más lenta)
-        Vector2D posLuna = new Vector2D(160 + 26, 0);
-        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -1.7));
+        // 3. Luna orbitando a la Tierra (órbita lejana para dejar espacio interior a satélites)
+        Vector2D posLuna = new Vector2D(160 + 65, 0);
+        Vector2D velLuna = velTierra.sumar(new Vector2D(0, -1.07));
         Luna luna = CuerpoCelesteFactory.crearLuna(posLuna.x, posLuna.y, 0.8, velLuna);
         luna.setCuerpoOrbitado(tierra);
         agregarCuerpo(luna);
@@ -291,21 +364,43 @@ public class SimulacionSolar {
         agregarCuerpo(planetaExt);
     }
 
-    public void cargarPresetAgujeroNegro() {
+    // ===== Derrota y Reinicio =====
+
+    public boolean estaPerdida() {
+        boolean hayAgujeroNegro = false;
+        boolean hayPlanetaOLuna = false;
+        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            if (c != null && c.esSimulado()) {
+                TipoCuerpo t = c.getTipoCuerpo();
+                if (t != null) {
+                    if (t.esAgujeroNegro()) {
+                        hayAgujeroNegro = true;
+                    } else if (t.esPlaneta() || t.esLuna()) {
+                        hayPlanetaOLuna = true;
+                    }
+                }
+            }
+        }
+        return hayAgujeroNegro && !hayPlanetaOLuna;
+    }
+
+    public void reiniciar() {
         limpiarCuerpos();
+        gestorColonizacion.limpiar();
+        gestorEfectos.limpiar();
+        inventario.reiniciar();
+        progresion.reiniciar();
+        tickActual = 0;
+        gameOverDisparado = false;
+        CuerpoCelesteFactory.resetearContador();
+        salirModoColocacion();
+        enPausa = false;
+        notificarListenersUI();
+        notificarEvento("Simulación reiniciada por completo.", MensajeEvento.TipoMensaje.INFO);
+    }
 
-        // Agujero negro central
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.5);
-        agregarCuerpo(bh);
-
-        // Planetas y satélites en órbita de peligro
-        Vector2D p1 = new Vector2D(220, 0);
-        Planeta p = CuerpoCelesteFactory.crearPlanetaGaseoso(p1.x, p1.y, 1.0, CuerpoCelesteFactory.calcularVelocidadOrbitalVector(bh, p1, false));
-        agregarCuerpo(p);
-
-        Vector2D p2 = new Vector2D(-140, 0);
-        Satelite s = CuerpoCelesteFactory.crearSatelite(p2.x, p2.y, 1.0, CuerpoCelesteFactory.calcularVelocidadOrbitalVector(bh, p2, false));
-        agregarCuerpo(s);
+    public void setOnGameOver(Runnable onGameOver) {
+        this.onGameOver = onGameOver;
     }
 
     // ===== Modo Colocación y Órbita Asistida =====
@@ -313,7 +408,7 @@ public class SimulacionSolar {
     public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa, String nombre) {
         this.modoColocacion = ModoColocacion.COLOCANDO;
         this.tipoColocacion = tipo;
-        this.factorMasaColocacion = factorMasa;
+        setFactorMasaColocacion(factorMasa);
         this.nombreColocacion = nombre;
     }
 
@@ -330,7 +425,8 @@ public class SimulacionSolar {
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica) {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica);
         if (cuerpoCercano != null) {
-            if (tipoColocacion == TipoCuerpo.LUNA && cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta()) {
+            boolean esMenorOrbital = (tipoColocacion == TipoCuerpo.LUNA || tipoColocacion == TipoCuerpo.SATELITE);
+            if (esMenorOrbital && cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta()) {
                 Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
                 double dist = Math.max(1.0, r.magnitud());
                 double factorMasa = (cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().masaBase > 0)
@@ -354,16 +450,14 @@ public class SimulacionSolar {
             boolean spawned = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
             if (spawned && cuerpoCercano != null && !sistemaSolar.getCuerpos().isEmpty()) {
                 CuerpoCeleste recienCreado = sistemaSolar.getCuerpos().get(sistemaSolar.getCuerpos().size() - 1);
-                boolean esLuna = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA;
-                boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().name().startsWith("PLANETA");
-                boolean recienEsPlaneta = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().name().startsWith("PLANETA");
+                boolean esMenor = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA || recienCreado.getTipoCuerpo() == TipoCuerpo.SATELITE;
+                boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
+                boolean recienEsPlaneta = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().esPlaneta();
                 boolean cercanoEsMasivo = cuerpoCercano.getTipoCuerpo() != null &&
-                        (cuerpoCercano.getTipoCuerpo() == TipoCuerpo.ESTRELLA ||
-                         cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
-                         cuerpoCercano.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO);
+                        (cuerpoCercano.getTipoCuerpo().esEstrella() || cuerpoCercano.getTipoCuerpo().esAgujeroNegro());
 
                 double dist = posPreviewLocal.distanciaA(cuerpoCercano.getPosicion());
-                if ((esLuna && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
+                if ((esMenor && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
                     recienCreado.setCuerpoOrbitado(cuerpoCercano);
                     recienCreado.setRadioOrbita(dist);
                 }
@@ -399,7 +493,7 @@ public class SimulacionSolar {
 
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
             if (c.getTipoCuerpo() == TipoCuerpo.LUNA || c.getTipoCuerpo() == TipoCuerpo.SATELITE ||
-                c.getTipoCuerpo() == TipoCuerpo.METEORITO || c.getTipoCuerpo() == TipoCuerpo.ESCUDO_DOME) {
+                c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
                 continue;
             }
             if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e22) continue;
@@ -440,22 +534,19 @@ public class SimulacionSolar {
     }
 
     public void notificarListenersUI() {
-        for (Runnable listener : listenersUI) {
-            listener.run();
-        }
-        if (onTickCallback != null) {
-            onTickCallback.run();
+        for (Runnable r : listenersUI) {
+            try {
+                r.run();
+            } catch (Exception ignored) {}
         }
     }
-
-    public void setOnTickCallback(Runnable cb) { this.onTickCallback = cb; }
-    public void setOnCambioEstadoCallback(Runnable cb) { this.onCambioEstadoCallback = cb; }
-
-    // ===== Getters =====
 
     public SistemaSolar getSistemaSolar() { return sistemaSolar; }
     public MotorFisica getMotorFisica() { return motorFisica; }
     public InventarioJugador getInventario() { return inventario; }
+    public SistemaProgresion getProgresion() { return progresion; }
+    public GestorColonizacion getGestorColonizacion() { return gestorColonizacion; }
+    public GestorEfectos getGestorEfectos() { return gestorEfectos; }
     public VistaSistemaSolar getVista() { return vista; }
     public TrayectoriaPredictor getPredictor() { return predictor; }
     public long getTickActual() { return tickActual; }
@@ -465,10 +556,12 @@ public class SimulacionSolar {
     public TipoCuerpo getTipoColocacion() { return tipoColocacion; }
     public Vector2D getPosicionPreview() { return posicionPreview; }
     public double getFactorMasaColocacion() { return factorMasaColocacion; }
+
     public void setFactorMasaColocacion(double f) {
+        double maxPermitido = progresion != null ? progresion.getLimiteMasaActual() : ConfiguracionSimulacion.MASA_FACTOR_MAX;
         this.factorMasaColocacion = Math.max(
             ConfiguracionSimulacion.MASA_FACTOR_MIN,
-            Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, f)
+            Math.min(maxPermitido, f)
         );
     }
 
@@ -479,17 +572,9 @@ public class SimulacionSolar {
         }
     }
 
-    public double getAnchoMundo() {
-        return anchoMundo;
-    }
-
-    public double getAltoMundo() {
-        return altoMundo;
-    }
-
-    public TransformadorCuerpos getTransformadorCuerpos() {
-        return transformadorCuerpos;
-    }
+    public double getAnchoMundo() { return anchoMundo; }
+    public double getAltoMundo() { return altoMundo; }
+    public TransformadorCuerpos getTransformadorCuerpos() { return transformadorCuerpos; }
 
     public enum ModoColocacion {
         NINGUNO, COLOCANDO

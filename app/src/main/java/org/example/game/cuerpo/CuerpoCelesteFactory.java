@@ -39,7 +39,6 @@ public final class CuerpoCelesteFactory {
         registrarCreador(TipoCuerpo.PLANETA_HELADO, CuerpoCelesteFactory::crearPlanetaHelado);
         registrarCreador(TipoCuerpo.LUNA, CuerpoCelesteFactory::crearLuna);
         registrarCreador(TipoCuerpo.SATELITE, CuerpoCelesteFactory::crearSatelite);
-        registrarCreador(TipoCuerpo.ESCUDO_DOME, CuerpoCelesteFactory::crearEscudo);
         registrarCreador(TipoCuerpo.METEORITO, (x, y, factorMasa, vel) -> crearMeteoritoJugadorFisica(x, y, vel));
         registrarCreador(TipoCuerpo.AGUJERO_NEGRO, (x, y, factorMasa, vel) -> {
             AgujeroNegro bh = crearAgujeroNegroEstelar(x, y, factorMasa);
@@ -169,11 +168,10 @@ public final class CuerpoCelesteFactory {
         return s;
     }
 
-    public static EscudoProtector crearEscudo(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.ESCUDO_DOME.masaBase * factorMasa;
-        EscudoProtector e = new EscudoProtector(generarNombre("Escudo"), masa, x, y);
-        e.setVelocidad(velocidadInicial);
-        return e;
+    public static AgujeroNegro crearAgujeroNegroPersonalizado(double x, double y, double masa, Vector2D velocidadInicial) {
+        AgujeroNegro bh = new AgujeroNegro(generarNombre("AgujeroNegro"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO);
+        bh.setVelocidad(velocidadInicial);
+        return bh;
     }
 
     // ===== Agujeros Negros =====
@@ -191,29 +189,51 @@ public final class CuerpoCelesteFactory {
     // ===== Meteoritos =====
 
     public static org.example.game.cuerpo.Meteorito crearMeteoritoAleatorio(double anchoMundo, double altoMundo) {
-        double lado = Math.random() * 4;
-        double x, y;
-        Vector2D vel;
+        return crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, null);
+    }
 
-        if (lado < 1) { // Izquierda
-            x = -100; y = Math.random() * altoMundo;
-            vel = new Vector2D(1000 + Math.random() * 5000, (Math.random() - 0.5) * 2000);
-        } else if (lado < 2) { // Derecha
-            x = anchoMundo + 100; y = Math.random() * altoMundo;
-            vel = new Vector2D(-1000 - Math.random() * 5000, (Math.random() - 0.5) * 2000);
-        } else if (lado < 3) { // Arriba
-            x = Math.random() * anchoMundo; y = -100;
-            vel = new Vector2D((Math.random() - 0.5) * 2000, 1000 + Math.random() * 5000);
+    public static org.example.game.cuerpo.Meteorito crearMeteoritoHaciaObjetivo(double anchoMundo, double altoMundo, CuerpoCeleste objetivo) {
+        double semiAncho = Math.max(400.0, anchoMundo / 2.0);
+        double semiAlto = Math.max(300.0, altoMundo / 2.0);
+
+        // Borde visible en coordenadas físicas (centro en (0,0))
+        double lado = Math.random() * 4.0;
+        double xFisica, yFisica;
+
+        if (lado < 1.0) { // Izquierda
+            xFisica = -semiAncho - 50.0;
+            yFisica = (Math.random() * 2.0 - 1.0) * semiAlto;
+        } else if (lado < 2.0) { // Derecha
+            xFisica = semiAncho + 50.0;
+            yFisica = (Math.random() * 2.0 - 1.0) * semiAlto;
+        } else if (lado < 3.0) { // Arriba
+            xFisica = (Math.random() * 2.0 - 1.0) * semiAncho;
+            yFisica = semiAlto + 50.0;
         } else { // Abajo
-            x = Math.random() * anchoMundo; y = altoMundo + 100;
-            vel = new Vector2D((Math.random() - 0.5) * 2000, -1000 - Math.random() * 5000);
+            xFisica = (Math.random() * 2.0 - 1.0) * semiAncho;
+            yFisica = -semiAlto - 50.0;
         }
 
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(x, anchoMundo);
-        double yFisica = ConstantesFisicas.javaFXAFisica(y, altoMundo);
-        vel = new Vector2D(vel.x, -vel.y);
+        Vector2D posInicio = new Vector2D(xFisica, yFisica);
+        Vector2D dir;
+        if (objetivo != null) {
+            dir = objetivo.getPosicion().restar(posInicio);
+        } else {
+            dir = Vector2D.cero().restar(posInicio);
+        }
 
-        return new org.example.game.cuerpo.Meteorito(xFisica, yFisica, vel);
+        double velMag = ConfiguracionSimulacion.VELOCIDAD_METEORITO_PX_TICK;
+        Vector2D vel = (dir.magnitud() > 1e-3 ? dir.normalizar() : new Vector2D(1, 0)).multiplicar(velMag);
+
+        // Vida suficiente para cruzar el mapa holgadamente (~ semiAncho * 3 / velMag)
+        double ticksVida = Math.max(1200.0, (semiAncho + semiAlto) * 3.0 / Math.max(1.0, velMag));
+
+        return new org.example.game.cuerpo.Meteorito(
+                generarNombre("Meteorito"),
+                TipoCuerpo.METEORITO.masaBase * (0.8 + Math.random() * 0.4),
+                xFisica, yFisica,
+                vel, ticksVida, false, objetivo
+        );
     }
 
     public static org.example.game.cuerpo.Meteorito crearMeteoritoJugador(double x, double y, Vector2D direccion, double potencia) {

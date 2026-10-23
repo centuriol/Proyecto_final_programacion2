@@ -44,17 +44,23 @@ public class InventarioJugador {
     }
 
     private void darRecursosIniciales() {
-        // Recursos iniciales exactos para colocar únicamente 1 Sol (Estrella) y 1 Planeta Rocoso (a masa 1.0x)
+        // Recursos iniciales exactos para colocar 1 Sol (Estrella) y 1 Planeta Rocoso (a masa 1.0x)
         double minInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES
                 + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES; // 300 + 100 = 400.0
         double eneInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA
                 + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA;   // 150 + 50 = 200.0
-        double cieInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_CIENCIA; // 50.0
 
         agregarRecurso(TipoRecurso.MINERALES, minInicial);
         agregarRecurso(TipoRecurso.ENERGIA, eneInicial);
         agregarRecurso(TipoRecurso.POBLACION, 0.0);
-        agregarRecurso(TipoRecurso.CIENCIA, cieInicial);
+        agregarRecurso(TipoRecurso.CIENCIA, 0.0);
+    }
+
+    public void reiniciar() {
+        for (Recurso r : recursos.values()) {
+            r.setCantidad(0.0);
+        }
+        darRecursosIniciales();
     }
 
     /**
@@ -71,9 +77,10 @@ public class InventarioJugador {
     public static Map<TipoRecurso, Double> getCostosEscalados(TipoCuerpo tipo, double factorMasa) {
         Map<TipoRecurso, Double> base = getCostosBase(tipo);
         if (base.isEmpty()) return Map.of();
+        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
         Map<TipoRecurso, Double> escalado = new java.util.LinkedHashMap<>();
         for (Map.Entry<TipoRecurso, Double> e : base.entrySet()) {
-            escalado.put(e.getKey(), calcularCostoEscalado(e.getValue(), factorMasa));
+            escalado.put(e.getKey(), calcularCostoEscalado(e.getValue(), factorEfectivo));
         }
         return Map.copyOf(escalado);
     }
@@ -96,7 +103,7 @@ public class InventarioJugador {
     public static Map<TipoRecurso, Double> getProduccionEscaladaPorTick(TipoCuerpo tipo, double factorMasa) {
         Map<TipoRecurso, Double> base = getProduccionBasePorTick(tipo);
         if (base.isEmpty()) return Map.of();
-        double mult = Math.max(0.1, factorMasa);
+        double mult = (tipo == TipoCuerpo.SATELITE) ? 1.0 : Math.max(0.1, factorMasa);
         Map<TipoRecurso, Double> escalada = new java.util.LinkedHashMap<>();
         for (Map.Entry<TipoRecurso, Double> e : base.entrySet()) {
             escalada.put(e.getKey(), e.getValue() * mult);
@@ -133,9 +140,10 @@ public class InventarioJugador {
         CostoCreacion costo = costos.get(tipo);
         if (costo == null) return Map.of();
 
+        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
         Map<TipoRecurso, Double> total = new EnumMap<>(TipoRecurso.class);
         for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
-            total.put(entry.getKey(), calcularCostoEscalado(entry.getValue(), factorMasa));
+            total.put(entry.getKey(), calcularCostoEscalado(entry.getValue(), factorEfectivo));
         }
         return Map.copyOf(total);
     }
@@ -144,9 +152,10 @@ public class InventarioJugador {
         CostoCreacion costo = costos.get(tipo);
         if (costo == null) return false;
 
+        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
         for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
             TipoRecurso tr = entry.getKey();
-            double cantRequerida = calcularCostoEscalado(entry.getValue(), factorMasa);
+            double cantRequerida = calcularCostoEscalado(entry.getValue(), factorEfectivo);
             if (!recursos.get(tr).puedeGastar(cantRequerida)) {
                 return false;
             }
@@ -158,8 +167,9 @@ public class InventarioJugador {
         CostoCreacion costo = costos.get(tipo);
         if (costo == null || !puedeCrear(tipo, factorMasa)) return false;
 
+        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
         for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
-            recursos.get(entry.getKey()).gastar(calcularCostoEscalado(entry.getValue(), factorMasa));
+            recursos.get(entry.getKey()).gastar(calcularCostoEscalado(entry.getValue(), factorEfectivo));
         }
         return true;
     }

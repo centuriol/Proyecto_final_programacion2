@@ -38,11 +38,13 @@ public class ConfiguradorAtajosTeclado {
         controlador.registrarComando(KeyCode.DIGIT2, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_ROCOSO));
         controlador.registrarComando(KeyCode.DIGIT3, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.LUNA));
         controlador.registrarComando(KeyCode.DIGIT4, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_AGUA));
-        controlador.registrarComando(KeyCode.DIGIT5, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_LAVA));
+        controlador.registrarComando(KeyCode.DIGIT5, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.SATELITE));
+        controlador.registrarComando(KeyCode.DIGIT6, new ComandoSeleccionarTipoCuerpo(hotbar, TipoCuerpo.PLANETA_LAVA));
 
         controlador.registrarComando(KeyCode.G, new ComandoAlternarGrilla(renderizador));
         controlador.registrarComando(KeyCode.T, new ComandoAlternarEstelas(renderizador));
         controlador.registrarComando(KeyCode.H, new ComandoAlternarZonasHabitables(renderizador));
+        controlador.registrarComando(KeyCode.P, new ComandoAbrirProgresion(simulacion));
 
         controlador.registrarComando(KeyCode.PLUS, new ComandoAjustarFactorMasa(simulacion, 1.15));
         controlador.registrarComando(KeyCode.EQUALS, new ComandoAjustarFactorMasa(simulacion, 1.15));

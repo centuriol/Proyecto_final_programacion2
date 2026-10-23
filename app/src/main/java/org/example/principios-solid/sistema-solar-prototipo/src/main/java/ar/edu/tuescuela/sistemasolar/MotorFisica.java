@@ -12,5 +12,4 @@ public interface MotorFisica {
 
     default void agregarListenerColision(Runnable listener) {}
     default void setListenerMensaje(Consumer<String> listener) {}
-    default void setListenerDefensaEscudo(Runnable listener) {}
 }

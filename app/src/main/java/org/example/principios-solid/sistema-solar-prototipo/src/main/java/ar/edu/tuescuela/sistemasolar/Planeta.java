@@ -16,11 +16,60 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
     public Planeta(String nombre, double masa, double x, double y, TipoCuerpo subTipo) {
         super(nombre, masa, x, y, subTipo);
         this.subTipo = subTipo;
+        if (subTipo == TipoCuerpo.PLANETA_ROCOSO) {
+            desarrollarCivilizacion();
+        }
+    }
+
+    private int golpesEscudo = 0;
+
+    @Override
+    public boolean tieneEscudo() {
+        return golpesEscudo > 0;
+    }
+
+    @Override
+    public int getGolpesEscudoRestantes() {
+        return golpesEscudo;
+    }
+
+    @Override
+    public void activarEscudo(int golpes) {
+        this.golpesEscudo = Math.max(this.golpesEscudo, golpes);
+    }
+
+    @Override
+    public boolean absorberGolpeEscudo() {
+        if (golpesEscudo > 0) {
+            golpesEscudo--;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean puedeRecibirEscudo() {
+        return true;
+    }
+
+    @Override
+    public boolean puedeSerColonizado() {
+        return !tieneCivilizacion();
+    }
+
+    @Override
+    public void recibirColonos(double colonos) {
+        if (!tieneCivilizacion()) {
+            this.tieneCivilizacion = true;
+            this.civilizacion = new CivilizacionComponent(this, colonos);
+        } else if (civilizacion != null) {
+            civilizacion.agregarPoblacion(colonos);
+        }
     }
 
     @Override
     public void desarrollarCivilizacion() {
-        // Tarea 5: Un planeta transformado por evento no puede desarrollar civilizacion
+        // Un planeta transformado por evento no puede desarrollar civilizacion
         if (transformadoPorEvento) return;
         this.tieneCivilizacion = true;
         if (civilizacion == null) {

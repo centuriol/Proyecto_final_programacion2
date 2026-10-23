@@ -1,28 +1,21 @@
 package org.example.game.motor;
 
 import org.example.CuerpoCeleste;
-import org.example.Estrella;
-import org.example.Planeta;
-import org.example.AgujeroNegro;
-import org.example.game.cuerpo.EscudoProtector;
-import org.example.game.cuerpo.Luna;
-import org.example.game.cuerpo.Meteorito;
-import org.example.game.cuerpo.Satelite;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
-import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.MensajeEvento;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Motor de física newtoniana asistida / permisiva para un gameplay amigable y satisfactorio.
  *
  * Principios SOLID:
- * - SRP: Responsable exclusivamente del cálculo de fuerzas gravitacionales, estabilidad orbital permisiva y colisiones.
- * - DIP: Implementa MotorFisica, permitiendo intercambiar el motor sin afectar a la simulación ni a la UI.
- * - OCP: Nuevos tipos de interacción y comportamientos de cuerpos se manejan limpiamente mediante polimorfismo.
+ * - SRP: Responsable del cálculo de fuerzas gravitacionales, estabilidad orbital permisiva y colisiones.
+ * - DIP: Implementa MotorFisica; colaboradores inyectados por constructor con valores por defecto.
+ * - OCP: Nuevos tipos de interacción y comportamientos de cuerpos se manejan mediante polimorfismo.
  */
 public class MotorFisicaPermisiva extends MotorFisicaBase {
 
@@ -31,8 +24,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     private final double dt;
     private double asistenciaOrbital = 0.015; // 1.5% de corrección sutil hacia estabilidad por tick
     private double velocidadMaxima = 1200.0;
-    private java.util.function.Consumer<String> listenerMensaje;
-    private Runnable listenerDefensaEscudo;
+    private Consumer<String> listenerMensaje;
 
     // Listas internas reutilizables para optimización de memoria y GC por tick
     private final List<CuerpoCeleste> simuladosCache = new ArrayList<>();
@@ -43,21 +35,28 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     private final CalculadorGravedad calculadorGravedad;
     private final AsistenteOrbital asistenteOrbital;
     private final ResolvedorColisiones resolvedorColisiones;
+    private final GestorAgujeroNegro gestorAgujeroNegro;
 
     public MotorFisicaPermisiva(double radioMundo, CalculadorGravedad calculadorGravedad,
-                                AsistenteOrbital asistenteOrbital, ResolvedorColisiones resolvedorColisiones) {
+                                AsistenteOrbital asistenteOrbital, ResolvedorColisiones resolvedorColisiones,
+                                GestorAgujeroNegro gestorAgujeroNegro) {
         super(radioMundo);
         this.G = ConstantesFisicas.G_ESCALADO;
-        // Softening permisivo mayor para evitar tirones infinitos en pases cercanos
         this.softening = 35.0;
         this.dt = 1.0;
         this.calculadorGravedad = calculadorGravedad != null ? calculadorGravedad : new CalculadorGravedad(G, softening);
         this.asistenteOrbital = asistenteOrbital != null ? asistenteOrbital : new AsistenteOrbital(G);
         this.resolvedorColisiones = resolvedorColisiones != null ? resolvedorColisiones : new ResolvedorColisiones();
+        this.gestorAgujeroNegro = gestorAgujeroNegro != null ? gestorAgujeroNegro : new GestorAgujeroNegro();
+    }
+
+    public MotorFisicaPermisiva(double radioMundo, CalculadorGravedad calculadorGravedad,
+                                AsistenteOrbital asistenteOrbital, ResolvedorColisiones resolvedorColisiones) {
+        this(radioMundo, calculadorGravedad, asistenteOrbital, resolvedorColisiones, null);
     }
 
     public MotorFisicaPermisiva(double radioMundo) {
-        this(radioMundo, null, null, null);
+        this(radioMundo, null, null, null, null);
     }
 
     public MotorFisicaPermisiva() {
@@ -90,13 +89,23 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         // 4. Integrar movimiento (Velocity Verlet / Symplectic Euler mejorado)
         integrarMovimiento(simuladosCache);
 
-        // 5. Procesar Satélites y Escudos
+        // 5. Procesar entidades especiales (satélites, etc.)
         actualizarEntidadesEspeciales(simuladosCache);
 
-        // 6. Manejo de colisiones, absorciones y rebotes
+        // 6. Atracción extrema y absorción en el horizonte de sucesos de agujeros negros
+        aEliminarCache.clear();
+        gestorAgujeroNegro.procesar(simuladosCache, aEliminarCache, listenerMensaje);
+        if (!aEliminarCache.isEmpty()) {
+            cuerpos.removeAll(aEliminarCache);
+            for (CuerpoCeleste c : aEliminarCache) {
+                notificarColision(c);
+            }
+        }
+
+        // 7. Manejo de colisiones, absorciones y rebotes
         manejarColisiones(cuerpos, simuladosCache);
 
-        // 7. Limpiar expirados o fuera del mundo
+        // 8. Limpiar expirados o fuera del mundo
         limpiarCuerposExpirados(cuerpos);
     }
 
@@ -114,11 +123,9 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
     private void integrarMovimiento(List<CuerpoCeleste> cuerpos) {
         for (CuerpoCeleste c : cuerpos) {
-            // Protección contra masa <= 0 para prevenir división por cero o NaN
             double masaValida = Math.max(1e-3, c.getMasa());
             Vector2D aceleracion = c.getFuerza().dividir(masaValida);
 
-            // Limitar aceleración extrema para estabilidad
             double aMag = aceleracion.magnitud();
             if (aMag > 200.0) {
                 aceleracion = aceleracion.normalizar().multiplicar(200.0);
@@ -126,7 +133,6 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
             Vector2D nuevaVel = c.getVelocidad().sumar(aceleracion.multiplicar(dt));
 
-            // Limitar velocidad máxima absoluta
             double vMag = nuevaVel.magnitud();
             if (vMag > velocidadMaxima) {
                 nuevaVel = nuevaVel.normalizar().multiplicar(velocidadMaxima);
@@ -157,22 +163,10 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
                 CuerpoCeleste b = simulados.get(j);
                 if (aEliminar.contains(b)) continue;
 
-                // 1. Interacción con Cúpula de Escudo
-                if (resolvedorColisiones.procesarInteraccionEscudo(a, b, aEliminar)) {
-                    continue;
-                }
-
-                // Escudo protector no interactúa de forma destructiva con cuerpos celestes normales
-                if ((a.getTipoCuerpo() == TipoCuerpo.ESCUDO_DOME || b.getTipoCuerpo() == TipoCuerpo.ESCUDO_DOME) &&
-                        a.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO && a.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO &&
-                        b.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO && b.getTipoCuerpo() != TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
-                    continue;
-                }
-
                 double dist = a.getPosicion().distanciaA(b.getPosicion());
                 double radioContacto = a.getRadio() + b.getRadio();
 
-                // 2. Colisión física
+                // Colisión física o contacto
                 if (dist < radioContacto) {
                     if (a.estaOrbitando(b)) {
                         double minOrb = b.getRadio() + a.getRadio() + 4.0;
@@ -196,9 +190,22 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         todos.addAll(aAgregar);
 
         // Limpiar referencias a cuerpos eliminados que estaban siendo orbitados
+        // Satélites orbitando cuerpos destruidos desaparecen con ellos
+        List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : todos) {
             if (c.getCuerpoOrbitado() != null && (aEliminar.contains(c.getCuerpoOrbitado()) || !todos.contains(c.getCuerpoOrbitado()))) {
+                if (c.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+                    satelitesAEliminar.add(c);
+                    c.setSimulado(false);
+                    c.setMasa(0);
+                }
                 c.setCuerpoOrbitado(null);
+            }
+        }
+        if (!satelitesAEliminar.isEmpty()) {
+            todos.removeAll(satelitesAEliminar);
+            for (CuerpoCeleste s : satelitesAEliminar) {
+                notificarColision(s);
             }
         }
 
@@ -207,15 +214,25 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         }
     }
 
-
-    public void setListenerMensaje(java.util.function.Consumer<String> listener) {
+    public void setListenerMensaje(Consumer<String> listener) {
         this.listenerMensaje = listener;
         this.resolvedorColisiones.setListenerMensaje(listener);
     }
 
-    public void setListenerDefensaEscudo(Runnable listener) {
-        this.listenerDefensaEscudo = listener;
-        this.resolvedorColisiones.setListenerDefensaEscudo(listener);
+    public void setListenerNotificacion(BiConsumer<String, MensajeEvento.TipoMensaje> listener) {
+        this.resolvedorColisiones.setListenerNotificacion(listener);
+    }
+
+    public void setListenerExplosion(BiConsumer<Vector2D, Double> listener) {
+        this.resolvedorColisiones.setListenerExplosion(listener);
+    }
+
+    public ResolvedorColisiones getResolvedorColisiones() {
+        return resolvedorColisiones;
+    }
+
+    public GestorAgujeroNegro getGestorAgujeroNegro() {
+        return gestorAgujeroNegro;
     }
 
     public double getAsistenciaOrbital() {
@@ -224,15 +241,5 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
     public void setAsistenciaOrbital(double asistencia) {
         this.asistenciaOrbital = Math.max(0, Math.min(0.1, asistencia));
-    }
-
-    /**
-     * Si el cuerpo tiene civilizacion, la destruye explicitamente
-     * para que la poblacion quede en 0 de forma determinista (LSP).
-     */
-    private void destruirCivilizacionSiPlaneta(CuerpoCeleste cuerpo) {
-        if (cuerpo != null && cuerpo.tieneCivilizacion() && cuerpo.getCivilizacion() != null) {
-            cuerpo.getCivilizacion().destruir();
-        }
     }
 }

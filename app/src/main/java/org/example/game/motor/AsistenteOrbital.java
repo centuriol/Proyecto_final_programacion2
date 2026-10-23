@@ -36,21 +36,31 @@ public class AsistenteOrbital {
             return new CuerpoCeleste[]{cj, ci};
         }
 
-        // Caso A: Luna y Planeta
-        CuerpoCeleste luna = (ci.getTipoCuerpo() == TipoCuerpo.LUNA) ? ci : ((cj.getTipoCuerpo() == TipoCuerpo.LUNA) ? cj : null);
-        CuerpoCeleste otroLuna = (luna == ci) ? cj : ci;
-        boolean esLunaYPlaneta = (luna != null && otroLuna != null && otroLuna.getTipoCuerpo() != null && otroLuna.getTipoCuerpo().esPlaneta());
+        // Caso A: Satélite o Luna y Planeta
+        boolean ciEsMenor = (ci.getTipoCuerpo() == TipoCuerpo.LUNA || ci.getTipoCuerpo() == TipoCuerpo.SATELITE);
+        boolean cjEsMenor = (cj.getTipoCuerpo() == TipoCuerpo.LUNA || cj.getTipoCuerpo() == TipoCuerpo.SATELITE);
 
-        if (esLunaYPlaneta) {
-            double radioCapturaLuna = luna.getRadioAtraccion();
-            if (distReal <= radioCapturaLuna && !luna.estaOrbitando()) {
-                luna.setCuerpoOrbitado(otroLuna);
-                luna.setRadioOrbita(distReal);
-                if (listenerMensaje != null) {
-                    listenerMensaje.accept(luna.getNombre() + " esta orbitando " + otroLuna.getNombre());
+        if (ciEsMenor ^ cjEsMenor) {
+            CuerpoCeleste menor = ciEsMenor ? ci : cj;
+            CuerpoCeleste planeta = ciEsMenor ? cj : ci;
+
+            if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().esPlaneta()) {
+                double radioCaptura;
+                if (menor.getTipoCuerpo() == TipoCuerpo.LUNA) {
+                    radioCaptura = Math.max(planeta.getRadioAtraccion() * 2.2, 120.0);
+                } else {
+                    radioCaptura = Math.max(planeta.getRadioAtraccion(), 65.0);
                 }
-                inicializarVelocidadOrbital(luna, otroLuna, distReal);
-                return new CuerpoCeleste[]{luna, otroLuna};
+
+                if (distReal <= radioCaptura && !menor.estaOrbitando()) {
+                    menor.setCuerpoOrbitado(planeta);
+                    menor.setRadioOrbita(distReal);
+                    if (listenerMensaje != null) {
+                        listenerMensaje.accept(menor.getNombre() + " esta orbitando " + planeta.getNombre());
+                    }
+                    inicializarVelocidadOrbital(menor, planeta, distReal);
+                    return new CuerpoCeleste[]{menor, planeta};
+                }
             }
         }
 
@@ -86,7 +96,12 @@ public class AsistenteOrbital {
     public void inicializarVelocidadOrbital(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
         double d = r.magnitud();
-        double minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        double minOrb;
+        if (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA && anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta()) {
+            minOrb = Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
+        } else {
+            minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        }
         if (d < minOrb) {
             d = minOrb;
             Vector2D norm = (r.magnitud() > 0.001) ? r.normalizar() : new Vector2D(1, 0);
@@ -107,10 +122,10 @@ public class AsistenteOrbital {
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         double limiteEscape;
-        boolean esLunaAlrededorDePlaneta = orbitando.getTipoCuerpo() == TipoCuerpo.LUNA &&
+        boolean esMenorAlrededorDePlaneta = (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA || orbitando.getTipoCuerpo() == TipoCuerpo.SATELITE) &&
                 anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta();
-        if (esLunaAlrededorDePlaneta) {
-            limiteEscape = orbitando.getRadioAtraccion() * 3.5;
+        if (esMenorAlrededorDePlaneta) {
+            limiteEscape = Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0);
         } else {
             limiteEscape = 1500.0;
         }
@@ -130,7 +145,12 @@ public class AsistenteOrbital {
             orbitando.setRadioOrbita(rDeseado);
         }
 
-        double minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        double minOrb;
+        if (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA && anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta()) {
+            minOrb = Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
+        } else {
+            minOrb = anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+        }
         if (rDeseado < minOrb) {
             rDeseado = minOrb;
             orbitando.setRadioOrbita(rDeseado);
@@ -207,9 +227,9 @@ public class AsistenteOrbital {
 
     public double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
         double d = Math.max(10.0, rOrb);
-        boolean esLunaAlrededorDePlaneta = orbitando.getTipoCuerpo() == TipoCuerpo.LUNA &&
+        boolean esCuerpoMenorOrbital = (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA || orbitando.getTipoCuerpo() == TipoCuerpo.SATELITE) &&
                 anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta();
-        if (esLunaAlrededorDePlaneta) {
+        if (esCuerpoMenorOrbital) {
             double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
                     ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)
                     : 1.0;

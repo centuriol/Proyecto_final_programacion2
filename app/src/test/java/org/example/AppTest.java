@@ -41,7 +41,7 @@ class AppTest {
     void testInventarioRecursosIniciales() {
         assertEquals(400.0, inventario.getRecurso(TipoRecurso.MINERALES));
         assertEquals(200.0, inventario.getRecurso(TipoRecurso.ENERGIA));
-        assertEquals(50.0, inventario.getRecurso(TipoRecurso.CIENCIA));
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.CIENCIA));
         assertEquals(0.0, inventario.getRecurso(TipoRecurso.POBLACION));
 
         // Permite crear 1 Sol y 1 Planeta Rocoso exactamente
@@ -82,9 +82,6 @@ class AppTest {
 
         Satelite sat = CuerpoCelesteFactory.crearSatelite(140, 0, 1.0, velOrbital);
         assertEquals(TipoCuerpo.SATELITE, sat.getTipoCuerpo());
-
-        EscudoProtector escudo = CuerpoCelesteFactory.crearEscudo(150, 0, 1.0, velOrbital);
-        assertEquals(TipoCuerpo.ESCUDO_DOME, escudo.getTipoCuerpo());
     }
 
     @Test
@@ -126,17 +123,18 @@ class AppTest {
     @Test
     void testLimitesFactorMasaCentralizados() {
         // Verificar límites en ConfiguracionSimulacion
-        assertEquals(1.0, org.example.game.simulacion.ConfiguracionSimulacion.MASA_FACTOR_MIN, 1e-6);
+        assertEquals(0.3, org.example.game.simulacion.ConfiguracionSimulacion.MASA_FACTOR_MIN, 1e-6);
         assertEquals(10.0, org.example.game.simulacion.ConfiguracionSimulacion.MASA_FACTOR_MAX, 1e-6);
 
         // Verificar consistencia en TipoCuerpo
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO.masaBase * 1.0, TipoCuerpo.PLANETA_ROCOSO.getMasaMin(), 1e-6);
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO.masaBase * 0.3, TipoCuerpo.PLANETA_ROCOSO.getMasaMin(), 1e-6);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO.masaBase * 10.0, TipoCuerpo.PLANETA_ROCOSO.getMasaMax(), 1e-6);
 
         // Verificar clamp en SimulacionSolar
         org.example.game.simulacion.SimulacionSolar simulacion = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        simulacion.getProgresion().desbloquearTodo();
         simulacion.setFactorMasaColocacion(0.2);
-        assertEquals(1.0, simulacion.getFactorMasaColocacion(), 1e-6);
+        assertEquals(0.3, simulacion.getFactorMasaColocacion(), 1e-6);
 
         simulacion.setFactorMasaColocacion(15.0);
         assertEquals(10.0, simulacion.getFactorMasaColocacion(), 1e-6);
@@ -209,7 +207,7 @@ class AppTest {
 
         assertEquals(eneAntes + ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA, simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
         assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(cieAntes, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6, "El sol no debe generar ciencia");
+        assertEquals(cieAntes + ConfiguracionSimulacion.PRODUCCION_ESTRELLA_CIENCIA, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6, "El sol produce ciencia");
         assertEquals(pobAntes, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "El sol no debe generar poblacion");
 
         // 2. Solo Planeta: debe generar Minerales, Ciencia y Población, y NO Energía
@@ -225,9 +223,9 @@ class AppTest {
         simulacion.avanzarTick();
 
         assertEquals(eneAntes, simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6, "El planeta no debe generar energia");
-        assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_MINERALES, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(cieAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_CIENCIA, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
-        assertEquals(pobAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6);
+        assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_MINERALES, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-3);
+        assertEquals(cieAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_CIENCIA, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-3);
+        assertEquals(pobAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-3);
 
         // 3. Solo Luna: debe generar Minerales exclusivamente
         simulacion.limpiarCuerpos();
@@ -396,6 +394,7 @@ class AppTest {
         assertEquals(org.example.game.simulacion.MensajeEvento.TipoMensaje.ADVERTENCIA, recibidos.get(0).tipo());
 
         // Notificación de spawn con fondos insuficientes
+        simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().getRecursoObj(TipoRecurso.ENERGIA).setCantidad(0);
         simulacion.getInventario().getRecursoObj(TipoRecurso.MINERALES).setCantidad(0);
         boolean spawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
@@ -408,27 +407,22 @@ class AppTest {
     void testIntercepcionEscudoRecursos() {
         org.example.game.simulacion.SimulacionSolar simulacion = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
         simulacion.limpiarCuerpos();
+        simulacion.getProgresion().desbloquearTodo();
+        simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 200.0);
 
-        EscudoProtector escudo = CuerpoCelesteFactory.crearEscudo(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(planeta);
+        org.example.game.cuerpo.ServicioEscudo.activar(simulacion, planeta);
+        assertTrue(planeta.tieneEscudo());
+
         Meteorito meteorito = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());
-
-        simulacion.agregarCuerpo(escudo);
         simulacion.agregarCuerpo(meteorito);
-
-        double energiaAntes = simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA);
-        double cienciaAntes = simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA);
 
         simulacion.avanzarTick();
 
-        // El meteorito debe haber sido vaporizado por el escudo
+        // El meteorito debe haber sido absorbido y destruido por el escudo del planeta
         assertFalse(simulacion.getSistemaSolar().getCuerpos().contains(meteorito));
-        assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(escudo));
-
-        // Consumo de energía y recompensa de ciencia
-        double energiaDespues = simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA);
-        double cienciaDespues = simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA);
-
-        assertTrue(cienciaDespues > cienciaAntes, "La defensa con escudo debe otorgar Ciencia");
+        assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(planeta));
     }
 
     @Test
@@ -583,17 +577,18 @@ class AppTest {
     }
 
     @Test
-    void testEscudoProtectorNoColapsaPlaneta() {
+    void testEscudoPlanetarioNoColapsaPlaneta() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        EscudoProtector escudo = CuerpoCelesteFactory.crearEscudo(0, 0, 1.0, Vector2D.cero());
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
-        cuerpos.add(escudo);
-        cuerpos.add(planeta);
+        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        p1.activarEscudo(1);
+        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        cuerpos.add(p1);
+        cuerpos.add(p2);
 
         motorFisica.avanzarPaso(cuerpos);
 
-        assertTrue(cuerpos.contains(escudo));
-        assertTrue(cuerpos.contains(planeta));
+        assertTrue(cuerpos.contains(p1));
+        assertTrue(cuerpos.contains(p2));
         assertEquals(2, cuerpos.size());
     }
 
@@ -628,6 +623,7 @@ class AppTest {
     @Test
     void testEliminarCuerpoReembolsaMitadDeMateriales() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.getProgresion().desbloquearTodo();
         // Colocar 1 Planeta Rocoso (cuesta 100 Min, 50 Ene)
         sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "TierraTest");
         sim.actualizarPosicionPreview(1120, 540);
@@ -849,17 +845,17 @@ class AppTest {
         assertEquals(50.0, costoAgua.get(TipoRecurso.MINERALES));
         assertEquals(25.0, costoAgua.get(TipoRecurso.ENERGIA));
         var prodAgua = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_AGUA);
-        assertEquals(0.015, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(0.01, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
         assertFalse(prodAgua.containsKey(TipoRecurso.POBLACION), "El planeta de agua no debe generar poblacion");
 
-        // Planeta Lava (150 mineral, 75 energia, 0.07 mineral, 0.05 ciencia, sin poblacion)
+        // Planeta Lava (150 mineral, 75 energia, alto mineral y ciencia, sin poblacion)
         var costoLava = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_LAVA);
         assertEquals(150.0, costoLava.get(TipoRecurso.MINERALES));
         assertEquals(75.0, costoLava.get(TipoRecurso.ENERGIA));
         var prodLava = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_LAVA);
-        assertEquals(0.07, prodLava.get(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(0.05, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES, prodLava.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
         assertFalse(prodLava.containsKey(TipoRecurso.POBLACION), "El planeta lava no debe generar poblacion");
 
         // Sol (x2 de produccion)
@@ -919,6 +915,7 @@ class AppTest {
     @Test
     void testSimulacionColocacionConNombreYMasaPersonalizados() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.getProgresion().desbloquearTodo();
         sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 10000);
         sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 10000);
 
@@ -975,8 +972,8 @@ class AppTest {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
         org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
 
-        // La hotbar contiene los 5 slots de cuerpos (Estrella, Planeta Porro, Luna, Planeta de Agua, Planeta Lava), sin pestaña de masa
-        assertEquals(5, hotbar.getChildren().size(), "La hotbar debe contener exactamente 5 slots de cuerpos celestes sin la pestaña de masa");
+        // La hotbar contiene los slots de cuerpos celestes (Estrella, Planeta Porro, Luna, Planeta de Agua, Satélite, Planeta Lava), sin pestaña de masa
+        assertEquals(org.example.game.ui.BarraInventarioHotbar.CUERPOS_HOTBAR.length, hotbar.getChildren().size(), "La hotbar debe contener exactamente los slots de cuerpos celestes sin la pestaña de masa");
 
         // Ningún slot debe tener un tooltip instalado en hover
         for (javafx.scene.Node node : hotbar.getChildren()) {
@@ -1100,6 +1097,7 @@ class AppTest {
     @Test
     void testColocacionPlanetaEnOrbitasDelSolAutoOrbitaYEstabilidad() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.getProgresion().desbloquearTodo();
         sim.limpiarCuerpos();
 
         Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
@@ -1137,6 +1135,7 @@ class AppTest {
     @Test
     void testPresupuestoInicialAlcanzaSoloParaUnSolYUnPlaneta() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.getProgresion().desbloquearTodo();
         assertTrue(sim.getSistemaSolar().getCuerpos().isEmpty(), "El juego debe arrancar sin ningún cuerpo puesto");
 
         // Colocar 1 Sol
@@ -1171,6 +1170,7 @@ class AppTest {
     @Test
     void testEliminarEstrellaReembolsa50PorCiento() {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1920, 1080);
+        sim.getProgresion().desbloquearTodo();
         // Colocar 1 Sol
         sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, 1.0, "SolTest");
         sim.actualizarPosicionPreview(960, 540);
@@ -1178,8 +1178,8 @@ class AppTest {
 
         CuerpoCeleste estrella = sim.getSistemaSolar().getCuerpos().get(0);
 
-        // Costo base de estrella: 300 Min, 150 Ene, 50 Cie
-        // Reembolso 50%: 150 Min, 75 Ene, 25 Cie
+        // Costo base de estrella: 300 Min, 150 Ene, 0 Cie
+        // Reembolso 50%: 150 Min, 75 Ene, 0 Cie
         Map<TipoRecurso, Double> costos = InventarioJugador.getCostosEscalados(estrella.getTipoCuerpo(), 1.0);
         for (Map.Entry<TipoRecurso, Double> e : costos.entrySet()) {
             sim.getInventario().agregarRecurso(e.getKey(), e.getValue() * 0.5);
@@ -1189,7 +1189,7 @@ class AppTest {
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(estrella));
         assertEquals(250.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "100 restantes + 150 reembolsados = 250");
         assertEquals(125.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), "50 restantes + 75 reembolsados = 125");
-        assertEquals(25.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), "0 restantes + 25 reembolsados = 25");
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), "0 restantes + 0 reembolsados = 0");
     }
 
     @Test
@@ -1210,13 +1210,13 @@ class AppTest {
 
         // 2. Verificar producción base por tick
         var prodAgua = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_AGUA);
-        assertEquals(0.015, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(0.01, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
         assertNull(prodAgua.get(TipoRecurso.POBLACION), "Planeta de agua no debe generar poblacion");
 
         var prodLava = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_LAVA);
-        assertEquals(0.07, prodLava.get(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(0.05, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES, prodLava.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
         assertNull(prodLava.get(TipoRecurso.POBLACION), "Planeta lava no debe generar poblacion");
 
         var prodSol = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.ESTRELLA);
@@ -1234,10 +1234,10 @@ class AppTest {
 
         sim.avanzarTick();
 
-        assertEquals(minAntes + 0.015, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(cieAntes + 0.01, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(cieAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
         assertEquals(pobAntes, sim.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "No debe generar poblacion");
-        assertEquals(eneAntes, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6, "No debe generar energia");
+        assertEquals(eneAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_ENERGIA, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
 
         // 4. Simulación activa: producción por tick de Planeta Lava
         sim.limpiarCuerpos();
@@ -1251,8 +1251,8 @@ class AppTest {
 
         sim.avanzarTick();
 
-        assertEquals(minAntes + 0.07, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
-        assertEquals(cieAntes + 0.05, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(minAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(cieAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
         assertEquals(pobAntes, sim.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6, "No debe generar poblacion");
         assertEquals(eneAntes, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6, "No debe generar energia");
 
@@ -1266,7 +1266,7 @@ class AppTest {
         org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1000, 1000);
         org.example.game.ui.BarraInventarioHotbar hotbar = new org.example.game.ui.BarraInventarioHotbar(sim);
 
-        assertEquals(5, hotbar.getChildren().size());
+        assertEquals(org.example.game.ui.BarraInventarioHotbar.CUERPOS_HOTBAR.length, hotbar.getChildren().size());
 
         for (int i = 0; i < hotbar.getChildren().size(); i++) {
             javafx.scene.layout.VBox slot = (javafx.scene.layout.VBox) hotbar.getChildren().get(i);

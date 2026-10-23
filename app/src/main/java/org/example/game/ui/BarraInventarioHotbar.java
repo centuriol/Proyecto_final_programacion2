@@ -58,17 +58,23 @@ public class BarraInventarioHotbar extends HBox {
     private TipoCuerpo tipoSeleccionado = null;
     private boolean retraida = false;
     private Button btnToggleRetraccion;
+    private Runnable accionAbrirArbol;
 
-    private static final TipoCuerpo[] CUERPOS_HOTBAR = {
+    public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
+        this.accionAbrirArbol = accionAbrirArbol;
+    }
+
+    public static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
             TipoCuerpo.PLANETA_ROCOSO,
             TipoCuerpo.LUNA,
             TipoCuerpo.PLANETA_AGUA,
+            TipoCuerpo.SATELITE,
             TipoCuerpo.PLANETA_LAVA
     };
 
     private static final String[] ICONOS_HOTBAR = {
-            "[SOL]", "[POR]", "[LUN]", "[AGU]", "[LAV]"
+            "[SOL]", "[POR]", "[LUN]", "[AGU]", "[SAT]", "[LAV]"
     };
 
     public BarraInventarioHotbar(SimulacionSolar simulacion) {
@@ -90,6 +96,9 @@ public class BarraInventarioHotbar extends HBox {
             slotCards.add(slot);
             getChildren().add(slot);
         }
+
+        actualizarBloqueos();
+        this.simulacion.agregarListenerUI(this::actualizarBloqueos);
     }
 
     public Button getBotonToggle() {
@@ -178,9 +187,7 @@ public class BarraInventarioHotbar extends HBox {
             }
         });
 
-        slot.setOnMouseClicked(e -> {
-            abrirVentanaColocacion(tipo);
-        });
+        slot.setOnMouseClicked(e -> seleccionarTipo(tipo));
 
         return slot;
     }
@@ -243,7 +250,47 @@ public class BarraInventarioHotbar extends HBox {
     }
 
     public void seleccionarTipo(TipoCuerpo tipo) {
-        abrirVentanaColocacion(tipo);
+        if (simulacion.getProgresion().estaDesbloqueado(tipo)) {
+            abrirVentanaColocacion(tipo);
+        } else {
+            if (accionAbrirArbol != null) {
+                accionAbrirArbol.run();
+            } else {
+                javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+                VentanaProgresion.mostrar(simulacion, owner);
+            }
+        }
+    }
+
+    public void actualizarBloqueos() {
+        if (simulacion == null || simulacion.getProgresion() == null) return;
+        var prog = simulacion.getProgresion();
+
+        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
+            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
+            VBox slot = slotCards.get(i);
+            Label lblNom = (Label) slot.getChildren().get(2);
+
+            boolean desbloqueado = prog.estaDesbloqueado(tipo);
+            if (desbloqueado) {
+                slot.setOpacity(1.0);
+                lblNom.setText(tipo.nombre.toUpperCase());
+                lblNom.setTextFill(Color.web(tipo.getColorHexString()));
+            } else {
+                slot.setOpacity(0.5);
+                double costo = obtenerCostoDesbloqueo(tipo);
+                lblNom.setText(tipo.nombre.toUpperCase() + " [BLOQ " + (int) costo + " CIE]");
+                lblNom.setTextFill(Color.web("#8c92a4"));
+            }
+        }
+    }
+
+    private double obtenerCostoDesbloqueo(TipoCuerpo tipo) {
+        if (tipo == TipoCuerpo.LUNA) return org.example.game.progresion.ElementoDesbloqueable.LUNA.costoCiencia;
+        if (tipo == TipoCuerpo.PLANETA_ROCOSO) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_PORRO.costoCiencia;
+        if (tipo == TipoCuerpo.SATELITE) return org.example.game.progresion.ElementoDesbloqueable.SATELITE.costoCiencia;
+        if (tipo == TipoCuerpo.PLANETA_LAVA) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_LAVA.costoCiencia;
+        return 0;
     }
 
     public void deseleccionar() {

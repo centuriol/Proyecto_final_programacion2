@@ -40,6 +40,8 @@ public class RenderizadorPixelArt {
     private final RenderizadorFondo renderizadorFondo;
     private final GestorEstelas gestorEstelas;
     private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
+    private java.util.function.Supplier<List<org.example.game.colonizacion.NaveColonizadora>> proveedorNaves;
+    private org.example.game.efectos.GestorEfectos gestorEfectos;
 
     /**
      * Radios base de referencia orbital alrededor de estrellas (en px a escala 1.0).
@@ -108,10 +110,17 @@ public class RenderizadorPixelArt {
         registrarRenderizadorCuerpo(TipoCuerpo.PLANETA_HELADO, (gc, c, tipo, r, tick) -> dibujarPlanetaHeladoPixel(gc, 0, 0, r));
         registrarRenderizadorCuerpo(TipoCuerpo.LUNA, (gc, c, tipo, r, tick) -> dibujarLunaPixel(gc, 0, 0, r));
         registrarRenderizadorCuerpo(TipoCuerpo.SATELITE, (gc, c, tipo, r, tick) -> dibujarSatelitePixel(gc, 0, 0, tick));
-        registrarRenderizadorCuerpo(TipoCuerpo.ESCUDO_DOME, (gc, c, tipo, r, tick) -> dibujarEscudoDomePixel(gc, 0, 0, c, tick));
         registrarRenderizadorCuerpo(TipoCuerpo.METEORITO, (gc, c, tipo, r, tick) -> dibujarMeteoritoPixel(gc, 0, 0, c, tick));
         registrarRenderizadorCuerpo(TipoCuerpo.AGUJERO_NEGRO, (gc, c, tipo, r, tick) -> dibujarAgujeroNegroPixel(gc, 0, 0, r, tick));
         registrarRenderizadorCuerpo(TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO, (gc, c, tipo, r, tick) -> dibujarAgujeroNegroPixel(gc, 0, 0, r, tick));
+    }
+
+    public void setProveedorNaves(java.util.function.Supplier<List<org.example.game.colonizacion.NaveColonizadora>> proveedorNaves) {
+        this.proveedorNaves = proveedorNaves;
+    }
+
+    public void setGestorEfectos(org.example.game.efectos.GestorEfectos gestorEfectos) {
+        this.gestorEfectos = gestorEfectos;
     }
 
     public void registrarRenderizadorCuerpo(TipoCuerpo tipo, RenderizadorCuerpo renderizador) {
@@ -172,7 +181,15 @@ public class RenderizadorPixelArt {
 
         // 6. Cuerpos Celestes en Pixel Art
         for (CuerpoCeleste c : cuerpos) {
-            dibujarCuerpoPixelArt(gc, c, tick);
+            dibujarCuerpoPixelArt(gc, c, cuerpos, tick);
+        }
+
+        // 6.5 Naves Colonizadoras en tránsito
+        dibujarNavesColonizadoras(gc);
+
+        // 6.6 Efectos visuales de explosiones y partículas
+        if (gestorEfectos != null) {
+            gestorEfectos.dibujar(gc, anchoCanvas, altoCanvas);
         }
 
         // 7. Cuerpo seleccionado (Retícula de inspección)
@@ -260,6 +277,7 @@ public class RenderizadorPixelArt {
     private void dibujarAreasAtraccion(GraphicsContext gc, List<CuerpoCeleste> cuerpos) {
         for (CuerpoCeleste c : cuerpos) {
             if (!c.esSimulado()) continue;
+            if (c.getTipoCuerpo() == TipoCuerpo.SATELITE || c.getTipoCuerpo() == TipoCuerpo.METEORITO) continue;
 
             double rAtraccion = c.getRadioAtraccion();
             if (rAtraccion <= 0) continue;
@@ -295,7 +313,7 @@ public class RenderizadorPixelArt {
 
     // ===== Renderizado Pixel Art de Cada Cuerpo Celeste =====
 
-    private void dibujarCuerpoPixelArt(GraphicsContext gc, CuerpoCeleste c, long tick) {
+    private void dibujarCuerpoPixelArt(GraphicsContext gc, CuerpoCeleste c, List<CuerpoCeleste> cuerpos, long tick) {
         double x = Math.round(ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas));
         double y = Math.round(ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas));
         TipoCuerpo tipo = c.getTipoCuerpo();
@@ -309,10 +327,17 @@ public class RenderizadorPixelArt {
             angulo = (faseInicial + tiempoAnimacionSegundos * velAngular) % 360.0;
         }
 
+        // Efecto visual de absorción por agujero negro (escala decreciente y rotación acelerada)
+        double escalaBH = org.example.game.motor.GestorAgujeroNegro.calcularFactorEscala(c, cuerpos);
+        double rotacionBH = org.example.game.motor.GestorAgujeroNegro.calcularRotacionExtra(c, cuerpos, tick);
+
         gc.save();
         gc.translate(x, y);
-        if (angulo != 0.0) {
-            gc.rotate(angulo);
+        if (escalaBH < 1.0) {
+            gc.scale(escalaBH, escalaBH);
+        }
+        if (angulo != 0.0 || rotacionBH != 0.0) {
+            gc.rotate(angulo + rotacionBH);
         }
 
         RenderizadorCuerpo renderer = renderizadoresCuerpo.get(tipo);
@@ -323,6 +348,11 @@ public class RenderizadorPixelArt {
         }
 
         gc.restore();
+
+        // Cúpula de escudo planetario
+        if (c.tieneEscudo()) {
+            dibujarCupulaEscudo(gc, x, y, r, tick);
+        }
 
         // Etiqueta compacta con nombre debajo, centrada con el cuerpo
         gc.setFill(COLOR_TEXTO_ETIQUETA);
@@ -499,26 +529,42 @@ public class RenderizadorPixelArt {
         }
     }
 
-    private void dibujarEscudoDomePixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste escudo, long tick) {
-        double rEfectivo = escudo.getRadioEscudo();
-        double pulso = 0.8 + 0.2 * Math.sin(escudo.getPulsoVisual());
+    private void dibujarCupulaEscudo(GraphicsContext gc, double cx, double cy, double r, long tick) {
+        double rEfectivo = r * 1.5;
+        double pulso = 0.85 + 0.15 * Math.sin(tick * 0.2);
 
         // Cúpula translúcida
-        gc.setFill(colorRgb(91, 227, 255, 0.15 * pulso));
+        gc.setFill(colorRgb(91, 227, 255, 0.20 * pulso));
         gc.fillOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
 
-        // Borde brillante hexagonal/circular
+        // Borde brillante hexagonal/circular segmentado
         gc.setStroke(COLOR_ACENTO_CYAN);
-        gc.setLineWidth(2.0);
-        gc.setLineDashes(8, 4);
+        gc.setLineWidth(1.8);
+        gc.setLineDashes(6, 4);
         gc.strokeOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
         gc.setLineDashes(null);
+    }
 
-        // Generador central del escudo
-        gc.setFill(Color.BLACK);
-        gc.fillOval(cx - 7, cy - 7, 14, 14);
-        gc.setFill(COLOR_ACENTO_CYAN);
-        gc.fillOval(cx - 5, cy - 5, 10, 10);
+    private void dibujarNavesColonizadoras(GraphicsContext gc) {
+        if (proveedorNaves == null) return;
+        List<org.example.game.colonizacion.NaveColonizadora> naves = proveedorNaves.get();
+        if (naves == null || naves.isEmpty()) return;
+
+        for (org.example.game.colonizacion.NaveColonizadora nave : naves) {
+            if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
+            Vector2D pos = nave.getPosicion();
+            double sx = ConstantesFisicas.fisicaAXJavaFX(pos.x, anchoCanvas);
+            double sy = ConstantesFisicas.fisicaAYJavaFX(pos.y, altoCanvas);
+
+            // Dibujar nave ligera en tránsito (verde brillante)
+            gc.save();
+            gc.setFill(Color.web("#50fa7b"));
+            gc.fillOval(sx - 4, sy - 4, 8, 8);
+            gc.setStroke(Color.WHITE);
+            gc.setLineWidth(1.0);
+            gc.strokeOval(sx - 5, sy - 5, 10, 10);
+            gc.restore();
+        }
     }
 
     private void dibujarMeteoritoPixel(GraphicsContext gc, double cx, double cy, CuerpoCeleste m, long tick) {

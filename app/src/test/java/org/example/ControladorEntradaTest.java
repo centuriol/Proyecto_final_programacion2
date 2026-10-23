@@ -47,6 +47,7 @@ class ControladorEntradaTest {
     @BeforeEach
     void setUp() {
         simulacion = new SimulacionSolar(1920, 1080);
+        simulacion.getProgresion().desbloquearTodo();
         renderizador = new RenderizadorPixelArt(1920, 1080);
         hotbar = new BarraInventarioHotbar(simulacion);
         controlTiempo = new ControlTiempoWidget(simulacion);

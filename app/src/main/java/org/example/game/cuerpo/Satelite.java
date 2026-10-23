@@ -20,10 +20,10 @@ public class Satelite extends CuerpoCeleste {
         producirRecursos(dt);
     }
 
-    /** Genera recursos pasivos periódicamente */
+    /** Genera recursos pasivos periódicamente (ciencia y energía) */
     public void producirRecursos(double dt) {
-        cienciaGenerada += 0.05 * dt;
-        energiaGenerada += 0.1 * dt;
+        cienciaGenerada += org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_SATELITE_CIENCIA * dt;
+        energiaGenerada += org.example.game.simulacion.ConfiguracionSimulacion.PRODUCCION_SATELITE_ENERGIA * dt;
     }
 
     public double getCienciaGenerada() {
@@ -36,7 +36,7 @@ public class Satelite extends CuerpoCeleste {
 
     @Override
     public String describir() {
-        return "Satélite " + getNombre() + " (Ciencia: +" + String.format("%.1f", cienciaGenerada) + ")";
+        return "Satélite " + getNombre() + " (Ciencia: +" + String.format("%.1f", cienciaGenerada) + ", Energía: +" + String.format("%.1f", energiaGenerada) + ")";
     }
 
     @Override

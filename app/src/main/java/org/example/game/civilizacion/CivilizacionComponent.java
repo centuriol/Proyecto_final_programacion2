@@ -50,13 +50,17 @@ public class CivilizacionComponent {
     }
 
     public CivilizacionComponent(Planeta planeta) {
+        this(planeta, ConfiguracionSimulacion.POBLACION_INICIAL);
+    }
+
+    public CivilizacionComponent(Planeta planeta, double poblacionInicial) {
         this.planeta = planeta;
-        this.poblacion = ConfiguracionSimulacion.POBLACION_INICIAL;
         this.nivelTecnologico = 0;
         this.estabilidad = 1.0;
         this.felicidad = 1.0;
         this.estado = EstadoCivilizacion.PRÓSPERA;
         recalcularPoblacionMaxima();
+        this.poblacion = Math.min(poblacionInicial, this.poblacionMaxima);
     }
 
     /** Actualiza la civilización cada tick */
@@ -71,8 +75,19 @@ public class CivilizacionComponent {
         CondicionesHabitabilidad condiciones = evaluarHabitabilidad(todosLosCuerpos);
 
         // 2. Calcular crecimiento/decadencia de población
+        // Modelo logístico: tasa = factorCrecimiento; si factorCrecimiento > 0, poblacion *= 1 + tasa*(1 - poblacion/max)
+        // Calibración: con POBLACION_INICIAL=1000, max=1e6, tasa=CRECIMIENTO_POBLACION_BASE (~0.0007),
+        // llegar al 80% (800.000) toma ~6-10 min a 1x (7000 a 12000 ticks).
+        // Integrando dx/dt = r*x*(1 - x/K): t = (1/r) * ln( (x/(K-x)) / (x0/(K-x0)) )
+        // Para x=0.8*K y x0=1000, (0.8/0.2) / (1000/999000) = 4 / 0.001001 ≈ 3996
+        // ln(3996) ≈ 8.293. Con r = 0.0008: ticks = 8.293 / 0.0008 ≈ 10366 ticks (~8.6 min a 20 ticks/s).
         double factorCrecimiento = calcularFactorCrecimiento(condiciones);
-        poblacion *= (1.0 + factorCrecimiento);
+        if (factorCrecimiento > 0) {
+            double saturacion = poblacionMaxima > 0 ? (1.0 - (poblacion / poblacionMaxima)) : 0.0;
+            poblacion *= (1.0 + factorCrecimiento * Math.max(0.0, saturacion));
+        } else {
+            poblacion *= (1.0 + factorCrecimiento);
+        }
         poblacion = Math.max(0, Math.min(poblacion, poblacionMaxima));
 
         // 3. Actualizar estabilidad y felicidad
@@ -249,10 +264,37 @@ public class CivilizacionComponent {
         // Migración (futuro: entre planetas)
     }
 
-    private void recalcularPoblacionMaxima() {
-        // Basado en masa del planeta y tecnología
+    public void recalcularPoblacionMaxima() {
+        // Basado en masa del planeta, tipo de planeta y tecnología
         double factorMasa = planeta.getMasa() / 5.97e24; // Relativo a Tierra
-        poblacionMaxima = ConfiguracionSimulacion.POBLACION_MAXIMA_FACTOR * factorMasa * (1 + nivelTecnologico * 0.2);
+        double factorTipo = (planeta.getTipoCuerpo() != null)
+                ? planeta.getTipoCuerpo().getFactorCapacidadPoblacion()
+                : 1.0;
+        poblacionMaxima = ConfiguracionSimulacion.POBLACION_MAXIMA_FACTOR * factorMasa * factorTipo * (1 + nivelTecnologico * 0.2);
+    }
+
+    public double getPorcentajeCapacidad() {
+        if (poblacionMaxima <= 0) return 0.0;
+        return (poblacion / poblacionMaxima) * 100.0;
+    }
+
+    public void agregarPoblacion(double cantidad) {
+        if (cantidad > 0 && estado != EstadoCivilizacion.EXTINGUIDA) {
+            this.poblacion = Math.min(this.poblacion + cantidad, this.poblacionMaxima);
+        }
+    }
+
+    public void setPoblacion(double cantidad) {
+        if (estado != EstadoCivilizacion.EXTINGUIDA) {
+            this.poblacion = Math.max(0, Math.min(cantidad, this.poblacionMaxima));
+        }
+    }
+
+    public void restarPoblacion(double cantidad) {
+        this.poblacion = Math.max(0, this.poblacion - cantidad);
+        if (this.poblacion < 10) {
+            extinguir();
+        }
     }
 
     public void recibirImpactoMeteorito() {
