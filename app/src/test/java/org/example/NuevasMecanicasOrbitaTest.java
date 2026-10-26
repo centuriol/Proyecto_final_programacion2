@@ -20,7 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -146,13 +148,13 @@ public class NuevasMecanicasOrbitaTest {
         assertEquals(3, simulacion.getProgresion().getLimitePlanetas());
 
         // Spawnear 3 planetas de agua (desbloqueados al inicio)
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 0, 0.3, Vector2D.cero()));
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, 0.3, Vector2D.cero()));
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 300, 0, 0.3, Vector2D.cero()));
+        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 0, 0.3, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, 0.3, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 300, 0, 0.3, Vector2D.cero()).isPresent());
         assertEquals(3, simulacion.getCantidadPlanetasActuales());
 
         // Intentar colocar un 4to planeta debe ser rechazado por límite
-        boolean cuartoSpawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero());
+        boolean cuartoSpawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent();
         assertFalse(cuartoSpawneado, "No debe permitir superar el límite de planetas simultáneos");
         assertEquals(3, simulacion.getCantidadPlanetasActuales());
 
@@ -162,7 +164,7 @@ public class NuevasMecanicasOrbitaTest {
         assertEquals(4, simulacion.getProgresion().getLimitePlanetas());
 
         // Ahora el 4to planeta sí se puede spawnear
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()));
+        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
         assertEquals(4, simulacion.getCantidadPlanetasActuales());
     }
 
@@ -172,11 +174,11 @@ public class NuevasMecanicasOrbitaTest {
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 5000);
 
         // Luna bloqueada al inicio
-        boolean exitoLuna = simulacion.spawnCuerpo(TipoCuerpo.LUNA, 100, 100, 0.3, Vector2D.cero());
+        boolean exitoLuna = simulacion.spawnCuerpo(TipoCuerpo.LUNA, 100, 100, 0.3, Vector2D.cero()).isPresent();
         assertFalse(exitoLuna, "No debe permitir spawnear cuerpos bloqueados");
 
         // Planeta de Agua permitido al inicio
-        boolean exitoAgua = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 100, 0.3, Vector2D.cero());
+        boolean exitoAgua = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 100, 0.3, Vector2D.cero()).isPresent();
         assertTrue(exitoAgua, "Debe permitir spawnear Planeta de Agua desde el inicio");
     }
 
@@ -515,7 +517,7 @@ public class NuevasMecanicasOrbitaTest {
         // Al spawnearlo, la masa siempre es fija (1.0e3)
         inv.agregarRecurso(TipoRecurso.MINERALES, 1000);
         inv.agregarRecurso(TipoRecurso.ENERGIA, 1000);
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "SondaAlpha", 100, 100, 5.0, Vector2D.cero()));
+        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "SondaAlpha", 100, 100, 5.0, Vector2D.cero()).isPresent());
         CuerpoCeleste satSpawneado = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE)
                 .findFirst().orElse(null);
@@ -625,7 +627,7 @@ public class NuevasMecanicasOrbitaTest {
         org.example.game.motor.ResolvedorColisiones resolvedor = new org.example.game.motor.ResolvedorColisiones();
         Satelite sA = (Satelite) CuerpoCelesteFactory.crearSatelite(10, 10, 1.0, Vector2D.cero());
         Satelite sB = (Satelite) CuerpoCelesteFactory.crearSatelite(10, 10, 1.0, Vector2D.cero());
-        List<CuerpoCeleste> aEliminar = new ArrayList<>();
+        Set<CuerpoCeleste> aEliminar = new HashSet<>();
         List<CuerpoCeleste> aAgregar = new ArrayList<>();
 
         resolvedor.resolverColision(sA, sB, aEliminar, aAgregar);

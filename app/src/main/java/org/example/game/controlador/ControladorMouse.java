@@ -87,8 +87,20 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         canvas.setOnScroll(null);
     }
 
+    public double transformarX(double mouseX) {
+        if (camaraZoom == null || camaraZoom.esZoomNeutro()) return mouseX;
+        double cx = anchoMundo / 2.0;
+        return cx + (mouseX - cx) / camaraZoom.getNivelZoom();
+    }
+
+    public double transformarY(double mouseY) {
+        if (camaraZoom == null || camaraZoom.esZoomNeutro()) return mouseY;
+        double cy = altoMundo / 2.0;
+        return cy + (mouseY - cy) / camaraZoom.getNivelZoom();
+    }
+
     public void manejarMouseMovido(MouseEvent e) {
-        actualizarPreviewColocacion(e.getX(), e.getY());
+        actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
     }
 
     private org.example.game.cuerpo.Planeta planetaOrigenColonizacion = null;
@@ -109,9 +121,12 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     public void manejarMousePresionado(MouseEvent e) {
+        double worldX = transformarX(e.getX());
+        double worldY = transformarY(e.getY());
+
         if (planetaOrigenColonizacion != null) {
             if (e.getButton() == MouseButton.PRIMARY) {
-                seleccionarCuerpoBajoCursor(e.getX(), e.getY());
+                seleccionarCuerpoBajoCursor(worldX, worldY);
                 if (cuerpoSeleccionado != null) {
                     simulacion.getGestorColonizacion().lanzar(planetaOrigenColonizacion, cuerpoSeleccionado, simulacion.getInventario(), simulacion::notificarEvento, simulacion.getTickActual());
                     cancelarModoColonizacion();
@@ -126,7 +141,7 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         if (e.getButton() == MouseButton.PRIMARY) {
             if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
                 // Colocación directa asistida (sin lanzamientos)
-                simulacion.actualizarPosicionPreview(e.getX(), e.getY());
+                simulacion.actualizarPosicionPreview(worldX, worldY);
                 simulacion.confirmarColocacionAutoOrbita();
                 trayectoriaPreview.clear();
                 resetThrottlePreview();
@@ -134,7 +149,7 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
                     hotbar.deseleccionar();
                 }
             } else {
-                inspeccionarCuerpoBajoCursor(e.getX(), e.getY());
+                inspeccionarCuerpoBajoCursor(worldX, worldY);
             }
         } else if (e.getButton() == MouseButton.SECONDARY) {
             if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
@@ -147,13 +162,13 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
                 trayectoriaPreview.clear();
                 resetThrottlePreview();
             } else {
-                inspeccionarCuerpoBajoCursor(e.getX(), e.getY());
+                inspeccionarCuerpoBajoCursor(worldX, worldY);
             }
         }
     }
 
     public void manejarMouseArrastrado(MouseEvent e) {
-        actualizarPreviewColocacion(e.getX(), e.getY());
+        actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
     }
 
     private void actualizarPreviewColocacion(double x, double y) {

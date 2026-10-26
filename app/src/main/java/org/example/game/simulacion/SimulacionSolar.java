@@ -21,6 +21,7 @@ import org.example.game.motor.TransformadorCuerpos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -177,7 +178,10 @@ public class SimulacionSolar {
         // 9. Callbacks de eventos o estado
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
 
-        pasoUnico = false;
+        if (pasoUnico) {
+            enPausa = true;
+            pasoUnico = false;
+        }
     }
 
     public void avanzarTicks(int cantidad) {
@@ -225,17 +229,17 @@ public class SimulacionSolar {
         return count;
     }
 
-    public boolean spawnCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+    public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
         return spawnCuerpo(tipo, null, x, y, factorMasa, velocidadInicial);
     }
 
-    public boolean spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+    public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
         if (tipo == TipoCuerpo.SATELITE) {
             factorMasa = 1.0; // Satélite es una estructura fija no modificable en masa
         }
         if (!progresion.estaDesbloqueado(tipo)) {
             notificarEvento("Cuerpo bloqueado: " + (tipo != null ? tipo.nombre : "Desconocido") + ". Desbloquéalo con ciencia.", MensajeEvento.TipoMensaje.ADVERTENCIA);
-            return false;
+            return Optional.empty();
         }
 
         if (tipo != null && tipo.esPlaneta()) {
@@ -243,23 +247,23 @@ public class SimulacionSolar {
             int maximo = progresion != null ? progresion.getLimitePlanetas() : ConfiguracionSimulacion.PLANETAS_INICIALES_MAX;
             if (actual >= maximo) {
                 notificarEvento("Límite de planetas alcanzado (" + actual + "/" + maximo + "). Amplía la capacidad en el Árbol de Investigación [P].", MensajeEvento.TipoMensaje.ADVERTENCIA);
-                return false;
+                return Optional.empty();
             }
         }
 
         if (tipo != TipoCuerpo.SATELITE && factorMasa > progresion.getLimiteMasaActual() + 1e-6) {
             notificarEvento("Límite de masa excedido (" + String.format("%.1fx", factorMasa) + " > " + String.format("%.1fx", progresion.getLimiteMasaActual()) + ").", MensajeEvento.TipoMensaje.ADVERTENCIA);
-            return false;
+            return Optional.empty();
         }
 
         if (!inventario.puedeCrear(tipo, factorMasa)) {
             notificarEvento("Recursos insuficientes para " + tipo.nombre, MensajeEvento.TipoMensaje.ADVERTENCIA);
-            return false;
+            return Optional.empty();
         }
 
         CuerpoCeleste cuerpo = CuerpoCelesteFactory.crearCuerpo(tipo, x, y, factorMasa, velocidadInicial);
         if (cuerpo == null) {
-            return false;
+            return Optional.empty();
         }
 
         if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {
@@ -269,9 +273,9 @@ public class SimulacionSolar {
             agregarCuerpo(cuerpo);
             salirModoColocacion();
             notificarEvento("Cuerpo colocado: " + cuerpo.getNombre() + " (" + tipo.nombre + ")", MensajeEvento.TipoMensaje.INFO);
-            return true;
+            return Optional.of(cuerpo);
         }
-        return false;
+        return Optional.empty();
     }
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
@@ -435,9 +439,9 @@ public class SimulacionSolar {
             Vector2D posPreviewLocal = posicionPreview;
             Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreviewLocal);
             CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreviewLocal);
-            boolean spawned = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
-            if (spawned && cuerpoCercano != null && !sistemaSolar.getCuerpos().isEmpty()) {
-                CuerpoCeleste recienCreado = sistemaSolar.getCuerpos().get(sistemaSolar.getCuerpos().size() - 1);
+            Optional<CuerpoCeleste> spawnedOpt = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
+            if (spawnedOpt.isPresent() && cuerpoCercano != null) {
+                CuerpoCeleste recienCreado = spawnedOpt.get();
                 boolean esMenor = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA || recienCreado.getTipoCuerpo() == TipoCuerpo.SATELITE;
                 boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
                 boolean recienEsPlaneta = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().esPlaneta();
@@ -503,7 +507,10 @@ public class SimulacionSolar {
     public void play() { enPausa = false; }
     public void pause() { enPausa = true; }
     public void togglePause() { enPausa = !enPausa; }
-    public void step() { pasoUnico = true; enPausa = false; }
+    public void step() {
+        pasoUnico = true;
+        avanzarTick();
+    }
 
     public void setVelocidadSimulacion(double v) { this.velocidadSimulacion = Math.max(0.1, Math.min(10, v)); }
 

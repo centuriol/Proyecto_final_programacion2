@@ -28,7 +28,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -476,7 +478,7 @@ class MejorasMotorFisicaYMecanicasTest {
         Vector2D velEsperada = momentoEsperado.dividir(masaTotalEsperada);
         Vector2D posEsperada = agua.getPosicion().multiplicar(agua.getMasa()).sumar(lava.getPosicion().multiplicar(lava.getMasa())).dividir(masaTotalEsperada);
 
-        List<CuerpoCeleste> aEliminar = new ArrayList<>();
+        Set<CuerpoCeleste> aEliminar = new HashSet<>();
         List<CuerpoCeleste> aAgregar = new ArrayList<>();
 
         resolvedor.resolverColision(agua, lava, aEliminar, aAgregar);
@@ -523,7 +525,7 @@ class MejorasMotorFisicaYMecanicasTest {
         Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(200, 200, 1.0, Vector2D.cero());
         Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(202, 200, 1.0, Vector2D.cero());
 
-        List<CuerpoCeleste> aEliminar = new ArrayList<>();
+        Set<CuerpoCeleste> aEliminar = new HashSet<>();
         List<CuerpoCeleste> aAgregar = new ArrayList<>();
 
         resolvedor.resolverColision(agua, lava, aEliminar, aAgregar);
@@ -532,7 +534,7 @@ class MejorasMotorFisicaYMecanicasTest {
         assertTrue(aAgregar.isEmpty(), "Colision agua y lava no debe colapsar en escombros a pesar de ratio de masa = 1.0");
         assertEquals(1, aEliminar.size());
 
-        CuerpoCeleste sobreviviente = (aEliminar.get(0) == agua) ? lava : agua;
+        CuerpoCeleste sobreviviente = aEliminar.contains(agua) ? lava : agua;
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, sobreviviente.getTipoCuerpo());
         assertTrue(sobreviviente.isTransformadoPorEvento());
         assertFalse(sobreviviente.permiteReembolso());

@@ -56,6 +56,7 @@ public class BucleJuego extends AnimationTimer {
             ticksAEjecutar = Math.min(ticksAEjecutar, 8); // Evitar espiral de retraso
             for (int i = 0; i < ticksAEjecutar; i++) {
                 simulacion.avanzarTick();
+                renderizador.actualizarEstelas(simulacion.getSistemaSolar().getCuerpos());
             }
         }
 

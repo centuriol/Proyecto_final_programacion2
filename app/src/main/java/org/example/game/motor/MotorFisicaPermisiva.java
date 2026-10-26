@@ -5,7 +5,9 @@ import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.MensajeEvento;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -28,7 +30,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
     // Listas internas reutilizables para optimización de memoria y GC por tick
     private final List<CuerpoCeleste> simuladosCache = new ArrayList<>();
-    private final List<CuerpoCeleste> aEliminarCache = new ArrayList<>();
+    private final Set<CuerpoCeleste> aEliminarCache = new LinkedHashSet<>();
     private final List<CuerpoCeleste> aAgregarCache = new ArrayList<>();
 
     // Componentes delegados (SRP / DIP)
@@ -152,7 +154,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     private void manejarColisiones(List<CuerpoCeleste> todos, List<CuerpoCeleste> simulados) {
         aEliminarCache.clear();
         aAgregarCache.clear();
-        List<CuerpoCeleste> aEliminar = aEliminarCache;
+        Set<CuerpoCeleste> aEliminar = aEliminarCache;
         List<CuerpoCeleste> aAgregar = aAgregarCache;
 
         for (int i = 0; i < simulados.size(); i++) {

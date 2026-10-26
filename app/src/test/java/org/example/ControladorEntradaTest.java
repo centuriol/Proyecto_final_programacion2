@@ -91,11 +91,13 @@ class ControladorEntradaTest {
 
     @Test
     void testComandoAvanzarPasoConTeclaS() {
+        simulacion.pause();
+        long tickAntes = simulacion.getTickActual();
         KeyEvent eventS = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.S, false, false, false, false);
         controladorTeclado.handle(eventS);
 
-        simulacion.avanzarTick();
-        assertFalse(simulacion.isEnPausa());
+        assertEquals(tickAntes + 1, simulacion.getTickActual(), "Debe avanzar 1 tick");
+        assertTrue(simulacion.isEnPausa(), "Debe permanecer pausado tras avanzar un paso discreto");
     }
 
     @Test

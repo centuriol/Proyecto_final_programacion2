@@ -397,7 +397,7 @@ class AppTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().getRecursoObj(TipoRecurso.ENERGIA).setCantidad(0);
         simulacion.getInventario().getRecursoObj(TipoRecurso.MINERALES).setCantidad(0);
-        boolean spawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
+        boolean spawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero()).isPresent();
         assertFalse(spawneado);
         assertTrue(recibidos.size() >= 2);
         assertTrue(recibidos.get(recibidos.size() - 1).mensaje().contains("Recursos insuficientes"));
@@ -636,11 +636,7 @@ class AppTest {
         assertNotNull(planeta);
 
         // Al eliminarlo, debe reembolsar el 50% de los materiales requeridos para colocarlo (50 Min, 25 Ene)
-        Map<TipoRecurso, Double> costos = InventarioJugador.getCostosEscalados(planeta.getTipoCuerpo(), 1.0);
-        for (Map.Entry<TipoRecurso, Double> e : costos.entrySet()) {
-            sim.getInventario().agregarRecurso(e.getKey(), e.getValue() * 0.5);
-        }
-        sim.eliminarCuerpo(planeta);
+        org.example.game.jugador.ServicioReembolso.desmantelarCuerpo(sim, planeta);
 
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(planeta), "El planeta debe ser eliminado del sistema solar");
         assertEquals(350.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "Debe haberse reembolsado 50 minerales (300 + 50)");
@@ -1180,11 +1176,7 @@ class AppTest {
 
         // Costo base de estrella: 300 Min, 150 Ene, 0 Cie
         // Reembolso 50%: 150 Min, 75 Ene, 0 Cie
-        Map<TipoRecurso, Double> costos = InventarioJugador.getCostosEscalados(estrella.getTipoCuerpo(), 1.0);
-        for (Map.Entry<TipoRecurso, Double> e : costos.entrySet()) {
-            sim.getInventario().agregarRecurso(e.getKey(), e.getValue() * 0.5);
-        }
-        sim.eliminarCuerpo(estrella);
+        org.example.game.jugador.ServicioReembolso.desmantelarCuerpo(sim, estrella);
 
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(estrella));
         assertEquals(250.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), "100 restantes + 150 reembolsados = 250");

@@ -28,6 +28,7 @@ public class CivilizacionComponent {
     // Historial para gráficas
     private final List<Double> historialPoblacion = new ArrayList<>();
     private final List<Double> historialEstabilidad = new ArrayList<>();
+    private int contadorTicksHistorial = 0;
 
     public enum EstadoCivilizacion {
         PRÓSPERA("Próspera", 0x32CD32),      // Verde
@@ -100,7 +101,8 @@ public class CivilizacionComponent {
         procesarEventosAleatorios();
 
         // 6. Registrar historial (cada 10 ticks para no saturar)
-        if (historialPoblacion.size() % 10 == 0) {
+        contadorTicksHistorial++;
+        if (contadorTicksHistorial % 10 == 0) {
             historialPoblacion.add(poblacion);
             historialEstabilidad.add(estabilidad);
             if (historialPoblacion.size() > ConfiguracionSimulacion.MAX_TICKS_HISTORIAL / 10) {
@@ -151,14 +153,15 @@ public class CivilizacionComponent {
         // Distancia ideal ~ sqrt(luminosidad) ~ masa^1.75
         if (estrellaMasCercana != null) {
             double masaSol = 1.989e30;
-            double factorLuminosidad = Math.pow(estrellaMasCercana.getMasa() / masaSol, 3.5);
-            double distanciaIdeal = Math.sqrt(factorLuminosidad) * 150; // 150px = 1 UA escalado
+            double factorLuminosidad = Math.pow(Math.max(0.0, estrellaMasCercana.getMasa()) / masaSol, 3.5);
+            double distanciaIdeal = Math.max(0.001, Math.sqrt(factorLuminosidad) * 150); // 150px = 1 UA escalado
             c.distanciaAEstrella = distEstrellaMin;
             c.distanciaIdeal = distanciaIdeal;
             c.ratioZonaHabitable = distEstrellaMin / distanciaIdeal;
             c.enZonaHabitable = c.ratioZonaHabitable >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
                     && c.ratioZonaHabitable <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX;
-            c.flujoEnergetico = factorLuminosidad / (distEstrellaMin * distEstrellaMin);
+            double dist2 = Math.max(0.001, distEstrellaMin * distEstrellaMin);
+            c.flujoEnergetico = factorLuminosidad / dist2;
         }
 
         // Amenaza de agujero negro
@@ -179,7 +182,9 @@ public class CivilizacionComponent {
         // Simplificado: usar velocidad actual vs velocidad circular
         if (estrella == null) return 0;
         double r = planeta.getPosicion().distanciaA(estrella.getPosicion());
+        if (r <= 0.001 || estrella.getMasa() <= 0) return 1.0;
         double vCircular = Math.sqrt(ConfiguracionSimulacion.G_ESCALADO * estrella.getMasa() / r);
+        if (vCircular <= 0.001) return 1.0;
         double vActual = planeta.getVelocidad().magnitud();
         return Math.abs(vActual - vCircular) / vCircular;
     }
@@ -227,7 +232,8 @@ public class CivilizacionComponent {
         estabilidad = Math.max(0, Math.min(1, estabilidad));
 
         // Felicidad: correlaciona con estabilidad y crecimiento
-        double objetivoFelicidad = estabilidad * 0.7 + (poblacion / poblacionMaxima) * 0.3;
+        double ratioPob = poblacionMaxima > 0 ? (poblacion / poblacionMaxima) : 0.0;
+        double objetivoFelicidad = estabilidad * 0.7 + ratioPob * 0.3;
         felicidad = felicidad * 0.98 + objetivoFelicidad * 0.02;
         felicidad = Math.max(0, Math.min(1, felicidad));
     }
@@ -381,8 +387,9 @@ public class CivilizacionComponent {
     public boolean estaViva() { return estado != EstadoCivilizacion.EXTINGUIDA; }
 
     public String getResumen() {
+        double pct = poblacionMaxima > 0 ? (poblacion / poblacionMaxima * 100) : 0.0;
         return String.format("%s: Pop %.0f/%.0f (%.1f%%) | Tech %d | Est %.0f%% | %s",
-                planeta.getNombre(), poblacion, poblacionMaxima, poblacion/poblacionMaxima*100,
+                planeta.getNombre(), poblacion, poblacionMaxima, pct,
                 nivelTecnologico, estabilidad*100, estado.nombre);
     }
 

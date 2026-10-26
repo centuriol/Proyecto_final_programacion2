@@ -171,7 +171,6 @@ public class RenderizadorPixelArt {
         dibujarAreasAtraccion(gc, cuerpos);
 
         // 5. Anillos de órbita y estelas de movimiento
-        actualizarEstelas(cuerpos);
         if (mostrarEstelas) {
             dibujarEstelas(gc);
         }
@@ -286,7 +285,7 @@ public class RenderizadorPixelArt {
         }
     }
 
-    private void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
+    public void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
         gestorEstelas.actualizar(cuerpos);
     }
 

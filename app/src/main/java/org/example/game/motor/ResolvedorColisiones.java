@@ -9,6 +9,7 @@ import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -42,7 +43,7 @@ public class ResolvedorColisiones {
     /**
      * Resuelve colisión completa entre dos cuerpos celestes.
      */
-    public void resolverColision(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
+    public void resolverColision(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         TipoCuerpo tipoA = a.getTipoCuerpo();
         TipoCuerpo tipoB = b.getTipoCuerpo();
 
@@ -157,7 +158,7 @@ public class ResolvedorColisiones {
      * Resuelve las defensas proporcionadas por escudos planetarios.
      * Retorna true si el escudo interceptó o modificó la colisión.
      */
-    private boolean resolverProteccionEscudo(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar) {
+    private boolean resolverProteccionEscudo(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar) {
         // Escudo vs Meteorito: el escudo absorbe el impacto y destruye el meteorito sin daño a masa ni población
         if (a.getTipoCuerpo() == TipoCuerpo.METEORITO && b.tieneEscudo()) {
             b.absorberGolpeEscudo();
@@ -187,7 +188,7 @@ public class ResolvedorColisiones {
         return false;
     }
 
-    private void fusionarEstrellasEnAgujeroNegro(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
+    private void fusionarEstrellasEnAgujeroNegro(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         double masaTotal = a.getMasa() + b.getMasa();
         Vector2D posCM = (a.getPosicion().multiplicar(a.getMasa()).sumar(b.getPosicion().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
         Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
@@ -205,7 +206,7 @@ public class ResolvedorColisiones {
         emitirEvento("¡COLAPSO ESTELAR! Choque entre dos Soles dio origen a un temible Agujero Negro.", MensajeEvento.TipoMensaje.PELIGRO);
     }
 
-    public void absorber(CuerpoCeleste absorbente, CuerpoCeleste victima, List<CuerpoCeleste> aEliminar) {
+    public void absorber(CuerpoCeleste absorbente, CuerpoCeleste victima, Set<CuerpoCeleste> aEliminar) {
         double masaTotal = absorbente.getMasa() + victima.getMasa();
         if (masaTotal > 0) {
             Vector2D momentoAbsorbente = absorbente.getVelocidad().multiplicar(absorbente.getMasa());
@@ -223,7 +224,7 @@ public class ResolvedorColisiones {
                 || (tipoA == TipoCuerpo.PLANETA_LAVA && tipoB == TipoCuerpo.PLANETA_AGUA);
     }
 
-    public void fusionarPlanetasAguaYLava(CuerpoCeleste a, CuerpoCeleste b, List<CuerpoCeleste> aEliminar) {
+    public void fusionarPlanetasAguaYLava(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar) {
         CuerpoCeleste sobreviviente = (a.getMasa() >= b.getMasa()) ? a : b;
         CuerpoCeleste absorbido = (sobreviviente == a) ? b : a;
 
@@ -256,7 +257,7 @@ public class ResolvedorColisiones {
         emitirMensaje("Reacción hidro-magmática: Colisión entre Agua y Lava formó un nuevo Planeta Porro inerte.");
     }
 
-    private void desactivarYEliminar(CuerpoCeleste victima, List<CuerpoCeleste> aEliminar) {
+    private void desactivarYEliminar(CuerpoCeleste victima, Set<CuerpoCeleste> aEliminar) {
         victima.setSimulado(false);
         victima.setMasa(0);
         destruirCivilizacionSiExiste(victima);
@@ -266,7 +267,7 @@ public class ResolvedorColisiones {
         }
     }
 
-    public void impactarMeteorito(Meteorito meteorito, CuerpoCeleste objetivo, List<CuerpoCeleste> aEliminar) {
+    public void impactarMeteorito(Meteorito meteorito, CuerpoCeleste objetivo, Set<CuerpoCeleste> aEliminar) {
         desactivarYEliminar(meteorito, aEliminar);
 
         // Si el objetivo es un planeta sin escudo
@@ -314,7 +315,7 @@ public class ResolvedorColisiones {
         emitirMensaje(meteorito.getNombre() + " colisionó contra " + objetivo.getNombre() + ".");
     }
 
-    public void generarEscombros(CuerpoCeleste destruido, List<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
+    public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         if (destruido.getTipoCuerpo() == TipoCuerpo.METEORITO) {
             desactivarYEliminar(destruido, aEliminar);
             return;

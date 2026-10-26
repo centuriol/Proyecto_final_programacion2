@@ -20,10 +20,16 @@ public final class Recurso {
     public double getCantidad() { return cantidad; }
 
     public void agregar(double cantidad) {
-        if (cantidad > 0) this.cantidad += cantidad;
+        if (cantidad < 0) {
+            throw new IllegalArgumentException("La cantidad a agregar no puede ser negativa: " + cantidad);
+        }
+        this.cantidad += cantidad;
     }
 
     public boolean gastar(double cantidad) {
+        if (cantidad < 0) {
+            throw new IllegalArgumentException("La cantidad a gastar no puede ser negativa: " + cantidad);
+        }
         if (this.cantidad >= cantidad) {
             this.cantidad -= cantidad;
             return true;
@@ -32,6 +38,9 @@ public final class Recurso {
     }
 
     public boolean puedeGastar(double cantidad) {
+        if (cantidad < 0) {
+            return false;
+        }
         return this.cantidad >= cantidad;
     }
 

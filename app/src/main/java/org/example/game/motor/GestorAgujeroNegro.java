@@ -5,6 +5,7 @@ import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -19,7 +20,7 @@ public class GestorAgujeroNegro {
 
     public static final double FACTOR_RADIO_INFLUENCIA = 4.0;
 
-    public void procesar(List<CuerpoCeleste> cuerpos, List<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
+    public void procesar(List<CuerpoCeleste> cuerpos, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
         if (cuerpos == null || cuerpos.isEmpty()) return;
 
         List<AgujeroNegro> agujeros = new ArrayList<>();
