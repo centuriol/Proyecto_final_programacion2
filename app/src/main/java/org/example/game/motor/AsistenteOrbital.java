@@ -1,6 +1,6 @@
 package org.example.game.motor;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 
 import java.util.List;

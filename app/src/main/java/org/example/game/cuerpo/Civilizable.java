@@ -1,4 +1,4 @@
-package org.example;
+package org.example.game.cuerpo;
 
 /**
  * ISP: solo la implementan los cuerpos que pueden tener civilización.

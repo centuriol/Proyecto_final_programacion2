@@ -3,9 +3,9 @@ package org.example.game.motor;
 import org.example.game.cuerpo.TipoCuerpo;
 
 /**
- * Interfaz para cuerpos que participan en la simulación física newtoniana.
+ * Interfaz para cuerpos que participan en la simulación física.
  * Define las propiedades dinámicas necesarias para la integración numérica:
- * velocidad, fuerza acumulada, y estado de simulación.
+ * velocidad, fuerza acumulada, posición, masa y estado de simulación.
  */
 public interface CuerpoFisico {
     // Estado dinámico
@@ -16,13 +16,6 @@ public interface CuerpoFisico {
     void setFuerza(Vector2D fuerza);
     void aplicarFuerza(Vector2D fuerza);
     void resetearFuerza();
-
-    // Para Velocity Verlet (estado intermedio)
-    Vector2D getVelocidadMedioPaso();
-    void setVelocidadMedioPaso(Vector2D v);
-
-    Vector2D getNuevaPosicion();
-    void setNuevaPosicion(Vector2D pos);
 
     void confirmarPaso(Vector2D nuevaPosicion, Vector2D nuevaVelocidad);
 
@@ -39,18 +32,14 @@ public interface CuerpoFisico {
     // Radio de influencia gravitacional / colapso arcade
     double getRadioAtraccion();
 
-    // Posición (común con CuerpoCeleste)
+    // Posición
     Vector2D getPosicion();
     void setPosicion(Vector2D pos);
 
-    // Masa (común con CuerpoCeleste/Masivo)
+    // Masa
     double getMasa();
     void setMasa(double masa);
 
     // Nombre
     String getNombre();
-
-    // Civilización (LSP / OCP)
-    default boolean tieneCivilizacion() { return false; }
-    default org.example.game.civilizacion.CivilizacionComponent getCivilizacion() { return null; }
 }

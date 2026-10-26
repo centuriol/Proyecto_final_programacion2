@@ -64,13 +64,6 @@ public class ControladorTeclado implements EventHandler<KeyEvent> {
         return tecla != null && mapaComandos.containsKey(CombinacionTeclas.de(tecla));
     }
 
-    /**
-     * Registra un comando con el modificador Control (ej: Ctrl+M).
-     */
-    public void setComandoCtrlM(Comando comando) {
-        registrarComando(CombinacionTeclas.ctrl(KeyCode.M), comando);
-    }
-
     @Override
     public void handle(KeyEvent event) {
         if (event == null || event.getCode() == null) return;

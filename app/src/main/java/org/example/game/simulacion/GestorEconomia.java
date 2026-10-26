@@ -1,6 +1,6 @@
 package org.example.game.simulacion;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;

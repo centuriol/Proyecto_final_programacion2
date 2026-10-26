@@ -25,7 +25,6 @@ public class HUDRecursosTop extends HBox {
     private final SimulacionSolar simulacion;
     private final InventarioJugador inventario;
     private final Map<TipoRecurso, ItemRecursoWidget> itemsRecursos = new LinkedHashMap<>();
-    private final ItemPoblacionWidget itemPoblacion;
 
     public HUDRecursosTop(SimulacionSolar simulacion) {
         this.simulacion = simulacion;
@@ -43,9 +42,6 @@ public class HUDRecursosTop extends HBox {
             getChildren().add(item);
         }
 
-        this.itemPoblacion = new ItemPoblacionWidget();
-        // Nota: no se agrega itemPoblacion a getChildren() para no duplicar el contador de POBLACION
-
         actualizar();
     }
 
@@ -57,10 +53,6 @@ public class HUDRecursosTop extends HBox {
 
     public Map<TipoRecurso, ItemRecursoWidget> getItemsRecursos() {
         return itemsRecursos;
-    }
-
-    private String formatPop(long n) {
-        return FormateadorNumero.formatear(n);
     }
 
     /**
@@ -111,19 +103,6 @@ public class HUDRecursosTop extends HBox {
 
         public TipoRecurso getTipo() {
             return tipo;
-        }
-    }
-
-    /**
-     * Componente reutilizable para el contador de poblacion galactica.
-     */
-    public static class ItemPoblacionWidget extends ItemContadorBase {
-        public ItemPoblacionWidget() {
-            super("POBLACION", "#50fa7b");
-        }
-
-        public void actualizar(String textoPoblacion) {
-            lblValor.setText(textoPoblacion);
         }
     }
 }

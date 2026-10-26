@@ -1,6 +1,6 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 
 /**
  * Satélite artificial que recopila datos científicos y transmite energía.

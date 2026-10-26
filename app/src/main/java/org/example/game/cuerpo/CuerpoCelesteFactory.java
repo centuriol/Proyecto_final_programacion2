@@ -1,9 +1,9 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
-import org.example.Estrella;
-import org.example.Planeta;
-import org.example.AgujeroNegro;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.AgujeroNegro;
 import org.example.game.motor.Vector2D;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.simulacion.ConfiguracionSimulacion;

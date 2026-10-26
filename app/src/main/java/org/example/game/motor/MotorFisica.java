@@ -1,4 +1,6 @@
-package org.example;
+package org.example.game.motor;
+
+import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.List;
 import java.util.function.Consumer;

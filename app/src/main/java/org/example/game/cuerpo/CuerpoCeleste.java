@@ -1,43 +1,33 @@
-package org.example;
+package org.example.game.cuerpo;
 
+import org.example.game.civilizacion.CivilizacionComponent;
+import org.example.game.motor.CuerpoFisico;
 import org.example.game.motor.Vector2D;
-import org.example.game.cuerpo.TipoCuerpo;
+
+import java.util.List;
 
 /**
  * SRP: guarda datos básicos (nombre, masa, posición, velocidad, fuerza).
  * OCP: getColorHex()/getRadio() son abstractos -> cada subclase nueva
  * define su propio dibujo sin tocar esta clase ni la vista.
  *
- * Ahora implementa CuerpoFisico para simulación newtoniana real.
+ * Implementa CuerpoFisico para simulación física.
  */
-public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.CuerpoFisico {
+public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
     private String nombre;
     private double masa;
     private double posicionX;
     private double posicionY;
 
-    // Estado dinámico para física newtoniana
+    // Estado dinámico para física
     private Vector2D velocidad = Vector2D.cero();
     private Vector2D fuerza = Vector2D.cero();
-    private Vector2D velocidadMedioPaso = Vector2D.cero();
-    private Vector2D nuevaPosicion = Vector2D.cero();
     private boolean simulado = true;
 
     // Tipo de cuerpo para lógica especial
     private final TipoCuerpo tipoCuerpo;
     private CuerpoCeleste cuerpoOrbitado;
-
-    // Datos legacy para compatibilidad (órbitas circulares simples)
-    @Deprecated
-    private double centroX;
-    @Deprecated
-    private double centroY;
-    @Deprecated
     private double radioOrbita;
-    @Deprecated
-    private double anguloActual;
-    @Deprecated
-    private double velocidadAngular = 0.3;
 
     private final double masaInicial;
 
@@ -48,40 +38,7 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
         this.posicionX = posicionX;
         this.posicionY = posicionY;
         this.tipoCuerpo = tipoCuerpo;
-        this.centroX = posicionX;
-        this.centroY = posicionY;
         this.radioOrbita = 0;
-        this.anguloActual = 0;
-    }
-
-    // ===== Métodos legacy (deprecated, mantener para compatibilidad) =====
-
-    /** @deprecated Usar velocidad/posición vectorial en su lugar */
-    @Deprecated
-    public void configurarOrbita(double centroX, double centroY, double velocidadAngular) {
-        this.centroX = centroX;
-        this.centroY = centroY;
-        this.radioOrbita = Math.hypot(posicionX - centroX, posicionY - centroY);
-        this.velocidadAngular = velocidadAngular;
-
-        // Convertir a velocidad orbital inicial para nueva física
-        if (radioOrbita > 0) {
-            double vOrbital = velocidadAngular * radioOrbita;
-            // Dirección tangencial (perpendicular al radio)
-            double dx = posicionX - centroX;
-            double dy = posicionY - centroY;
-            double dist = Math.hypot(dx, dy);
-            this.velocidad = new Vector2D(-dy / dist * vOrbital, dx / dist * vOrbital);
-        }
-    }
-
-    /** @deprecated Usar MotorFisicaNewtoniana en su lugar */
-    @Deprecated
-    public void orbitar() {
-        if (radioOrbita == 0) return;
-        anguloActual += velocidadAngular;
-        posicionX = centroX + radioOrbita * Math.cos(anguloActual);
-        posicionY = centroY + radioOrbita * Math.sin(anguloActual);
     }
 
     // ===== Getters/Setters básicos =====
@@ -95,6 +52,7 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
         return masaInicial;
     }
 
+    @Override
     public void setMasa(double masa) {
         this.masa = masa;
     }
@@ -122,7 +80,7 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
         this.posicionY = nuevaY;
     }
 
-    // ===== Implementación CuerpoFisico (Nueva física) =====
+    // ===== Implementación CuerpoFisico =====
 
     @Override
     public Vector2D getVelocidad() {
@@ -152,26 +110,6 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     @Override
     public void resetearFuerza() {
         this.fuerza = Vector2D.cero();
-    }
-
-    @Override
-    public Vector2D getVelocidadMedioPaso() {
-        return velocidadMedioPaso;
-    }
-
-    @Override
-    public void setVelocidadMedioPaso(Vector2D v) {
-        this.velocidadMedioPaso = v;
-    }
-
-    @Override
-    public Vector2D getNuevaPosicion() {
-        return nuevaPosicion;
-    }
-
-    @Override
-    public void setNuevaPosicion(Vector2D pos) {
-        this.nuevaPosicion = pos;
     }
 
     @Override
@@ -212,7 +150,6 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
 
     /**
      * Actualiza la entidad dinámicamente por tick polimórficamente (LSP / OCP).
-     * Sobreescrito por entidades con comportamientos pasivos (satélites, escudos, meteoritos).
      */
     public void actualizarEntidad(double dt) {
         // No-op por defecto
@@ -235,14 +172,14 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
     /**
      * Obtiene el componente de civilización si lo tiene, o null (LSP).
      */
-    public org.example.game.civilizacion.CivilizacionComponent getCivilizacion() {
+    public CivilizacionComponent getCivilizacion() {
         return null;
     }
 
     /**
      * Actualiza la civilización asociada si el cuerpo es civilizable (LSP/OCP).
      */
-    public void actualizarCivilizacion(java.util.List<CuerpoCeleste> cuerpos) {
+    public void actualizarCivilizacion(List<CuerpoCeleste> cuerpos) {
         // No-op por defecto
     }
 
@@ -329,7 +266,6 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
         // No-op por defecto
     }
 
-
     // ===== Métodos abstractos para vista =====
 
     public abstract String describir();
@@ -342,10 +278,12 @@ public abstract class CuerpoCeleste implements Masivo, org.example.game.motor.Cu
 
     // ===== Utilidades vectoriales =====
 
+    @Override
     public Vector2D getPosicion() {
         return new Vector2D(posicionX, posicionY);
     }
 
+    @Override
     public void setPosicion(Vector2D pos) {
         this.posicionX = pos.x;
         this.posicionY = pos.y;

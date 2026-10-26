@@ -23,7 +23,6 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.*;
 import org.example.game.controlador.comando.ComandoAbrirProgresion;
 import org.example.game.controlador.comando.ComandoCancelar;
-import org.example.game.controlador.comando.ComandoDebugMaxRecursos;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.text.Font;
@@ -99,9 +98,6 @@ public class App extends Application {
         controladorTeclado.configurarAtajosPorDefecto(
                 simulacion, controlTiempo, hotbar, renderizador, controladorMouse
         );
-
-        // [TEMPORAL - Remover antes de la entrega final]
-        controladorTeclado.setComandoCtrlM(new ComandoDebugMaxRecursos(simulacion, renderizador));
 
         // Sincronizar dimensiones cuando el canvas cambie de tamaño
         Runnable sincronizarDimensiones = () -> {

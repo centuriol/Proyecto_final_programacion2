@@ -1,6 +1,4 @@
-package org.example;
-
-import org.example.game.cuerpo.TipoCuerpo;
+package org.example.game.cuerpo;
 
 public class Estrella extends CuerpoCeleste {
     public Estrella(String nombre, double masa, double x, double y) {

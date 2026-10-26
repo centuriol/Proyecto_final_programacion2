@@ -7,7 +7,7 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.StrokeLineCap;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.Vector2D;
@@ -29,9 +29,6 @@ public class RenderizadorPixelArt {
     private boolean mostrarEstelas = true;
     private boolean mostrarZonasHabitables = true;
     private boolean mostrarOrbitsGuia = true;
-
-    // [TEMPORAL - Remover antes de la entrega final]
-    private boolean mostrarAnilloEasterEgg = false;
 
     // Componente de camara para zoom (Tarea 8)
     private final CamaraZoom camaraZoom = new CamaraZoom();
@@ -256,20 +253,6 @@ public class RenderizadorPixelArt {
                 }
 
                 gc.setLineDashes(null);
-
-                // [TEMPORAL - Remover antes de la entrega final]
-                // Anillo del radio de activacion del easter egg (Ctrl+M toggle)
-                if (mostrarAnilloEasterEgg) {
-                    gc.setLineDashes(6, 4);
-                    gc.setLineWidth(1.5);
-                    double radioEgg1 = org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_AGUA_PORRO * escala;
-                    gc.setStroke(COLOR_ANILLO_AGUA);
-                    gc.strokeOval(sx - radioEgg1, sy - radioEgg1, radioEgg1 * 2.0, radioEgg1 * 2.0);
-                    double radioEgg2 = org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA * escala;
-                    gc.setStroke(COLOR_ANILLO_LAVA);
-                    gc.strokeOval(sx - radioEgg2, sy - radioEgg2, radioEgg2 * 2.0, radioEgg2 * 2.0);
-                    gc.setLineDashes(null);
-                }
             }
         }
     }
@@ -798,10 +781,6 @@ public class RenderizadorPixelArt {
     public void toggleGrilla() { mostrarGrilla = !mostrarGrilla; }
     public void toggleEstelas() { mostrarEstelas = !mostrarEstelas; }
     public void toggleZonasHabitables() { mostrarZonasHabitables = !mostrarZonasHabitables; }
-
-    // [TEMPORAL - Remover antes de la entrega final]
-    public void toggleAnilloEasterEgg() { mostrarAnilloEasterEgg = !mostrarAnilloEasterEgg; }
-    public boolean isMostrarAnilloEasterEgg() { return mostrarAnilloEasterEgg; }
 
     public CamaraZoom getCamaraZoom() { return camaraZoom; }
 

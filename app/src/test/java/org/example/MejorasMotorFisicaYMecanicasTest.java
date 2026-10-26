@@ -4,9 +4,9 @@ import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
+import org.example.game.cuerpo.*;
 import org.example.game.controlador.ControladorMouse;
 import org.example.game.controlador.ControladorTeclado;
-import org.example.game.controlador.comando.ComandoDebugMaxRecursos;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
@@ -398,48 +398,6 @@ class MejorasMotorFisicaYMecanicasTest {
         // El planeta transformado no debe haber generado recursos (Tarea 5)
         assertEquals(minInicial, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
         assertEquals(cieInicial, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
-    }
-
-    // ===== TAREA 6: Atajo temporal Ctrl + M =====
-
-    @Test
-    void testComandoDebugMaxRecursos() {
-        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(1920, 1080);
-        ComandoDebugMaxRecursos cmd = new ComandoDebugMaxRecursos(simulacion, renderizador);
-
-        assertFalse(renderizador.isMostrarAnilloEasterEgg());
-
-        cmd.ejecutar();
-
-        // Recursos al máximo
-        for (TipoRecurso tr : TipoRecurso.values()) {
-            assertEquals(99999.0, simulacion.getInventario().getRecurso(tr), 1e-6);
-        }
-
-        // Toggle del anillo visual activado
-        assertTrue(renderizador.isMostrarAnilloEasterEgg());
-
-        // Segundo toggle lo apaga
-        cmd.ejecutar();
-        assertFalse(renderizador.isMostrarAnilloEasterEgg());
-    }
-
-    @Test
-    void testControladorTecladoDetectaCtrlM() {
-        ControladorTeclado teclado = new ControladorTeclado();
-        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(1920, 1080);
-        ComandoDebugMaxRecursos cmd = new ComandoDebugMaxRecursos(simulacion, renderizador);
-        teclado.setComandoCtrlM(cmd);
-
-        // M sin Ctrl no hace nada con este comando
-        KeyEvent keyMSola = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.M, false, false, false, false);
-        teclado.handle(keyMSola);
-        assertFalse(renderizador.isMostrarAnilloEasterEgg());
-
-        // Ctrl + M dispara el comando
-        KeyEvent keyCtrlM = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.M, false, true, false, false);
-        teclado.handle(keyCtrlM);
-        assertTrue(renderizador.isMostrarAnilloEasterEgg());
     }
 
     // ===== TAREA 7: Anillo extra de órbita alrededor del sol =====

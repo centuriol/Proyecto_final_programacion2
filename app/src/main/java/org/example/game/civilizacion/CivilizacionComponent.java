@@ -1,10 +1,10 @@
 package org.example.game.civilizacion;
 
-import org.example.Planeta;
+import org.example.game.cuerpo.Planeta;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.motor.Vector2D;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.ArrayList;
 import java.util.List;

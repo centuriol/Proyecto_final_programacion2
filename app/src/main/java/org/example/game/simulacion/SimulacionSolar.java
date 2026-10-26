@@ -1,10 +1,10 @@
 package org.example.game.simulacion;
 
-import org.example.CuerpoCeleste;
-import org.example.Estrella;
-import org.example.Planeta;
-import org.example.SistemaSolar;
-import org.example.MotorFisica;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.SistemaSolar;
+import org.example.game.motor.MotorFisica;
 import org.example.game.colonizacion.GestorColonizacion;
 import org.example.game.cuerpo.Luna;
 import org.example.game.cuerpo.Satelite;
@@ -17,8 +17,6 @@ import org.example.game.motor.MotorFisicaPermisiva;
 import org.example.game.motor.TrayectoriaPredictor;
 import org.example.game.motor.Vector2D;
 import org.example.game.progresion.SistemaProgresion;
-import org.example.RenderizadorCircular;
-import org.example.VistaSistemaSolar;
 import org.example.game.motor.TransformadorCuerpos;
 
 import java.util.ArrayList;
@@ -34,7 +32,6 @@ public class SimulacionSolar {
     private final SistemaSolar sistemaSolar;
     private final MotorFisica motorFisica;
     private final InventarioJugador inventario;
-    private final VistaSistemaSolar vista;
     private final TrayectoriaPredictor predictor;
     private final TransformadorCuerpos transformadorCuerpos;
     private final Random random = new Random();
@@ -74,7 +71,6 @@ public class SimulacionSolar {
                            MotorFisica motorFisica,
                            SistemaSolar sistemaSolar,
                            InventarioJugador inventario,
-                           VistaSistemaSolar vista,
                            TrayectoriaPredictor predictor,
                            TransformadorCuerpos transformadorCuerpos,
                            GestorEconomia gestorEconomia,
@@ -87,7 +83,6 @@ public class SimulacionSolar {
         this.motorFisica = motorFisica != null ? motorFisica : new MotorFisicaPermisiva(Math.max(anchoMundo, altoMundo));
         this.sistemaSolar = sistemaSolar != null ? sistemaSolar : new SistemaSolar(this.motorFisica);
         this.inventario = inventario != null ? inventario : new InventarioJugador();
-        this.vista = vista != null ? vista : new VistaSistemaSolar(new RenderizadorCircular(anchoMundo, altoMundo));
         this.predictor = predictor != null ? predictor : new TrayectoriaPredictor();
         this.transformadorCuerpos = transformadorCuerpos != null ? transformadorCuerpos : new TransformadorCuerpos();
         this.gestorEconomia = gestorEconomia != null ? gestorEconomia : new GestorEconomia();
@@ -112,16 +107,15 @@ public class SimulacionSolar {
                            MotorFisica motorFisica,
                            SistemaSolar sistemaSolar,
                            InventarioJugador inventario,
-                           VistaSistemaSolar vista,
                            TrayectoriaPredictor predictor,
                            TransformadorCuerpos transformadorCuerpos,
                            GestorEconomia gestorEconomia,
                            GeneradorEventosCosmicos generadorEventosCosmicos) {
-        this(anchoMundo, altoMundo, motorFisica, sistemaSolar, inventario, vista, predictor, transformadorCuerpos, gestorEconomia, generadorEventosCosmicos, null, null, null);
+        this(anchoMundo, altoMundo, motorFisica, sistemaSolar, inventario, predictor, transformadorCuerpos, gestorEconomia, generadorEventosCosmicos, null, null, null);
     }
 
     public SimulacionSolar(double anchoMundo, double altoMundo) {
-        this(anchoMundo, altoMundo, null, null, null, null, null, null, null, null, null, null, null);
+        this(anchoMundo, altoMundo, null, null, null, null, null, null, null, null, null, null);
     }
 
     public void agregarListenerEvento(java.util.function.Consumer<MensajeEvento> listener) {
@@ -171,10 +165,7 @@ public class SimulacionSolar {
         // 6. Eventos cósmicos (meteoritos periódicos dirigidos)
         generarEventosCosmicos();
 
-        // 7. Actualizar vista legacy
-        vista.actualizar();
-
-        // 8. Condición de derrota / Game Over
+        // 7. Condición de derrota / Game Over
         if (estaPerdida() && !gameOverDisparado) {
             gameOverDisparado = true;
             enPausa = true;
@@ -285,7 +276,6 @@ public class SimulacionSolar {
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
         sistemaSolar.agregarCuerpo(cuerpo);
-        vista.agregarCuerpo(cuerpo);
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
     }
 
@@ -297,7 +287,6 @@ public class SimulacionSolar {
             cuerpo.getCivilizacion().destruir();
         }
         sistemaSolar.getCuerpos().remove(cuerpo);
-        vista.removerCuerpo(cuerpo);
 
         List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
@@ -317,7 +306,6 @@ public class SimulacionSolar {
 
     public void limpiarCuerpos() {
         sistemaSolar.getCuerpos().clear();
-        vista.getPane().getChildren().clear();
         if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
     }
 
@@ -547,7 +535,6 @@ public class SimulacionSolar {
     public SistemaProgresion getProgresion() { return progresion; }
     public GestorColonizacion getGestorColonizacion() { return gestorColonizacion; }
     public GestorEfectos getGestorEfectos() { return gestorEfectos; }
-    public VistaSistemaSolar getVista() { return vista; }
     public TrayectoriaPredictor getPredictor() { return predictor; }
     public long getTickActual() { return tickActual; }
     public boolean isEnPausa() { return enPausa; }

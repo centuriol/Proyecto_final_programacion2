@@ -1,7 +1,7 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
-import org.example.Planeta;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.AsistenteOrbital;
 import org.example.game.motor.Vector2D;

@@ -4,7 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.Vector2D;
@@ -91,9 +91,9 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         actualizarPreviewColocacion(e.getX(), e.getY());
     }
 
-    private org.example.Planeta planetaOrigenColonizacion = null;
+    private org.example.game.cuerpo.Planeta planetaOrigenColonizacion = null;
 
-    public void iniciarModoColonizacion(org.example.Planeta origen) {
+    public void iniciarModoColonizacion(org.example.game.cuerpo.Planeta origen) {
         this.planetaOrigenColonizacion = origen;
         if (simulacion != null) {
             simulacion.notificarEvento("Modo Colonización: Haz click en un planeta destino. [ESC] o click derecho para cancelar.", org.example.game.simulacion.MensajeEvento.TipoMensaje.INFO);

@@ -1,7 +1,7 @@
 package org.example;
 
 import javafx.application.Platform;
-import org.example.AgujeroNegro;
+import org.example.game.cuerpo.AgujeroNegro;
 import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.colonizacion.NaveColonizadora;
 import org.example.game.cuerpo.*;

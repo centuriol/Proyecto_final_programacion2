@@ -1,6 +1,6 @@
 package org.example.game.colonizacion;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 

@@ -1,6 +1,8 @@
 package org.example;
 
 import javafx.scene.input.KeyCode;
+import org.example.game.cuerpo.*;
+import org.example.game.motor.MotorFisica;
 import org.example.game.controlador.CombinacionTeclas;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.TipoCuerpo;

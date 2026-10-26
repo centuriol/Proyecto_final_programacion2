@@ -1,6 +1,6 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.Vector2D;
 
 /**

@@ -1,6 +1,4 @@
-package org.example;
-
-import org.example.game.cuerpo.TipoCuerpo;
+package org.example.game.cuerpo;
 
 public class AgujeroNegro extends CuerpoCeleste {
     private final TipoCuerpo subTipo;

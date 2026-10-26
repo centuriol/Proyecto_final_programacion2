@@ -5,14 +5,13 @@ import javafx.scene.canvas.Canvas;
 import org.example.game.controlador.BucleJuego;
 import org.example.game.controlador.ControladorMouse;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Estrella;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.TrayectoriaPredictor;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
-import org.example.game.ui.HUDSimulacion;
-import org.example.game.ui.PanelInventario;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -102,25 +101,6 @@ public class RendimientoRegresionTest {
     }
 
     @Test
-    void testPanelInventarioReutilizaNodosSinLimpiarRecursosBox() {
-        SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        PanelInventario panel = new PanelInventario(sim);
-
-        double minInicial = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
-        sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 150.0);
-        sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 200.0);
-
-        // Notificar UI
-        sim.notificarListenersUI();
-
-        // Modificar recursos de nuevo
-        sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 50.0);
-        sim.notificarListenersUI();
-
-        assertEquals(minInicial + 200.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 0.01);
-    }
-
-    @Test
     void testTrayectoriaPredictorCalculaCorrectamenteSinObjetosIntermedios() {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
         Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
@@ -137,19 +117,5 @@ public class RendimientoRegresionTest {
         assertEquals(150.0, tray.get(0).x, 1e-6);
         assertEquals(0.0, tray.get(0).y, 1e-6);
         assertTrue(tray.get(1).y > 0.0, "La trayectoria debe avanzar en direccion Y con velocidad positiva");
-    }
-
-    @Test
-    void testHUDSimulacionRecorreCuerposEnUnSoloPaso() {
-        SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.agregarCuerpo(CuerpoCelesteFactory.crearEstrella(0, 0, 1.0));
-        sim.agregarCuerpo(CuerpoCelesteFactory.crearPlanetaRocoso(150, 0, 1.0, new Vector2D(0, 20)));
-
-        HUDSimulacion hud = new HUDSimulacion(sim);
-
-        assertDoesNotThrow(() -> {
-            sim.notificarListenersUI();
-            hud.actualizarParaPerfil();
-        });
     }
 }

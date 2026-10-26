@@ -1,7 +1,7 @@
 package org.example.game.render;
 
 import javafx.scene.canvas.GraphicsContext;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 
 /**

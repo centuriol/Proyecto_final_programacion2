@@ -194,7 +194,7 @@ class ControladorEntradaTest {
     @Test
     void testControladorMouseSeleccionYLimpieza() {
         // Colocar un cuerpo en la simulación
-        org.example.Estrella sol = org.example.game.cuerpo.CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        org.example.game.cuerpo.Estrella sol = org.example.game.cuerpo.CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
         simulacion.getSistemaSolar().agregarCuerpo(sol);
 
         // Click en el centro de la pantalla (0, 0 en física = 960, 540 en JavaFX para 1920x1080)

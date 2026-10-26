@@ -19,7 +19,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
@@ -348,7 +348,7 @@ public class VentanaDescripcionCuerpo {
             lblEstadoEscudo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
             lblEstadoEscudo.setTextFill(Color.web(cuerpo.tieneEscudo() ? "#50fa7b" : "#8c92a4"));
 
-            double costoEscudo = (cuerpo instanceof org.example.Planeta p)
+            double costoEscudo = (cuerpo instanceof org.example.game.cuerpo.Planeta p)
                     ? org.example.game.cuerpo.ServicioEscudo.calcularCostoEscudo(p)
                     : ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
             Button btnActivarEscudo = new Button(cuerpo.tieneEscudo()
@@ -357,7 +357,7 @@ public class VentanaDescripcionCuerpo {
             btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             btnActivarEscudo.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 4 10 4 10;");
             btnActivarEscudo.setOnAction(e -> {
-                if (cuerpo instanceof org.example.Planeta p) {
+                if (cuerpo instanceof org.example.game.cuerpo.Planeta p) {
                     if (org.example.game.cuerpo.ServicioEscudo.activar(simulacion, p)) {
                         stage.close();
                     }
@@ -369,7 +369,7 @@ public class VentanaDescripcionCuerpo {
         }
 
         // Misión de Colonización
-        if (cuerpo instanceof org.example.Planeta p && simulacion != null && simulacion.getGestorColonizacion() != null) {
+        if (cuerpo instanceof org.example.game.cuerpo.Planeta p && simulacion != null && simulacion.getGestorColonizacion() != null) {
             if (simulacion.getGestorColonizacion().puedeColonizar(p, simulacion.getInventario())) {
                 Button btnColonizar = new Button("Colonizar otro planeta");
                 btnColonizar.setFont(Font.font("Monospace", FontWeight.BOLD, 10));

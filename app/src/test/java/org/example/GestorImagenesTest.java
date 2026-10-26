@@ -158,9 +158,9 @@ class GestorImagenesTest {
 
     @Test
     void testDecodificarPixilDirecto() throws Exception {
-        File pixilFile = new File("src/main/java/org/example/game/Imagenes/sol.pixil");
+        File pixilFile = new File("src/main/resources/org/example/game/Imagenes/sol.pixil");
         if (!pixilFile.exists()) {
-            pixilFile = new File("app/src/main/java/org/example/game/Imagenes/sol.pixil");
+            pixilFile = new File("app/src/main/resources/org/example/game/Imagenes/sol.pixil");
         }
         assertTrue(pixilFile.exists(), "El archivo sol.pixil debe existir");
         try (FileInputStream fis = new FileInputStream(pixilFile)) {

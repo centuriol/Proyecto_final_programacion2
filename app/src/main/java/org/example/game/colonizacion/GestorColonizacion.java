@@ -1,7 +1,7 @@
 package org.example.game.colonizacion;
 
-import org.example.CuerpoCeleste;
-import org.example.Planeta;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;

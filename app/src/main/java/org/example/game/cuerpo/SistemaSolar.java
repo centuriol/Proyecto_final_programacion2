@@ -1,4 +1,7 @@
-package org.example;
+package org.example.game.cuerpo;
+
+import org.example.game.motor.MotorFisica;
+
 import java.util.ArrayList;
 import java.util.List;
 

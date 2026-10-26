@@ -1,7 +1,7 @@
 package org.example.game.motor;
 
-import org.example.CuerpoCeleste;
-import org.example.MotorFisica;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.motor.MotorFisica;
 
 import java.util.ArrayList;
 import java.util.Iterator;
