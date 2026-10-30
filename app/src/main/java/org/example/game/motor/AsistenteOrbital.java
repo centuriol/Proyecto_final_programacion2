@@ -11,18 +11,27 @@ import java.util.function.Consumer;
  *
  * Principios SOLID:
  * - SRP: Responsable exclusivo de la dinámica orbital permisiva y cálculo de órbitas estables.
- * - DIP: Desacoplado del motor de física principal y notificaciones a UI.
+ * - DIP / OCP: Utiliza estrategias para la captura orbital.
  */
 public class AsistenteOrbital {
 
     private final double G;
+    private final List<EstrategiaCapturaOrbital> estrategiasCaptura;
+
+    public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura) {
+        this.G = G;
+        this.estrategiasCaptura = estrategiasCaptura != null ? estrategiasCaptura : List.of(
+                new CapturaOrbitalMenorPlaneta(),
+                new CapturaOrbitalPlanetaAtractor()
+        );
+    }
 
     public AsistenteOrbital(double G) {
-        this.G = G;
+        this(G, null);
     }
 
     public AsistenteOrbital() {
-        this(ConstantesFisicas.G_ESCALADO);
+        this(ConstantesFisicas.G_ESCALADO, null);
     }
 
     /**
@@ -36,55 +45,9 @@ public class AsistenteOrbital {
             return new CuerpoCeleste[]{cj, ci};
         }
 
-        // Caso A: Satélite o Luna y Planeta
-        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esMenorOrbital();
-        boolean cjEsMenor = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().esMenorOrbital();
-
-        if (ciEsMenor ^ cjEsMenor) {
-            CuerpoCeleste menor = ciEsMenor ? ci : cj;
-            CuerpoCeleste planeta = ciEsMenor ? cj : ci;
-
-            if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().esPlaneta()) {
-                double radioCaptura;
-                if (menor.getTipoCuerpo() == TipoCuerpo.LUNA) {
-                    radioCaptura = Math.max(planeta.getRadioAtraccion() * 2.2, 120.0);
-                } else {
-                    radioCaptura = Math.max(planeta.getRadioAtraccion(), 65.0);
-                }
-
-                if (distReal <= radioCaptura && !menor.estaOrbitando()) {
-                    menor.setCuerpoOrbitado(planeta);
-                    menor.setRadioOrbita(distReal);
-                    if (listenerMensaje != null) {
-                        listenerMensaje.accept(menor.getNombre() + " esta orbitando " + planeta.getNombre());
-                    }
-                    inicializarVelocidadOrbital(menor, planeta, distReal);
-                    return new CuerpoCeleste[]{menor, planeta};
-                }
-            }
-        }
-
-        // Caso B: Planeta y Estrella / Agujero Negro
-        boolean ciEsPlaneta = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esPlaneta();
-        boolean cjEsPlaneta = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().esPlaneta();
-        CuerpoCeleste planeta = ciEsPlaneta ? ci : (cjEsPlaneta ? cj : null);
-        CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
-
-        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getTipoCuerpo() != null &&
-                estrella.getTipoCuerpo().esAtractorOrbital());
-
-        if (esPlanetaYEstrella) {
-            double radioCapturaPlaneta = estrella.getRadioAtraccion() * 7.0;
-            double radioMinimoCaptura = estrella.getRadio() + planeta.getRadio() + 5.0;
-
-            if (!planeta.estaOrbitando() && distReal > radioMinimoCaptura && distReal <= radioCapturaPlaneta) {
-                planeta.setCuerpoOrbitado(estrella);
-                planeta.setRadioOrbita(distReal);
-                if (listenerMensaje != null) {
-                    listenerMensaje.accept(planeta.getNombre() + " esta orbitando " + estrella.getNombre());
-                }
-                inicializarVelocidadOrbital(planeta, estrella, distReal);
-                return new CuerpoCeleste[]{planeta, estrella};
+        for (EstrategiaCapturaOrbital estrategia : estrategiasCaptura) {
+            if (estrategia.puedeCapturar(ci, cj, distReal)) {
+                return estrategia.ejecutarCaptura(ci, cj, distReal, listenerMensaje, this);
             }
         }
 
