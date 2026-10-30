@@ -1,10 +1,13 @@
 package org.example.game.motor;
 
 import org.example.game.cuerpo.AgujeroNegro;
+import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Defensor;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.Transformable;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 
@@ -147,8 +150,8 @@ public class ResolvedorColisiones {
         mayor.setMasa(mayor.getMasa() + masaGanada);
         generarEscombros(menor, aEliminar, aAgregar);
 
-        if (mayor.tieneCivilizacion() && mayor.getCivilizacion() != null) {
-            mayor.getCivilizacion().recibirImpactoMeteorito();
+        if (mayor instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+            civ.getCivilizacion().recibirImpactoMeteorito();
         }
 
         emitirMensaje("Impacto destructivo asimétrico: " + menor.getNombre() + " destruido al colisionar con " + mayor.getNombre() + ".");
@@ -160,16 +163,16 @@ public class ResolvedorColisiones {
      */
     private boolean resolverProteccionEscudo(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar) {
         // Escudo vs Meteorito: el escudo absorbe el impacto y destruye el meteorito sin daño a masa ni población
-        if (a.getTipoCuerpo() == TipoCuerpo.METEORITO && b.tieneEscudo()) {
-            b.absorberGolpeEscudo();
+        if (a.getTipoCuerpo() == TipoCuerpo.METEORITO && b instanceof Defensor def && def.tieneEscudo()) {
+            def.absorberGolpeEscudo();
             desactivarYEliminar(a, aEliminar);
-            emitirMensaje("El escudo planetario de " + b.getNombre() + " absorbió un impacto de meteorito (" + b.getGolpesEscudoRestantes() + " golpes restantes).");
+            emitirMensaje("El escudo planetario de " + b.getNombre() + " absorbió un impacto de meteorito (" + def.getGolpesEscudoRestantes() + " golpes restantes).");
             return true;
         }
-        if (b.getTipoCuerpo() == TipoCuerpo.METEORITO && a.tieneEscudo()) {
-            a.absorberGolpeEscudo();
+        if (b.getTipoCuerpo() == TipoCuerpo.METEORITO && a instanceof Defensor def && def.tieneEscudo()) {
+            def.absorberGolpeEscudo();
             desactivarYEliminar(b, aEliminar);
-            emitirMensaje("El escudo planetario de " + a.getNombre() + " absorbió un impacto de meteorito (" + a.getGolpesEscudoRestantes() + " golpes restantes).");
+            emitirMensaje("El escudo planetario de " + a.getNombre() + " absorbió un impacto de meteorito (" + def.getGolpesEscudoRestantes() + " golpes restantes).");
             return true;
         }
 
@@ -177,9 +180,12 @@ public class ResolvedorColisiones {
         boolean aEsPlanetaOLuna = a.getTipoCuerpo() != null && (a.getTipoCuerpo().esPlaneta() || a.getTipoCuerpo().esLuna());
         boolean bEsPlanetaOLuna = b.getTipoCuerpo() != null && (b.getTipoCuerpo().esPlaneta() || b.getTipoCuerpo().esLuna());
 
-        if (aEsPlanetaOLuna && bEsPlanetaOLuna && (a.tieneEscudo() || b.tieneEscudo())) {
-            if (a.tieneEscudo()) a.absorberGolpeEscudo();
-            if (b.tieneEscudo()) b.absorberGolpeEscudo();
+        boolean aTieneEscudo = (a instanceof Defensor def && def.tieneEscudo());
+        boolean bTieneEscudo = (b instanceof Defensor def && def.tieneEscudo());
+
+        if (aEsPlanetaOLuna && bEsPlanetaOLuna && (aTieneEscudo || bTieneEscudo)) {
+            if (a instanceof Defensor def) def.absorberGolpeEscudo();
+            if (b instanceof Defensor def) def.absorberGolpeEscudo();
             reboteElastico(a, b);
             emitirMensaje("Interacción orbital amortiguada por escudo planetario: rebote elástico entre " + a.getNombre() + " y " + b.getNombre() + ".");
             return true;
@@ -193,7 +199,7 @@ public class ResolvedorColisiones {
         Vector2D posCM = (a.getPosicion().multiplicar(a.getMasa()).sumar(b.getPosicion().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
         Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
 
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroPersonalizado(posCM.x, posCM.y, masaTotal, velCM);
+        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroPersonalizado(posCM.x(), posCM.y(), masaTotal, velCM);
 
         desactivarYEliminar(a, aEliminar);
         desactivarYEliminar(b, aEliminar);
@@ -245,8 +251,10 @@ public class ResolvedorColisiones {
         sobreviviente.setVelocidad(nuevaVel);
         sobreviviente.setMasa(masaTotal);
         sobreviviente.setNombre("Planeta Porro");
-        sobreviviente.transformarA(TipoCuerpo.PLANETA_ROCOSO);
-        sobreviviente.setTransformadoPorEvento(true);
+        if (sobreviviente instanceof Transformable t) {
+            t.transformarA(TipoCuerpo.PLANETA_ROCOSO);
+            t.setTransformadoPorEvento(true);
+        }
 
         if (sobreviviente.getCuerpoOrbitado() == null && absorbido.getCuerpoOrbitado() != null) {
             sobreviviente.setCuerpoOrbitado(absorbido.getCuerpoOrbitado());
@@ -279,9 +287,9 @@ public class ResolvedorColisiones {
             double nuevaMasa = Math.max(0.0, objetivo.getMasa() - danoMasa);
             objetivo.setMasa(nuevaMasa);
 
-            if (objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
-                objetivo.getCivilizacion().recalcularPoblacionMaxima();
-                objetivo.getCivilizacion().recibirImpactoMeteorito();
+            if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+                civ.getCivilizacion().recalcularPoblacionMaxima();
+                civ.getCivilizacion().recibirImpactoMeteorito();
             }
 
             // Si queda por debajo del umbral de explosión (30% masa inicial), o si es un planeta vulnerable del principio (<= 0.6x masaBase), explota
@@ -308,8 +316,8 @@ public class ResolvedorColisiones {
             objetivo.setVelocidad(nuevaVelocidad);
         }
 
-        if (objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
-            objetivo.getCivilizacion().recibirImpactoMeteorito();
+        if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+            civ.getCivilizacion().recibirImpactoMeteorito();
         }
 
         emitirMensaje(meteorito.getNombre() + " colisionó contra " + objetivo.getNombre() + ".");
@@ -371,8 +379,8 @@ public class ResolvedorColisiones {
     }
 
     private void destruirCivilizacionSiExiste(CuerpoCeleste objetivo) {
-        if (objetivo != null && objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
-            objetivo.getCivilizacion().destruir();
+        if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+            civ.getCivilizacion().destruir();
         }
     }
 

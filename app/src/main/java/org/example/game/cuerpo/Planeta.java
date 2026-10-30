@@ -4,7 +4,7 @@ import org.example.game.civilizacion.CivilizacionComponent;
 
 import java.util.List;
 
-public class Planeta extends CuerpoCeleste implements Civilizable {
+public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, Defensor, Transformable {
     private boolean tieneCivilizacion = false;
     private TipoCuerpo subTipo;
     private boolean transformadoPorEvento = false;
@@ -50,6 +50,16 @@ public class Planeta extends CuerpoCeleste implements Civilizable {
     @Override
     public boolean puedeRecibirEscudo() {
         return true;
+    }
+
+    @Override
+    public double getRadioEscudo() {
+        return 65.0;
+    }
+
+    @Override
+    public double getPulsoVisual() {
+        return 0.0;
     }
 
     @Override

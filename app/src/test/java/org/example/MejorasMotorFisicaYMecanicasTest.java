@@ -148,7 +148,7 @@ class MejorasMotorFisicaYMecanicasTest {
 
         // La población debe quedar en 0 explícitamente y el estado en EXTINGUIDA
         assertEquals(0.0, planeta.getCivilizacion().getPoblacion(), 1e-6);
-        assertEquals(org.example.game.civilizacion.CivilizacionComponent.EstadoCivilizacion.EXTINGUIDA,
+        assertEquals(org.example.game.civilizacion.EstadoCivilizacion.EXTINGUIDA,
                 planeta.getCivilizacion().getEstado());
         assertFalse(planeta.tieneCivilizacion());
     }
@@ -497,10 +497,10 @@ class MejorasMotorFisicaYMecanicasTest {
         assertTrue(sobreviviente.isTransformadoPorEvento());
         assertFalse(sobreviviente.permiteReembolso());
         assertEquals(masaTotalEsperada, sobreviviente.getMasa(), 1e-6);
-        assertEquals(posEsperada.x, sobreviviente.getPosicion().x, 1e-4);
-        assertEquals(posEsperada.y, sobreviviente.getPosicion().y, 1e-4);
-        assertEquals(velEsperada.x, sobreviviente.getVelocidad().x, 1e-4);
-        assertEquals(velEsperada.y, sobreviviente.getVelocidad().y, 1e-4);
+        assertEquals(posEsperada.x(), sobreviviente.getPosicion().x(), 1e-4);
+        assertEquals(posEsperada.y(), sobreviviente.getPosicion().y(), 1e-4);
+        assertEquals(velEsperada.x(), sobreviviente.getVelocidad().x(), 1e-4);
+        assertEquals(velEsperada.y(), sobreviviente.getVelocidad().y(), 1e-4);
 
         // No genera recursos pasivos
         InventarioJugador inv = new InventarioJugador();
@@ -536,7 +536,7 @@ class MejorasMotorFisicaYMecanicasTest {
 
         CuerpoCeleste sobreviviente = aEliminar.contains(agua) ? lava : agua;
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, sobreviviente.getTipoCuerpo());
-        assertTrue(sobreviviente.isTransformadoPorEvento());
+        assertTrue(sobreviviente instanceof Transformable t && t.isTransformadoPorEvento());
         assertFalse(sobreviviente.permiteReembolso());
     }
 
@@ -559,7 +559,7 @@ class MejorasMotorFisicaYMecanicasTest {
         CuerpoCeleste porro = simulacion.getSistemaSolar().getCuerpos().get(0);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, porro.getTipoCuerpo());
         assertEquals("Planeta Porro", porro.getNombre());
-        assertTrue(porro.isTransformadoPorEvento());
+        assertTrue(porro instanceof Transformable t && t.isTransformadoPorEvento());
         assertFalse(porro.permiteReembolso());
     }
 }

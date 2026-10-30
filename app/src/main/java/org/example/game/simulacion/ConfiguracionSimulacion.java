@@ -34,80 +34,61 @@ public final class ConfiguracionSimulacion {
     // ===== Producción de Ciencia =====
     public static final double PRODUCCION_ESTRELLA_CIENCIA = 0.06;
 
-    // ===== Física =====
-    public static final double G_ESCALADO = 6.67430e-11 * 3600 * 3600 / 1e27; // Ver MotorFisicaNewtoniana
-    public static final double SOFTENING = 10.0;
-    public static final double RADIO_MUNDO = 10000.0;
-    public static final double LIMITE_ESCAPE = RADIO_MUNDO * 2;
+    // ===== Física (Delegada a ConstantesFisicas como única fuente de verdad) =====
+    public static final double G_ESCALADO = org.example.game.motor.ConstantesFisicas.G_ESCALADO;
+    public static final double SOFTENING = org.example.game.motor.ConstantesFisicas.SOFTENING;
+    public static final double RADIO_MUNDO = org.example.game.motor.ConstantesFisicas.RADIO_MUNDO_DEFAULT;
+    public static final double LIMITE_ESCAPE = RADIO_MUNDO * org.example.game.motor.ConstantesFisicas.LIMITE_ESCAPE_FACTOR;
 
-    // ===== Umbrales de colisión por proporción de masa =====
-    // r = masaMayor / masaMenor (siempre >= 1.0)
-    public static final double RATIO_COLISION_COLAPSO = 1.3;   // masas "casi iguales"
-    public static final double RATIO_ABSORCION_MASA = 8.0;     // masas muy dispares -> absorción total
+    // ===== Umbrales de colisión delegados a ConfiguracionColisiones =====
+    public static final double RATIO_COLISION_COLAPSO = ConfiguracionColisiones.RATIO_COLISION_COLAPSO;
+    public static final double RATIO_ABSORCION_MASA = ConfiguracionColisiones.RATIO_ABSORCION_MASA;
+    public static final int FRAGMENTOS_POR_COLAPSO = ConfiguracionColisiones.FRAGMENTOS_POR_COLAPSO;
+    public static final double FRACCION_MASA_DISIPADA = ConfiguracionColisiones.FRACCION_MASA_DISIPADA;
+    public static final double VELOCIDAD_EYECCION_FRAGMENTOS = ConfiguracionColisiones.VELOCIDAD_EYECCION_FRAGMENTOS;
+    public static final double FRACCION_MASA_MINIMA_SOBREVIVIENTE = ConfiguracionColisiones.FRACCION_MASA_MINIMA_SOBREVIVIENTE;
+    public static final double PORCENTAJE_GANANCIA_MASA_COLISION = ConfiguracionColisiones.PORCENTAJE_GANANCIA_MASA_COLISION;
 
-    // ===== Escombros (fragmentos de colisión) =====
-    public static final int FRAGMENTOS_POR_COLAPSO = 3;         // cantidad de meteoritos generados por cuerpo destruido
-    public static final double FRACCION_MASA_DISIPADA = 0.10;   // 10% de la masa se "pierde" en la explosión (arcade, no 100% realista)
-    public static final double VELOCIDAD_EYECCION_FRAGMENTOS = 150.0; // px/tick base de dispersión
-    public static final double FRACCION_MASA_MINIMA_SOBREVIVIENTE = 0.05; // 5% de la masa base como piso mínimo en colisión asimétrica
-
-    // ===== Ganancia de masa en colision asimetrica (Tarea 2) =====
-    public static final double PORCENTAJE_GANANCIA_MASA_COLISION = 0.30; // El mayor absorbe 30% de la masa del menor
-
-    // ===== Transformacion de cuerpos (Easter egg, Tarea 4) =====
-    public static final double RADIO_TRANSFORMACION_AGUA_PORRO = 120.0; // Radio en px desde la estrella para transformar Agua -> Porro
-    public static final double RADIO_TRANSFORMACION_PORRO_LAVA = 70.0;  // Radio en px desde la estrella para transformar Porro -> Lava
-    public static final int TICKS_ESPERA_TRANSFORMACION_EASTER_EGG = 40; // Ticks acumulados dentro del radio para iniciar transformacion
-    public static final int TICKS_MIGRACION_ORBITA = 30; // Ticks de desplazamiento gradual hacia la orbita estable
-    public static final double MARGEN_SEGURIDAD_ORBITA_LIBRE = 15.0; // Distancia adicional minima respecto a otros cuerpos (px)
-    public static final double PASO_BUSQUEDA_ORBITA_PX = 25.0; // Incremento de radio en caso de orbita ocupada (px)
-    public static final int MAX_INTENTOS_ORBITA_LIBRE = 8; // Maximo de radios alternativos a evaluar
+    // ===== Transformacion de cuerpos delegada a ConfiguracionTransformacion =====
+    public static final double RADIO_TRANSFORMACION_AGUA_PORRO = ConfiguracionTransformacion.RADIO_TRANSFORMACION_AGUA_PORRO;
+    public static final double RADIO_TRANSFORMACION_PORRO_LAVA = ConfiguracionTransformacion.RADIO_TRANSFORMACION_PORRO_LAVA;
+    public static final int TICKS_ESPERA_TRANSFORMACION_EASTER_EGG = ConfiguracionTransformacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG;
+    public static final int TICKS_MIGRACION_ORBITA = ConfiguracionTransformacion.TICKS_MIGRACION_ORBITA;
+    public static final double MARGEN_SEGURIDAD_ORBITA_LIBRE = ConfiguracionTransformacion.MARGEN_SEGURIDAD_ORBITA_LIBRE;
+    public static final double PASO_BUSQUEDA_ORBITA_PX = ConfiguracionTransformacion.PASO_BUSQUEDA_ORBITA_PX;
+    public static final int MAX_INTENTOS_ORBITA_LIBRE = ConfiguracionTransformacion.MAX_INTENTOS_ORBITA_LIBRE;
 
     // ===== Ticks y tiempo =====
     public static final int TICKS_POR_SEGUNDO_REAL = 20; // Velocidad base
     public static final double SEGUNDOS_REALES_POR_TICK = 1.0 / TICKS_POR_SEGUNDO_REAL;
     public static final int MAX_TICKS_HISTORIAL = 10000; // Para gráficas futuras
 
-    // ===== Costos Base de Colocación (Materiales requeridos para poner el ítem) =====
-    public static final double COSTO_ESTRELLA_MINERALES = 300.0;
-    public static final double COSTO_ESTRELLA_ENERGIA = 150.0;
+    // ===== Costos Base de Colocación delegados a ConfiguracionEconomia =====
+    public static final double COSTO_ESTRELLA_MINERALES = ConfiguracionEconomia.COSTO_ESTRELLA_MINERALES;
+    public static final double COSTO_ESTRELLA_ENERGIA = ConfiguracionEconomia.COSTO_ESTRELLA_ENERGIA;
+    public static final double COSTO_PLANETA_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_MINERALES;
+    public static final double COSTO_PLANETA_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_ENERGIA;
+    public static final double COSTO_LUNA_MINERALES = ConfiguracionEconomia.COSTO_LUNA_MINERALES;
+    public static final double COSTO_LUNA_ENERGIA = ConfiguracionEconomia.COSTO_LUNA_ENERGIA;
+    public static final double COSTO_PLANETA_AGUA_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_AGUA_MINERALES;
+    public static final double COSTO_PLANETA_AGUA_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_AGUA_ENERGIA;
+    public static final double COSTO_SATELITE_MINERALES = ConfiguracionEconomia.COSTO_SATELITE_MINERALES;
+    public static final double COSTO_SATELITE_ENERGIA = ConfiguracionEconomia.COSTO_SATELITE_ENERGIA;
+    public static final double COSTO_PLANETA_LAVA_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_LAVA_MINERALES;
+    public static final double COSTO_PLANETA_LAVA_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_LAVA_ENERGIA;
 
-    public static final double COSTO_PLANETA_MINERALES = 100.0;
-    public static final double COSTO_PLANETA_ENERGIA = 50.0;
-
-    public static final double COSTO_LUNA_MINERALES = 50.0;
-    public static final double COSTO_LUNA_ENERGIA = 20.0;
-
-    public static final double COSTO_PLANETA_AGUA_MINERALES = 50.0;
-    public static final double COSTO_PLANETA_AGUA_ENERGIA = 25.0;
-
-    public static final double COSTO_SATELITE_MINERALES = 30.0;
-    public static final double COSTO_SATELITE_ENERGIA = 20.0;
-
-    public static final double COSTO_PLANETA_LAVA_MINERALES = 150.0;
-    public static final double COSTO_PLANETA_LAVA_ENERGIA = 75.0;
-
-    // ===== Producción por Tick (Materiales generados por cada ítem - Crecimiento balanceado) =====
-    // Estrella: da Energía, Minerales y Ciencia (Sol produce ciencia 0.06)
-    public static final double PRODUCCION_ESTRELLA_ENERGIA = 0.10;
-    public static final double PRODUCCION_ESTRELLA_MINERALES = 0.04;
-
-    // Planeta Porro: da Minerales, Ciencia y Población
-    public static final double PRODUCCION_PLANETA_MINERALES = 0.045;
-    public static final double PRODUCCION_PLANETA_CIENCIA = 0.035;
-    public static final double PRODUCCION_PLANETA_POBLACION = 0.015;
-
-    // Planeta de Agua: da Minerales, Ciencia y Energía (ayuda al inicio)
+    // ===== Producción por Tick delegada a ConfiguracionEconomia =====
+    public static final double PRODUCCION_ESTRELLA_ENERGIA = ConfiguracionEconomia.PRODUCCION_ESTRELLA_ENERGIA;
+    public static final double PRODUCCION_ESTRELLA_MINERALES = ConfiguracionEconomia.PRODUCCION_ESTRELLA_MINERALES;
+    public static final double PRODUCCION_PLANETA_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_MINERALES;
+    public static final double PRODUCCION_PLANETA_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_CIENCIA;
+    public static final double PRODUCCION_PLANETA_POBLACION = ConfiguracionEconomia.PRODUCCION_PLANETA_POBLACION;
     public static final double PRODUCCION_PLANETA_AGUA_MINERALES = 0.04;
     public static final double PRODUCCION_PLANETA_AGUA_CIENCIA = 0.03;
     public static final double PRODUCCION_PLANETA_AGUA_ENERGIA = 0.025;
     public static final double PRODUCCION_PLANETA_AGUA_POBLACION = 0.0;
-
-    // Satélite: solo genera ciencia continua y un poco de energía
     public static final double PRODUCCION_SATELITE_CIENCIA = 0.08;
     public static final double PRODUCCION_SATELITE_ENERGIA = 0.03;
-
-    // Planeta Lava: alto rendimiento de mineral y ciencia, sin población
     public static final double PRODUCCION_PLANETA_LAVA_MINERALES = 0.09;
     public static final double PRODUCCION_PLANETA_LAVA_CIENCIA = 0.06;
     public static final double PRODUCCION_PLANETA_LAVA_POBLACION = 0.0;

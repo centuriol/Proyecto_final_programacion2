@@ -30,26 +30,6 @@ public class CivilizacionComponent {
     private final List<Double> historialEstabilidad = new ArrayList<>();
     private int contadorTicksHistorial = 0;
 
-    public enum EstadoCivilizacion {
-        PRÓSPERA("Próspera", 0x32CD32),      // Verde
-        ESTABLE("Estable", 0x4169E1),        // Azul
-        LUCHANDO("Luchando", 0xFFA500),      // Naranja
-        EN_PELIGRO("En Peligro", 0xFF4500),  // Rojo naranja
-        EXTINGUIDA("Extinguida", 0x808080);  // Gris
-
-        public final String nombre;
-        public final int color;
-
-        EstadoCivilizacion(String nombre, int color) {
-            this.nombre = nombre;
-            this.color = color;
-        }
-
-        public String getColorHex() {
-            return String.format("#%06X", (0xFFFFFF & color));
-        }
-    }
-
     public CivilizacionComponent(Planeta planeta) {
         this(planeta, ConfiguracionSimulacion.POBLACION_INICIAL);
     }
@@ -73,15 +53,9 @@ public class CivilizacionComponent {
         }
 
         // 1. Calcular condiciones de habitabilidad
-        CondicionesHabitabilidad condiciones = evaluarHabitabilidad(todosLosCuerpos);
+        CondicionesHabitabilidad condiciones = EvaluadorHabitabilidad.evaluar(planeta, todosLosCuerpos);
 
         // 2. Calcular crecimiento/decadencia de población
-        // Modelo logístico: tasa = factorCrecimiento; si factorCrecimiento > 0, poblacion *= 1 + tasa*(1 - poblacion/max)
-        // Calibración: con POBLACION_INICIAL=1000, max=1e6, tasa=CRECIMIENTO_POBLACION_BASE (~0.0007),
-        // llegar al 80% (800.000) toma ~6-10 min a 1x (7000 a 12000 ticks).
-        // Integrando dx/dt = r*x*(1 - x/K): t = (1/r) * ln( (x/(K-x)) / (x0/(K-x0)) )
-        // Para x=0.8*K y x0=1000, (0.8/0.2) / (1000/999000) = 4 / 0.001001 ≈ 3996
-        // ln(3996) ≈ 8.293. Con r = 0.0008: ticks = 8.293 / 0.0008 ≈ 10366 ticks (~8.6 min a 20 ticks/s).
         double factorCrecimiento = calcularFactorCrecimiento(condiciones);
         if (factorCrecimiento > 0) {
             double saturacion = poblacionMaxima > 0 ? (1.0 - (poblacion / poblacionMaxima)) : 0.0;
@@ -117,86 +91,14 @@ public class CivilizacionComponent {
         }
     }
 
-    private CondicionesHabitabilidad evaluarHabitabilidad(List<CuerpoCeleste> cuerpos) {
-        CondicionesHabitabilidad c = new CondicionesHabitabilidad();
-
-        // Encontrar estrella más cercana
-        CuerpoCeleste estrellaMasCercana = null;
-        double distEstrellaMin = Double.MAX_VALUE;
-        double masaEstrellaTotal = 0;
-
-        // Encontrar agujero negro más cercano
-        CuerpoCeleste agujeroMasCercano = null;
-        double distAgujeroMin = Double.MAX_VALUE;
-
-        for (CuerpoCeleste otro : cuerpos) {
-            if (otro == planeta) continue;
-
-            double dist = planeta.getPosicion().distanciaA(otro.getPosicion());
-
-            if (otro.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA) {
-                masaEstrellaTotal += otro.getMasa();
-                if (dist < distEstrellaMin) {
-                    distEstrellaMin = dist;
-                    estrellaMasCercana = otro;
-                }
-            } else if (otro.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.AGUJERO_NEGRO ||
-                       otro.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
-                if (dist < distAgujeroMin) {
-                    distAgujeroMin = dist;
-                    agujeroMasCercano = otro;
-                }
-            }
-        }
-
-        // Zona habitable: basada en flujo estelar (luminosidad ~ masa^3.5 aprox)
-        // Distancia ideal ~ sqrt(luminosidad) ~ masa^1.75
-        if (estrellaMasCercana != null) {
-            double masaSol = 1.989e30;
-            double factorLuminosidad = Math.pow(Math.max(0.0, estrellaMasCercana.getMasa()) / masaSol, 3.5);
-            double distanciaIdeal = Math.max(0.001, Math.sqrt(factorLuminosidad) * 150); // 150px = 1 UA escalado
-            c.distanciaAEstrella = distEstrellaMin;
-            c.distanciaIdeal = distanciaIdeal;
-            c.ratioZonaHabitable = distEstrellaMin / distanciaIdeal;
-            c.enZonaHabitable = c.ratioZonaHabitable >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
-                    && c.ratioZonaHabitable <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX;
-            double dist2 = Math.max(0.001, distEstrellaMin * distEstrellaMin);
-            c.flujoEnergetico = factorLuminosidad / dist2;
-        }
-
-        // Amenaza de agujero negro
-        if (agujeroMasCercano != null) {
-            c.distanciaAgujeroNegro = distAgujeroMin;
-            c.bajoAmenazaAgujero = distAgujeroMin < ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO;
-            c.intensidadAmenaza = 1.0 - (distAgujeroMin / ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO);
-        }
-
-        // Estabilidad orbital: excentricidad aproximada
-        // (simplificado: variación de distancia a estrella en últimos ticks)
-        c.excentricidadOrbital = calcularExcentricidadAproximada(estrellaMasCercana);
-
-        return c;
-    }
-
-    private double calcularExcentricidadAproximada(CuerpoCeleste estrella) {
-        // Simplificado: usar velocidad actual vs velocidad circular
-        if (estrella == null) return 0;
-        double r = planeta.getPosicion().distanciaA(estrella.getPosicion());
-        if (r <= 0.001 || estrella.getMasa() <= 0) return 1.0;
-        double vCircular = Math.sqrt(ConfiguracionSimulacion.G_ESCALADO * estrella.getMasa() / r);
-        if (vCircular <= 0.001) return 1.0;
-        double vActual = planeta.getVelocidad().magnitud();
-        return Math.abs(vActual - vCircular) / vCircular;
-    }
-
     private double calcularFactorCrecimiento(CondicionesHabitabilidad c) {
         double factor = 0;
 
-        if (c.enZonaHabitable) {
+        if (c.enZonaHabitable()) {
             // Crecimiento óptimo en centro de zona habitable
             double centroZona = (ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
                     + ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX) / 2;
-            double desviacion = Math.abs(c.ratioZonaHabitable - centroZona);
+            double desviacion = Math.abs(c.ratioZonaHabitable() - centroZona);
             double maxDesviacion = (ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX
                     - ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN) / 2;
             double bonusZona = 1.0 - (desviacion / maxDesviacion);
@@ -207,12 +109,12 @@ public class CivilizacionComponent {
         }
 
         // Penalización por agujero negro
-        if (c.bajoAmenazaAgujero) {
-            factor -= c.intensidadAmenaza * 0.01;
+        if (c.bajoAmenazaAgujero()) {
+            factor -= c.intensidadAmenaza() * 0.01;
         }
 
         // Penalización por inestabilidad orbital
-        factor -= c.excentricidadOrbital * 0.005;
+        factor -= c.excentricidadOrbital() * 0.005;
 
         // Bonus por tecnología (futuro: tech tree)
         factor += nivelTecnologico * 0.0001;
@@ -223,9 +125,9 @@ public class CivilizacionComponent {
     private void actualizarEstabilidadYFelicidad(CondicionesHabitabilidad c) {
         // Estabilidad: afectada por amenazas y excentricidad
         double objetivoEstabilidad = 1.0;
-        if (c.bajoAmenazaAgujero) objetivoEstabilidad -= c.intensidadAmenaza * 0.5;
-        objetivoEstabilidad -= c.excentricidadOrbital * 0.3;
-        if (!c.enZonaHabitable) objetivoEstabilidad -= 0.2;
+        if (c.bajoAmenazaAgujero()) objetivoEstabilidad -= c.intensidadAmenaza() * 0.5;
+        objetivoEstabilidad -= c.excentricidadOrbital() * 0.3;
+        if (!c.enZonaHabitable()) objetivoEstabilidad -= 0.2;
 
         // Suavizar cambios
         estabilidad = estabilidad * 0.99 + objetivoEstabilidad * 0.01;
@@ -391,21 +293,5 @@ public class CivilizacionComponent {
         return String.format("%s: Pop %.0f/%.0f (%.1f%%) | Tech %d | Est %.0f%% | %s",
                 planeta.getNombre(), poblacion, poblacionMaxima, pct,
                 nivelTecnologico, estabilidad*100, estado.nombre);
-    }
-
-    // ===== Clase interna para condiciones =====
-
-    public static class CondicionesHabitabilidad {
-        public double distanciaAEstrella = -1;
-        public double distanciaIdeal = -1;
-        public double ratioZonaHabitable = 0;
-        public boolean enZonaHabitable = false;
-        public double flujoEnergetico = 0;
-
-        public double distanciaAgujeroNegro = -1;
-        public boolean bajoAmenazaAgujero = false;
-        public double intensidadAmenaza = 0;
-
-        public double excentricidadOrbital = 0;
     }
 }

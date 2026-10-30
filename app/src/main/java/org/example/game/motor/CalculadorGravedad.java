@@ -61,8 +61,8 @@ public class CalculadorGravedad {
                 // 2. Gravedad newtoniana base para cuerpos no enlazados en órbita
                 double fuerzaMag = G * ci.getMasa() * cj.getMasa() / r2;
                 double factorDir = fuerzaMag / rMag;
-                double fx = r.x * factorDir;
-                double fy = r.y * factorDir;
+                double fx = r.x() * factorDir;
+                double fy = r.y() * factorDir;
                 ci.aplicarFuerza(new Vector2D(fx, fy));
                 cj.aplicarFuerza(new Vector2D(-fx, -fy));
 

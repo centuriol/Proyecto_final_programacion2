@@ -3,18 +3,20 @@ package org.example.game.motor;
 /**
  * Vector 2D inmutable para cálculos físicos.
  * Usa double para precisión en simulaciones orbitales.
+ * Implementado como Java 17 record.
  */
-public final class Vector2D {
-    public final double x;
-    public final double y;
-
-    public Vector2D(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
+public record Vector2D(double x, double y) {
 
     public static Vector2D cero() {
         return new Vector2D(0, 0);
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
     }
 
     public Vector2D sumar(Vector2D otro) {
@@ -66,18 +68,5 @@ public final class Vector2D {
     @Override
     public String toString() {
         return String.format("Vector2D(%.3f, %.3f)", x, y);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Vector2D)) return false;
-        Vector2D otro = (Vector2D) obj;
-        return Double.compare(otro.x, x) == 0 && Double.compare(otro.y, y) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(x, y);
     }
 }

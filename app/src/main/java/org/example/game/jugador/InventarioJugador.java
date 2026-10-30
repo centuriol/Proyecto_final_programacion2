@@ -9,7 +9,6 @@ import java.util.Map;
  */
 public class InventarioJugador {
     private final Map<TipoRecurso, Recurso> recursos = new EnumMap<>(TipoRecurso.class);
-    private final Map<TipoCuerpo, CostoCreacion> costos = new EnumMap<>(TipoCuerpo.class);
 
     public InventarioJugador() {
         // Inicializar recursos a 0
@@ -17,30 +16,8 @@ public class InventarioJugador {
             recursos.put(tr, new Recurso(tr));
         }
 
-        // Definir costos base de creación (se ajustan con balanceo)
-        inicializarCostos();
-
         // Recursos iniciales para empezar
         darRecursosIniciales();
-    }
-
-    private void inicializarCostos() {
-        for (TipoCuerpo tc : TipoCuerpo.values()) {
-            Map<TipoRecurso, Double> cBase = tc.getCostosBase();
-            if (!cBase.isEmpty()) {
-                CostoCreacion cc = null;
-                for (Map.Entry<TipoRecurso, Double> entry : cBase.entrySet()) {
-                    if (cc == null) {
-                        cc = new CostoCreacion(entry.getKey(), entry.getValue());
-                    } else {
-                        cc.agregar(entry.getKey(), entry.getValue());
-                    }
-                }
-                if (cc != null) {
-                    costos.put(tc, cc);
-                }
-            }
-        }
     }
 
     private void darRecursosIniciales() {
@@ -137,25 +114,16 @@ public class InventarioJugador {
      * @return Mapa inmutable de TipoRecurso a la cantidad requerida, o mapa vacío si no existe costo.
      */
     public Map<TipoRecurso, Double> calcularCostoTotal(TipoCuerpo tipo, double factorMasa) {
-        CostoCreacion costo = costos.get(tipo);
-        if (costo == null) return Map.of();
-
-        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
-        Map<TipoRecurso, Double> total = new EnumMap<>(TipoRecurso.class);
-        for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
-            total.put(entry.getKey(), calcularCostoEscalado(entry.getValue(), factorEfectivo));
-        }
-        return Map.copyOf(total);
+        return getCostosEscalados(tipo, factorMasa);
     }
 
     public boolean puedeCrear(TipoCuerpo tipo, double factorMasa) {
-        CostoCreacion costo = costos.get(tipo);
-        if (costo == null) return false;
+        Map<TipoRecurso, Double> costosEscalados = getCostosEscalados(tipo, factorMasa);
+        if (costosEscalados.isEmpty()) return false;
 
-        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
-        for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
+        for (Map.Entry<TipoRecurso, Double> entry : costosEscalados.entrySet()) {
             TipoRecurso tr = entry.getKey();
-            double cantRequerida = calcularCostoEscalado(entry.getValue(), factorEfectivo);
+            double cantRequerida = entry.getValue();
             if (!recursos.get(tr).puedeGastar(cantRequerida)) {
                 return false;
             }
@@ -164,12 +132,11 @@ public class InventarioJugador {
     }
 
     public boolean gastarParaCrear(TipoCuerpo tipo, double factorMasa) {
-        CostoCreacion costo = costos.get(tipo);
-        if (costo == null || !puedeCrear(tipo, factorMasa)) return false;
+        if (!puedeCrear(tipo, factorMasa)) return false;
 
-        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
-        for (Map.Entry<TipoRecurso, Double> entry : costo.getCostos().entrySet()) {
-            recursos.get(entry.getKey()).gastar(calcularCostoEscalado(entry.getValue(), factorEfectivo));
+        Map<TipoRecurso, Double> costosEscalados = getCostosEscalados(tipo, factorMasa);
+        for (Map.Entry<TipoRecurso, Double> entry : costosEscalados.entrySet()) {
+            recursos.get(entry.getKey()).gastar(entry.getValue());
         }
         return true;
     }
@@ -191,7 +158,14 @@ public class InventarioJugador {
     }
 
     public CostoCreacion getCosto(TipoCuerpo tipo) {
-        return costos.get(tipo);
+        Map<TipoRecurso, Double> base = getCostosBase(tipo);
+        if (base.isEmpty()) return null;
+        CostoCreacion cc = null;
+        for (Map.Entry<TipoRecurso, Double> e : base.entrySet()) {
+            if (cc == null) cc = new CostoCreacion(e.getKey(), e.getValue());
+            else cc.agregar(e.getKey(), e.getValue());
+        }
+        return cc;
     }
 
     public Map<TipoRecurso, Recurso> getTodosRecursos() {

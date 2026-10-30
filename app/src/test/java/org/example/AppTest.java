@@ -73,7 +73,7 @@ class AppTest {
         assertNotNull(velOrbital);
         assertTrue(velOrbital.magnitud() > 0);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x, pos.y, 1.0, velOrbital);
+        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x(), pos.y(), 1.0, velOrbital);
         assertNotNull(planeta);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, planeta.getTipoCuerpo());
 
@@ -92,7 +92,7 @@ class AppTest {
 
         Vector2D pos = new Vector2D(150, 0);
         Vector2D vel = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(estrella, pos, false);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x, pos.y, 1.0, vel);
+        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x(), pos.y(), 1.0, vel);
         cuerpos.add(planeta);
 
         Vector2D posInicial = new Vector2D(planeta.getPosicionX(), planeta.getPosicionY());
@@ -103,7 +103,7 @@ class AppTest {
         }
 
         Vector2D posFinal = new Vector2D(planeta.getPosicionX(), planeta.getPosicionY());
-        assertNotEquals(posInicial.y, posFinal.y);
+        assertNotEquals(posInicial.y(), posFinal.y());
         assertTrue(cuerpos.contains(planeta));
     }
 
@@ -676,9 +676,9 @@ class AppTest {
         motorFisica.avanzarPaso(cuerpos);
 
         // El planeta 2x debe acelerar hacia la izquierda (-X) con mayor intensidad que el 5x hacia la derecha (+X)
-        assertTrue(p2x.getVelocidad().x < 0, "El planeta 2x debe ser atraído hacia el 5x");
-        assertTrue(p5x.getVelocidad().x > 0, "El planeta 5x se mueve hacia el 2x cumpliendo acción y reacción");
-        assertTrue(Math.abs(p2x.getVelocidad().x) > Math.abs(p5x.getVelocidad().x), "El 2x debe moverse más rápido que el 5x");
+        assertTrue(p2x.getVelocidad().x() < 0, "El planeta 2x debe ser atraído hacia el 5x");
+        assertTrue(p5x.getVelocidad().x() > 0, "El planeta 5x se mueve hacia el 2x cumpliendo acción y reacción");
+        assertTrue(Math.abs(p2x.getVelocidad().x()) > Math.abs(p5x.getVelocidad().x()), "El 2x debe moverse más rápido que el 5x");
 
         // Avanzar la simulación hasta el colapso
         for (int i = 0; i < 50 && cuerpos.contains(p2x); i++) {
@@ -738,7 +738,7 @@ class AppTest {
         Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
         Vector2D posTierra = new Vector2D(160, 0); // 160px > 85px de radio de colapso
         Vector2D velTierra = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posTierra, false);
-        Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x, posTierra.y, 1.0, velTierra);
+        Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x(), posTierra.y(), 1.0, velTierra);
         cuerpos.add(sol);
         cuerpos.add(tierra);
 

@@ -75,7 +75,7 @@ public final class ServicioEscudo {
         if (!yaTieneSatelite) {
             double radioOrbita = planeta.getRadio() + 25.0;
             Vector2D posSatelite = planeta.getPosicion().sumar(new Vector2D(radioOrbita, 0));
-            Satelite sat = CuerpoCelesteFactory.crearSatelite(posSatelite.x, posSatelite.y, 1.0, Vector2D.cero());
+            Satelite sat = CuerpoCelesteFactory.crearSatelite(posSatelite.x(), posSatelite.y(), 1.0, Vector2D.cero());
             sat.setCuerpoOrbitado(planeta);
             sat.setRadioOrbita(radioOrbita);
 

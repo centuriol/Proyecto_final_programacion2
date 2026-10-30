@@ -114,8 +114,8 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
 
     @Override
     public void confirmarPaso(Vector2D nuevaPosicion, Vector2D nuevaVelocidad) {
-        this.posicionX = nuevaPosicion.x;
-        this.posicionY = nuevaPosicion.y;
+        this.posicionX = nuevaPosicion.x();
+        this.posicionY = nuevaPosicion.y();
         this.velocidad = nuevaVelocidad;
     }
 
@@ -149,121 +149,13 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
     }
 
     /**
-     * Actualiza la entidad dinámicamente por tick polimórficamente (LSP / OCP).
-     */
-    public void actualizarEntidad(double dt) {
-        // No-op por defecto
-    }
-
-    /**
-     * Indica si este cuerpo cumplió su tiempo de vida y debe ser removido (LSP).
-     */
-    public boolean estaExpirado() {
-        return false;
-    }
-
-    /**
-     * Indica si este cuerpo celeste alberga una civilización activa (LSP).
-     */
-    public boolean tieneCivilizacion() {
-        return false;
-    }
-
-    /**
-     * Obtiene el componente de civilización si lo tiene, o null (LSP).
-     */
-    public CivilizacionComponent getCivilizacion() {
-        return null;
-    }
-
-    /**
-     * Actualiza la civilización asociada si el cuerpo es civilizable (LSP/OCP).
-     */
-    public void actualizarCivilizacion(List<CuerpoCeleste> cuerpos) {
-        // No-op por defecto
-    }
-
-    /**
-     * Indica si este cuerpo fue transformado por un evento del sistema (LSP).
-     */
-    public boolean isTransformadoPorEvento() {
-        return false;
-    }
-
-    /**
-     * Establece el estado de transformación por evento (LSP).
-     */
-    public void setTransformadoPorEvento(boolean transformado) {
-        // No-op por defecto
-    }
-
-    /**
      * Indica si el jugador puede recibir un reembolso de recursos al desmantelar este cuerpo.
      */
     public boolean permiteReembolso() {
-        return !isTransformadoPorEvento();
-    }
-
-    /**
-     * Métodos polimórficos de Escudo por planeta (LSP / OCP).
-     */
-    public boolean tieneEscudo() {
-        return false;
-    }
-
-    public int getGolpesEscudoRestantes() {
-        return 0;
-    }
-
-    public void activarEscudo(int golpes) {
-        // No-op por defecto
-    }
-
-    public boolean absorberGolpeEscudo() {
-        return false;
-    }
-
-    public boolean puedeRecibirEscudo() {
-        return false;
-    }
-
-    /**
-     * Métodos polimórficos de Colonización (LSP / OCP).
-     */
-    public boolean puedeSerColonizado() {
-        return false;
-    }
-
-    public void recibirColonos(double poblacionColonos) {
-        // No-op por defecto
-    }
-
-    /**
-     * Radio efectivo de defensa de estructuras con escudo (LSP).
-     */
-    public double getRadioEscudo() {
-        return 65.0;
-    }
-
-    /**
-     * Fase de animación de pulso visual de estructuras defensivas (LSP).
-     */
-    public double getPulsoVisual() {
-        return 0.0;
-    }
-
-    /**
-     * Indica si este cuerpo puede transformarse por condiciones del entorno (LSP / OCP).
-     */
-    public boolean esTransformable() {
-        return false;
-    }
-
-    /**
-     * Transforma polimórficamente el cuerpo a un nuevo tipo astronómico (LSP / OCP).
-     */
-    public void transformarA(TipoCuerpo nuevoTipo) {
-        // No-op por defecto
+        if (this instanceof Transformable t) {
+            return !t.isTransformadoPorEvento();
+        }
+        return true;
     }
 
     // ===== Métodos abstractos para vista =====
@@ -285,8 +177,8 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
 
     @Override
     public void setPosicion(Vector2D pos) {
-        this.posicionX = pos.x;
-        this.posicionY = pos.y;
+        this.posicionX = pos.x();
+        this.posicionY = pos.y();
     }
 
     // ===== Estado Orbital =====

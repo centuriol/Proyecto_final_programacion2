@@ -219,7 +219,7 @@ public class NuevasMecanicasOrbitaTest {
         Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
         Vector2D posPorro = new Vector2D(150, 0);
         Vector2D velPorro = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posPorro, false);
-        Planeta porro = CuerpoCelesteFactory.crearPlanetaRocoso(posPorro.x, posPorro.y, 1.0, velPorro);
+        Planeta porro = CuerpoCelesteFactory.crearPlanetaRocoso(posPorro.x(), posPorro.y(), 1.0, velPorro);
         CivilizacionComponent civ = porro.getCivilizacion();
         assertNotNull(civ);
 
@@ -431,7 +431,7 @@ public class NuevasMecanicasOrbitaTest {
 
         // Debe haber sido atraído fuertemente hacia la izquierda (dirección hacia x=0)
         Vector2D velFinal = planetaLejano.getVelocidad();
-        assertTrue(velFinal.x < -10.0, "El agujero negro debe atraer fuertemente sin importar la gran distancia (vel x < -10)");
+        assertTrue(velFinal.x() < -10.0, "El agujero negro debe atraer fuertemente sin importar la gran distancia (vel x < -10)");
         assertTrue(velFinal.magnitud() >= 12.0, "La fuerza de atracción debe ser masiva y perceptible");
     }
 

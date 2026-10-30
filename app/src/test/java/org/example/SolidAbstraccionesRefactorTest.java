@@ -114,7 +114,9 @@ public class SolidAbstraccionesRefactorTest {
         }
 
         // Si esta transformado por evento, no permite reembolso (Tarea 5)
-        planeta.setTransformadoPorEvento(true);
+        if (planeta instanceof Transformable t) {
+            t.setTransformadoPorEvento(true);
+        }
         assertFalse(planeta.permiteReembolso());
         Map<TipoRecurso, Double> reembolsoTransformado = ServicioReembolso.calcularReembolso(planeta);
         assertTrue(reembolsoTransformado.isEmpty(), "No debe haber reembolso si fue transformado por evento");
@@ -167,17 +169,19 @@ public class SolidAbstraccionesRefactorTest {
     }
 
     @Test
-    @DisplayName("CuerpoCeleste tiene metodos polimorficos por defecto sin requerir casts ni instanceof (LSP)")
+    @DisplayName("CuerpoCeleste segrega capacidades en interfaces chicas (ISP / LSP)")
     void testPolimorfismoCuerpoCeleste() {
         CuerpoCeleste cuerpo = new Planeta("PocoComun", 100.0, 0, 0);
 
-        // Actualizar entidad por defecto es seguro y no-op
-        assertDoesNotThrow(() -> cuerpo.actualizarEntidad(0.016));
-        assertFalse(cuerpo.estaExpirado());
         assertTrue(cuerpo.permiteReembolso());
-        assertEquals(65.0, cuerpo.getRadioEscudo(), 0.001);
-        assertEquals(0.0, cuerpo.getPulsoVisual(), 0.001);
-        assertDoesNotThrow(() -> cuerpo.actualizarCivilizacion(List.of()));
+        assertTrue(cuerpo instanceof Civilizable);
+        assertTrue(cuerpo instanceof Defensor);
+        Defensor defensor = (Defensor) cuerpo;
+        assertEquals(65.0, defensor.getRadioEscudo(), 0.001);
+        assertEquals(0.0, defensor.getPulsoVisual(), 0.001);
+
+        Civilizable civilizable = (Civilizable) cuerpo;
+        assertDoesNotThrow(() -> civilizable.actualizarCivilizacion(List.of()));
     }
 
     // Helper classes para tests
@@ -195,7 +199,7 @@ public class SolidAbstraccionesRefactorTest {
         }
     }
 
-    private static class CuerpoExpirableTest extends Planeta {
+    private static class CuerpoExpirableTest extends Planeta implements Expirable {
         public CuerpoExpirableTest(String nombre, double masa, double x, double y) {
             super(nombre, masa, x, y);
         }

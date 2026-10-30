@@ -19,8 +19,11 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Defensor;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.Transformable;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
@@ -303,14 +306,14 @@ public class VentanaDescripcionCuerpo {
         prodBox.getChildren().add(lblProdTitulo);
 
         double factorMasa = tipo.masaBase > 0 ? Math.max(0.1, cuerpo.getMasa() / tipo.masaBase) : 1.0;
-        Map<TipoRecurso, Double> prod = (cuerpo != null && cuerpo.isTransformadoPorEvento())
+        Map<TipoRecurso, Double> prod = (cuerpo instanceof Transformable t && t.isTransformadoPorEvento())
                 ? java.util.Collections.emptyMap()
                 : InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
         poblarListaProduccion(prodBox, prod);
 
         // Civilización si el cuerpo la alberga polimórficamente (LSP)
-        if (cuerpo != null && cuerpo.tieneCivilizacion() && cuerpo.getCivilizacion() != null) {
-            var civ = cuerpo.getCivilizacion();
+        if (cuerpo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+            var comp = civ.getCivilizacion();
             VBox civBox = new VBox(4);
             civBox.setPadding(new Insets(10));
             civBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
@@ -319,11 +322,11 @@ public class VentanaDescripcionCuerpo {
             lblCivTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             lblCivTitulo.setTextFill(Color.web("#5be3ff"));
 
-            Label lblPob = new Label(String.format("• Población: %.0f habitantes", civ.getPoblacion()));
+            Label lblPob = new Label(String.format("• Población: %.0f habitantes", comp.getPoblacion()));
             lblPob.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
             lblPob.setTextFill(Color.web("#d1d5db"));
 
-            Label lblEst = new Label("• Estado: " + civ.getEstado().name());
+            Label lblEst = new Label("• Estado: " + comp.getEstado().name());
             lblEst.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
             lblEst.setTextFill(Color.web("#50fa7b"));
 
@@ -332,7 +335,7 @@ public class VentanaDescripcionCuerpo {
         }
 
         // Defensa por Escudo
-        if (cuerpo.puedeRecibirEscudo()) {
+        if (cuerpo instanceof Defensor def && def.puedeRecibirEscudo()) {
             VBox escudoBox = new VBox(6);
             escudoBox.setPadding(new Insets(10));
             escudoBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
@@ -341,17 +344,17 @@ public class VentanaDescripcionCuerpo {
             lblEscudoTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             lblEscudoTitulo.setTextFill(Color.web("#5be3ff"));
 
-            String estadoEscudo = cuerpo.tieneEscudo()
-                    ? "Escudo: " + cuerpo.getGolpesEscudoRestantes() + " golpes restantes"
+            String estadoEscudo = def.tieneEscudo()
+                    ? "Escudo: " + def.getGolpesEscudoRestantes() + " golpes restantes"
                     : "Escudo: Inactivo";
             Label lblEstadoEscudo = new Label(estadoEscudo);
             lblEstadoEscudo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
-            lblEstadoEscudo.setTextFill(Color.web(cuerpo.tieneEscudo() ? "#50fa7b" : "#8c92a4"));
+            lblEstadoEscudo.setTextFill(Color.web(def.tieneEscudo() ? "#50fa7b" : "#8c92a4"));
 
             double costoEscudo = (cuerpo instanceof org.example.game.cuerpo.Planeta p)
                     ? org.example.game.cuerpo.ServicioEscudo.calcularCostoEscudo(p)
                     : ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
-            Button btnActivarEscudo = new Button(cuerpo.tieneEscudo()
+            Button btnActivarEscudo = new Button(def.tieneEscudo()
                     ? String.format("Reactivar Escudo (%.0f ENE)", costoEscudo)
                     : String.format("Activar Escudo (%.0f ENE)", costoEscudo));
             btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));

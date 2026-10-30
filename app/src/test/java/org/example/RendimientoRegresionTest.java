@@ -114,8 +114,8 @@ public class RendimientoRegresionTest {
 
         assertNotNull(tray);
         assertEquals(51, tray.size(), "Debe contener el punto inicial mas 50 pasos futuros");
-        assertEquals(150.0, tray.get(0).x, 1e-6);
-        assertEquals(0.0, tray.get(0).y, 1e-6);
-        assertTrue(tray.get(1).y > 0.0, "La trayectoria debe avanzar en direccion Y con velocidad positiva");
+        assertEquals(150.0, tray.get(0).x(), 1e-6);
+        assertEquals(0.0, tray.get(0).y(), 1e-6);
+        assertTrue(tray.get(1).y() > 0.0, "La trayectoria debe avanzar en direccion Y con velocidad positiva");
     }
 }

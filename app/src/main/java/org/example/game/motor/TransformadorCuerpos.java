@@ -146,7 +146,7 @@ public class TransformadorCuerpos {
         if (estrellas.isEmpty()) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (!c.esSimulado() || !c.esTransformable()) continue;
+            if (!c.esSimulado() || !(c instanceof org.example.game.cuerpo.Transformable t && t.esTransformable())) continue;
 
             // Un cuerpo no puede tener dos procesos a la vez
             if (procesosActivos.containsKey(c)) continue;
@@ -204,7 +204,9 @@ public class TransformadorCuerpos {
                 }
 
                 // Aplicar transformacion estetica y fisica al cumplirse el tiempo (Tarea 2)
-                cuerpo.transformarA(proceso.tipoDestino);
+                if (cuerpo instanceof org.example.game.cuerpo.Transformable trans) {
+                    trans.transformarA(proceso.tipoDestino);
+                }
                 cuerpo.setNombre(proceso.nombreResultante);
 
                 // Iniciar migracion gradual
@@ -234,12 +236,8 @@ public class TransformadorCuerpos {
                 cuerpo.setRadioOrbita(proceso.radioOrbitaDestino);
 
                 // Calibrar velocidad tangencial circular exacta
-                Vector2D r = cuerpo.getPosicion().restar(estrella.getPosicion());
-                double d = Math.max(0.1, r.magnitud());
-                Vector2D uRadial = r.dividir(d);
-                Vector2D uTangencial = new Vector2D(-uRadial.y, uRadial.x);
-                double vOrb = Math.sqrt(ConstantesFisicas.G_ESCALADO * estrella.getMasa() / d);
-                cuerpo.setVelocidad(estrella.getVelocidad().sumar(uTangencial.multiplicar(vOrb)));
+                Vector2D velOrb = CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, cuerpo.getPosicion(), false);
+                cuerpo.setVelocidad(velOrb);
 
                 procesosActivos.remove(cuerpo);
             }
@@ -255,7 +253,7 @@ public class TransformadorCuerpos {
     public Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
         double radioBase = radioActivacion + 40.0;
         Vector2D dirActual = cuerpo.getPosicion().restar(estrella.getPosicion());
-        double anguloActual = (dirActual.magnitud() > 0.001) ? Math.atan2(dirActual.y, dirActual.x) : 0.0;
+        double anguloActual = (dirActual.magnitud() > 0.001) ? Math.atan2(dirActual.y(), dirActual.x()) : 0.0;
 
         int pasosAngulares = 16;
         for (int intentoRadio = 0; intentoRadio <= ConfiguracionSimulacion.MAX_INTENTOS_ORBITA_LIBRE; intentoRadio++) {

@@ -332,7 +332,7 @@ public class RenderizadorPixelArt {
         gc.restore();
 
         // Cúpula de escudo planetario
-        if (c.tieneEscudo()) {
+        if (c instanceof org.example.game.cuerpo.Defensor d && d.tieneEscudo()) {
             dibujarCupulaEscudo(gc, x, y, r, tick);
         }
 
@@ -384,7 +384,7 @@ public class RenderizadorPixelArt {
         double r = c.getRadio();
         double tam = Math.max(22.0, r * 2.0);
         gc.drawImage(imgPlaneta, Math.round(cx - tam / 2.0), Math.round(cy - tam / 2.0), tam, tam);
-        if (c.tieneCivilizacion()) {
+        if (c instanceof org.example.game.cuerpo.Civilizable civ && civ.tieneCivilizacion()) {
             gc.setFill(colorWeb("#5be3ff"));
             gc.fillRect(cx - r * 0.3, cy - r * 0.2, 2, 2);
             gc.fillRect(cx + r * 0.2, cy + r * 0.1, 2, 2);
@@ -417,7 +417,7 @@ public class RenderizadorPixelArt {
         gc.fillArc(cx - r, cy - r, r * 2, r * 2, 90, 180, javafx.scene.shape.ArcType.ROUND);
 
         // Si tiene civilización: luces de ciudades en el lado oscuro
-        if (c.tieneCivilizacion()) {
+        if (c instanceof org.example.game.cuerpo.Civilizable civ && civ.tieneCivilizacion()) {
             gc.setFill(colorWeb("#5be3ff"));
             gc.fillRect(cx - r * 0.4, cy - r * 0.1, 2, 2);
             gc.fillRect(cx - r * 0.2, cy + r * 0.3, 2, 2);
@@ -535,8 +535,8 @@ public class RenderizadorPixelArt {
         for (org.example.game.colonizacion.NaveColonizadora nave : naves) {
             if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
             Vector2D pos = nave.getPosicion();
-            double sx = ConstantesFisicas.fisicaAXJavaFX(pos.x, anchoCanvas);
-            double sy = ConstantesFisicas.fisicaAYJavaFX(pos.y, altoCanvas);
+            double sx = ConstantesFisicas.fisicaAXJavaFX(pos.x(), anchoCanvas);
+            double sy = ConstantesFisicas.fisicaAYJavaFX(pos.y(), altoCanvas);
 
             // Dibujar nave ligera en tránsito (verde brillante)
             gc.save();
@@ -555,8 +555,8 @@ public class RenderizadorPixelArt {
 
         // Cola de fuego de partículas
         double lenCola = Math.min(40.0, vel.magnitud() * 0.04);
-        double fx = cx + dirOpuesta.x * lenCola;
-        double fy = cy + dirOpuesta.y * lenCola;
+        double fx = cx + dirOpuesta.x() * lenCola;
+        double fy = cy + dirOpuesta.y() * lenCola;
 
         gc.setStroke(colorRgb(255, 100, 20, 0.8));
         gc.setLineWidth(4.0);
@@ -564,7 +564,7 @@ public class RenderizadorPixelArt {
 
         gc.setStroke(colorRgb(255, 220, 50, 0.9));
         gc.setLineWidth(2.0);
-        gc.strokeLine(cx, cy, cx + dirOpuesta.x * lenCola * 0.6, cy + dirOpuesta.y * lenCola * 0.6);
+        gc.strokeLine(cx, cy, cx + dirOpuesta.x() * lenCola * 0.6, cy + dirOpuesta.y() * lenCola * 0.6);
 
         // Roca del meteorito
         gc.setFill(Color.BLACK);
@@ -644,12 +644,12 @@ public class RenderizadorPixelArt {
         int total = trayectoria.size();
 
         for (Vector2D ptFisica : trayectoria) {
-            double x = ConstantesFisicas.fisicaAXJavaFX(ptFisica.x, anchoCanvas);
-            double y = ConstantesFisicas.fisicaAYJavaFX(ptFisica.y, altoCanvas);
+            double x = ConstantesFisicas.fisicaAXJavaFX(ptFisica.x(), anchoCanvas);
+            double y = ConstantesFisicas.fisicaAYJavaFX(ptFisica.y(), altoCanvas);
 
             if (prev != null) {
-                double x0 = ConstantesFisicas.fisicaAXJavaFX(prev.x, anchoCanvas);
-                double y0 = ConstantesFisicas.fisicaAYJavaFX(prev.y, altoCanvas);
+                double x0 = ConstantesFisicas.fisicaAXJavaFX(prev.x(), anchoCanvas);
+                double y0 = ConstantesFisicas.fisicaAYJavaFX(prev.y(), altoCanvas);
 
                 double alpha = 1.0 - ((double) i / total) * 0.75;
                 gc.setStroke(colorRgb(91, 227, 255, alpha));
@@ -663,10 +663,10 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarVectorLanzamiento(GraphicsContext gc, Vector2D inicioFisica, Vector2D actualFisica) {
-        double x0 = ConstantesFisicas.fisicaAXJavaFX(inicioFisica.x, anchoCanvas);
-        double y0 = ConstantesFisicas.fisicaAYJavaFX(inicioFisica.y, altoCanvas);
-        double x1 = ConstantesFisicas.fisicaAXJavaFX(actualFisica.x, anchoCanvas);
-        double y1 = ConstantesFisicas.fisicaAYJavaFX(actualFisica.y, altoCanvas);
+        double x0 = ConstantesFisicas.fisicaAXJavaFX(inicioFisica.x(), anchoCanvas);
+        double y0 = ConstantesFisicas.fisicaAYJavaFX(inicioFisica.y(), altoCanvas);
+        double x1 = ConstantesFisicas.fisicaAXJavaFX(actualFisica.x(), anchoCanvas);
+        double y1 = ConstantesFisicas.fisicaAYJavaFX(actualFisica.y(), altoCanvas);
 
         // Vector slingshot invertido (arrastre hacia atrás impulsa hacia adelante)
         double vx = x0 - (x1 - x0);
@@ -689,8 +689,8 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarGhostPreview(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa, String previewNombre, long tick) {
-        double x = ConstantesFisicas.fisicaAXJavaFX(posFisica.x, anchoCanvas);
-        double y = ConstantesFisicas.fisicaAYJavaFX(posFisica.y, altoCanvas);
+        double x = ConstantesFisicas.fisicaAXJavaFX(posFisica.x(), anchoCanvas);
+        double y = ConstantesFisicas.fisicaAYJavaFX(posFisica.y(), altoCanvas);
         double r = Math.max(8.0, Math.min(35.0, 15.0 * factorMasa));
 
         double pulso = 1.0 + 0.15 * Math.sin(tick * 0.25);

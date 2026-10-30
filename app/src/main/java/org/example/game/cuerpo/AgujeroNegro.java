@@ -15,8 +15,8 @@ public class AgujeroNegro extends CuerpoCeleste {
     public void absorber(CuerpoCeleste victima) {
         if (victima == null) return;
         setMasa(getMasa() + victima.getMasa());
-        if (victima.tieneCivilizacion() && victima.getCivilizacion() != null) {
-            victima.getCivilizacion().destruir();
+        if (victima instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+            civ.getCivilizacion().destruir();
         }
         victima.setSimulado(false);
         victima.setMasa(0);

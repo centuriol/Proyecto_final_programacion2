@@ -7,7 +7,7 @@ import org.example.game.motor.Vector2D;
  * Meteorito/asteroide: cuerpo pequeño con vida útil limitada.
  * Puede ser spawn natural (evento cósmico) o lanzado por el jugador.
  */
-public class Meteorito extends CuerpoCeleste {
+public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable {
     private double tiempoVidaRestante; // ticks
     private final boolean lanzadoPorJugador;
     private double danoImpacto; // Para mecánicas futuras

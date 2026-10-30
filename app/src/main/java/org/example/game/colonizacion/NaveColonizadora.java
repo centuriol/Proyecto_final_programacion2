@@ -42,7 +42,9 @@ public class NaveColonizadora {
             // Llegó al destino
             this.posicion = posDestino;
             this.completada = true;
-            destino.recibirColonos(poblacionColonos);
+            if (destino instanceof org.example.game.cuerpo.Colonizable col) {
+                col.recibirColonos(poblacionColonos);
+            }
         } else {
             Vector2D desplazamiento = dir.normalizar().multiplicar(vel);
             this.posicion = this.posicion.sumar(desplazamiento);

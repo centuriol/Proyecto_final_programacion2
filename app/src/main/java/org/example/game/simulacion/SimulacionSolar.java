@@ -93,15 +93,16 @@ public class SimulacionSolar {
         this.gestorEfectos = gestorEfectos != null ? gestorEfectos : new GestorEfectos();
 
         this.transformadorCuerpos.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-        this.motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
+        if (this.motorFisica instanceof org.example.game.motor.ObservableFisica obs) {
+            obs.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
+            obs.agregarListenerColision(() -> {
+                if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
+            });
+        }
         if (this.motorFisica instanceof MotorFisicaPermisiva mfp) {
             mfp.setListenerNotificacion(this::notificarEvento);
             mfp.setListenerExplosion(this.gestorEfectos::agregarExplosion);
         }
-
-        this.motorFisica.agregarListenerColision(() -> {
-            if (onCambioEstadoCallback != null) onCambioEstadoCallback.run();
-        });
     }
 
     public SimulacionSolar(double anchoMundo, double altoMundo,
@@ -193,11 +194,11 @@ public class SimulacionSolar {
     private void actualizarCivilizaciones() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>(sistemaSolar.getCuerpos());
         for (CuerpoCeleste c : cuerpos) {
-            if (c != null && c.tieneCivilizacion()) {
-                if (c.getCivilizacion() != null && c.getCivilizacion().getEmisorEventos() == null) {
-                    c.getCivilizacion().setEmisorEventos(this::notificarEvento);
+            if (c instanceof org.example.game.cuerpo.Civilizable civ && civ.tieneCivilizacion()) {
+                if (civ.getCivilizacion() != null && civ.getCivilizacion().getEmisorEventos() == null) {
+                    civ.getCivilizacion().setEmisorEventos(this::notificarEvento);
                 }
-                c.actualizarCivilizacion(cuerpos);
+                civ.actualizarCivilizacion(cuerpos);
             }
         }
     }
@@ -287,8 +288,8 @@ public class SimulacionSolar {
         if (cuerpo == null) return;
         cuerpo.setSimulado(false);
         cuerpo.setMasa(0);
-        if (cuerpo.getCivilizacion() != null) {
-            cuerpo.getCivilizacion().destruir();
+        if (cuerpo instanceof org.example.game.cuerpo.Civilizable civ && civ.getCivilizacion() != null) {
+            civ.getCivilizacion().destruir();
         }
         sistemaSolar.getCuerpos().remove(cuerpo);
 
@@ -325,7 +326,7 @@ public class SimulacionSolar {
         // 2. Planeta Rocoso (Tierra) con civilización próspera
         Vector2D posTierra = new Vector2D(160, 0);
         Vector2D velTierra = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posTierra, false);
-        Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x, posTierra.y, 1.0, velTierra);
+        Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x(), posTierra.y(), 1.0, velTierra);
         tierra.setCuerpoOrbitado(sol);
         tierra.desarrollarCivilizacion();
         agregarCuerpo(tierra);
@@ -333,7 +334,7 @@ public class SimulacionSolar {
         // 3. Luna orbitando a la Tierra (órbita lejana para dejar espacio interior a satélites)
         Vector2D posLuna = new Vector2D(160 + 65, 0);
         Vector2D velLuna = velTierra.sumar(new Vector2D(0, -1.07));
-        Luna luna = CuerpoCelesteFactory.crearLuna(posLuna.x, posLuna.y, 0.8, velLuna);
+        Luna luna = CuerpoCelesteFactory.crearLuna(posLuna.x(), posLuna.y(), 0.8, velLuna);
         luna.setCuerpoOrbitado(tierra);
         agregarCuerpo(luna);
     }
@@ -426,7 +427,7 @@ public class SimulacionSolar {
                         : 1.0;
                 double vOrb = Math.sqrt(75.0 * factorMasa / dist);
                 Vector2D uRadial = r.dividir(dist);
-                Vector2D uTangencial = new Vector2D(-uRadial.y, uRadial.x);
+                Vector2D uTangencial = new Vector2D(-uRadial.y(), uRadial.x());
                 return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
             }
             return CuerpoCelesteFactory.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
@@ -439,7 +440,7 @@ public class SimulacionSolar {
             Vector2D posPreviewLocal = posicionPreview;
             Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreviewLocal);
             CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreviewLocal);
-            Optional<CuerpoCeleste> spawnedOpt = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x, posPreviewLocal.y, factorMasaColocacion, velOrbital);
+            Optional<CuerpoCeleste> spawnedOpt = spawnCuerpo(tipoColocacion, nombreColocacion, posPreviewLocal.x(), posPreviewLocal.y(), factorMasaColocacion, velOrbital);
             if (spawnedOpt.isPresent() && cuerpoCercano != null) {
                 CuerpoCeleste recienCreado = spawnedOpt.get();
                 boolean esMenor = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA || recienCreado.getTipoCuerpo() == TipoCuerpo.SATELITE;
@@ -459,7 +460,7 @@ public class SimulacionSolar {
 
     public void confirmarColocacionConImpulso(Vector2D posFisica, Vector2D velFisica) {
         if (tipoColocacion != null) {
-            spawnCuerpo(tipoColocacion, nombreColocacion, posFisica.x, posFisica.y, factorMasaColocacion, velFisica);
+            spawnCuerpo(tipoColocacion, nombreColocacion, posFisica.x(), posFisica.y(), factorMasaColocacion, velFisica);
         }
     }
 

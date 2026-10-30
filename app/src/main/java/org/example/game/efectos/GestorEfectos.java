@@ -38,8 +38,8 @@ public class GestorEfectos {
             double alpha = Math.max(0.0, 1.0 - prog);
             double radio = radioInicial + prog * 50.0;
 
-            double cx = ConstantesFisicas.fisicaAXJavaFX(posicionFisica.x, anchoCanvas);
-            double cy = ConstantesFisicas.fisicaAYJavaFX(posicionFisica.y, altoCanvas);
+            double cx = ConstantesFisicas.fisicaAXJavaFX(posicionFisica.x(), anchoCanvas);
+            double cy = ConstantesFisicas.fisicaAYJavaFX(posicionFisica.y(), altoCanvas);
 
             // Anillo exterior
             gc.save();

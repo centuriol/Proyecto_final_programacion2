@@ -147,7 +147,9 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
     private void actualizarEntidadesEspeciales(List<CuerpoCeleste> cuerpos) {
         for (CuerpoCeleste c : cuerpos) {
-            c.actualizarEntidad(dt);
+            if (c instanceof org.example.game.cuerpo.Actualizable act) {
+                act.actualizarEntidad(dt);
+            }
         }
     }
 

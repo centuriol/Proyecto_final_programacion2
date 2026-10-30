@@ -48,7 +48,7 @@ public class GestorColonizacion {
             return false;
         }
 
-        if (destino == null || destino == origen || !destino.puedeSerColonizado()) {
+        if (destino == null || destino == origen || !(destino instanceof org.example.game.cuerpo.Colonizable col && col.puedeSerColonizado())) {
             if (emisorEventos != null) {
                 emisorEventos.accept(new MensajeEvento(
                         "El destino seleccionado no puede ser colonizado o ya tiene civilización.",
