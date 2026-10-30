@@ -9,10 +9,8 @@ import org.example.game.simulacion.SimulacionSolar;
  * Bucle principal de juego (Game Loop).
  *
  * Principios SOLID:
- * - SRP: Responsable exclusivamente de la temporización (fixed-timestep a 20 TPS base con multiplicador),
- *   ejecución de ticks físicos y disparo del renderizado en cada cuadro de animación.
- * - DIP: Recibe dependencias desacopladas (SimulacionSolar, RenderizadorPixelArt, Canvas, ProveedorEstadoInteraccion)
- *   en lugar de crearlas o acoplarlas rígidamente.
+ * - SRP: Temporización, ejecución de ticks y disparo de renderizado estructurado en métodos breves y legibles.
+ * - DIP: Recibe dependencias desacopladas (SimulacionSolar, RenderizadorPixelArt, Canvas, ProveedorEstadoInteraccion).
  */
 public class BucleJuego extends AnimationTimer {
 
@@ -44,7 +42,14 @@ public class BucleJuego extends AnimationTimer {
         double deltaTime = (now - lastTickTime) / 1_000_000_000.0;
         lastTickTime = now;
 
-        // Ticks fijos a 20 TPS base * multiplicador de velocidad
+        actualizarTicksFisicos(deltaTime);
+        simulacion.notificarListenersUI();
+        sincronizarDimensiones();
+        actualizarAnimaciones(deltaTime);
+        renderizarFrame();
+    }
+
+    private void actualizarTicksFisicos(double deltaTime) {
         double ticksPorSegundo = 20.0 * simulacion.getVelocidadSimulacion();
         double tiempoPorTick = 1.0 / ticksPorSegundo;
 
@@ -53,31 +58,33 @@ public class BucleJuego extends AnimationTimer {
 
         if (ticksAEjecutar > 0) {
             tickAcumulado -= ticksAEjecutar * tiempoPorTick;
-            ticksAEjecutar = Math.min(ticksAEjecutar, 8); // Evitar espiral de retraso
+            ticksAEjecutar = Math.min(ticksAEjecutar, 8);
             for (int i = 0; i < ticksAEjecutar; i++) {
                 simulacion.avanzarTick();
+                renderizador.actualizarEstelas(simulacion.getSistemaSolar().getCuerpos());
             }
         }
+    }
 
-        // Notificar observadores de UI exactamente una vez por frame desacoplada de la física
-        simulacion.notificarListenersUI();
-
-        // Sincronizar dimensiones si el lienzo se adapta a la ventana/pantalla
+    private void sincronizarDimensiones() {
         double anchoActual = canvas.getWidth();
         double altoActual = canvas.getHeight();
-        if (anchoActual > 0 && altoActual > 0 && (anchoActual != renderizador.getAnchoCanvas() || altoActual != renderizador.getAltoCanvas())) {
+        if (anchoActual > 0 && altoActual > 0 &&
+                (anchoActual != renderizador.getAnchoCanvas() || altoActual != renderizador.getAltoCanvas())) {
             renderizador.setDimensiones(anchoActual, altoActual);
             simulacion.setDimensionesMundo(anchoActual, altoActual);
             if (proveedorEstado != null) {
                 proveedorEstado.setDimensiones(anchoActual, altoActual);
             }
         }
+    }
 
-        // Desplazamiento continuo del fondo espacial y rotación de ítems sobre su propio eje (escala con 1x, 2x, 4x)
+    private void actualizarAnimaciones(double deltaTime) {
         double multVelocidad = simulacion.isEnPausa() ? 0.0 : simulacion.getVelocidadSimulacion();
         renderizador.avanzarAnimaciones(Math.min(deltaTime, 0.1), multVelocidad);
+    }
 
-        // Renderizar frame completo en Pixel Art
+    private void renderizarFrame() {
         renderizador.renderizarTodo(
                 canvas.getGraphicsContext2D(),
                 simulacion.getSistemaSolar().getCuerpos(),
@@ -86,7 +93,7 @@ public class BucleJuego extends AnimationTimer {
                 simulacion.getTipoColocacion(),
                 simulacion.getFactorMasaColocacion(),
                 simulacion.getNombreColocacion(),
-                null, // Sin vector de impulso/lanzamiento
+                null,
                 proveedorEstado != null ? proveedorEstado.getTrayectoriaPreview() : java.util.Collections.emptyList(),
                 proveedorEstado != null ? proveedorEstado.getCuerpoSeleccionado() : null
         );

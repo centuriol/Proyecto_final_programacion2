@@ -28,6 +28,10 @@ public class WidgetFactorMasa extends VBox {
     private DoubleConsumer onFactorCambiado;
 
     public WidgetFactorMasa(String tituloPrompt, double factorInicial, double masaBase) {
+        this(tituloPrompt, factorInicial, masaBase, ConfiguracionSimulacion.MASA_FACTOR_MAX);
+    }
+
+    public WidgetFactorMasa(String tituloPrompt, double factorInicial, double masaBase, double factorMax) {
         super(4);
         this.masaBase = masaBase;
 
@@ -44,12 +48,13 @@ public class WidgetFactorMasa extends VBox {
 
         headerBox.getChildren().addAll(lblPrompt, lblValor);
 
+        double maxEfectivo = Math.max(ConfiguracionSimulacion.MASA_FACTOR_MIN, factorMax);
         double inicialClamped = Math.max(ConfiguracionSimulacion.MASA_FACTOR_MIN,
-                Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, factorInicial));
+                Math.min(maxEfectivo, factorInicial));
 
         this.slider = new Slider(
                 ConfiguracionSimulacion.MASA_FACTOR_MIN,
-                ConfiguracionSimulacion.MASA_FACTOR_MAX,
+                maxEfectivo,
                 inicialClamped
         );
         slider.setShowTickMarks(true);

@@ -1,6 +1,6 @@
 package org.example.game.motor;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +41,10 @@ public class TrayectoriaPredictor {
         List<Vector2D> trayectoria = new ArrayList<>(pasos + 1);
         if (posInicial == null || velInicial == null) return trayectoria;
 
-        double px = posInicial.x;
-        double py = posInicial.y;
-        double vx = velInicial.x;
-        double vy = velInicial.y;
+        double px = posInicial.x();
+        double py = posInicial.y();
+        double vx = velInicial.x();
+        double vy = velInicial.y();
 
         trayectoria.add(new Vector2D(px, py));
 
@@ -61,8 +61,8 @@ public class TrayectoriaPredictor {
                 if (c == null) continue;
 
                 Vector2D posC = c.getPosicion();
-                double rx = posC.x - px;
-                double ry = posC.y - py;
+                double rx = posC.x() - px;
+                double ry = posC.y() - py;
                 double r2 = rx * rx + ry * ry + softeningCuadrado;
                 double rMag = Math.sqrt(r2);
 

@@ -1,6 +1,6 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 
 /**
  * Luna craterizada que puede orbitar planetas o estrellas.

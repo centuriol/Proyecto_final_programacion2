@@ -1,96 +1,124 @@
 package org.example.game.cuerpo;
 
-import org.example.CuerpoCeleste;
-import org.example.Estrella;
-import org.example.Planeta;
-import org.example.AgujeroNegro;
+import org.example.game.motor.CalculadorOrbital;
 import org.example.game.motor.Vector2D;
-import org.example.game.motor.ConstantesFisicas;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Factory para creación dinámica de cuerpos celestes.
- * Centraliza la lógica de construcción con parámetros de juego.
- * OCP: Extensible mediante el registro de estrategias CreadorCuerpo sin modificar código existente.
+ * Fábrica instanciable y configurable para creación dinámica de cuerpos celestes.
+ * Proporciona registro de estrategias CreadorCuerpo y métodos estáticos de conveniencia (OCP / DIP).
  */
-public final class CuerpoCelesteFactory {
+public class CuerpoCelesteFactory {
 
     @FunctionalInterface
     public interface CreadorCuerpo {
         CuerpoCeleste crear(double x, double y, double factorMasa, Vector2D velocidadInicial);
     }
 
-    private static final Map<TipoCuerpo, CreadorCuerpo> REGISTRO_CREADORES = new EnumMap<>(TipoCuerpo.class);
-    private static long contadorId = 0;
+    private final Map<TipoCuerpo, CreadorCuerpo> registro = new EnumMap<>(TipoCuerpo.class);
+    private final AtomicLong contadorId = new AtomicLong(0);
 
-    static {
-        registrarCreador(TipoCuerpo.ESTRELLA, (x, y, factorMasa, vel) -> {
+    private static final CuerpoCelesteFactory INSTANCIA_GLOBAL = new CuerpoCelesteFactory();
+
+    public CuerpoCelesteFactory() {
+        inicializarCreadoresPorDefecto();
+    }
+
+    public static CuerpoCelesteFactory getInstancia() {
+        return INSTANCIA_GLOBAL;
+    }
+
+    private void inicializarCreadoresPorDefecto() {
+        registro.put(TipoCuerpo.ESTRELLA, (x, y, factorMasa, vel) -> {
             Estrella e = crearEstrella(x, y, factorMasa);
             e.setVelocidad(vel);
             return e;
         });
-        registrarCreador(TipoCuerpo.PLANETA_ROCOSO, CuerpoCelesteFactory::crearPlanetaRocoso);
-        registrarCreador(TipoCuerpo.PLANETA_AGUA, CuerpoCelesteFactory::crearPlanetaAgua);
-        registrarCreador(TipoCuerpo.PLANETA_LAVA, CuerpoCelesteFactory::crearPlanetaLava);
-        registrarCreador(TipoCuerpo.PLANETA_GASEOSO, CuerpoCelesteFactory::crearPlanetaGaseoso);
-        registrarCreador(TipoCuerpo.PLANETA_HELADO, CuerpoCelesteFactory::crearPlanetaHelado);
-        registrarCreador(TipoCuerpo.LUNA, CuerpoCelesteFactory::crearLuna);
-        registrarCreador(TipoCuerpo.SATELITE, CuerpoCelesteFactory::crearSatelite);
-        registrarCreador(TipoCuerpo.ESCUDO_DOME, CuerpoCelesteFactory::crearEscudo);
-        registrarCreador(TipoCuerpo.METEORITO, (x, y, factorMasa, vel) -> crearMeteoritoJugadorFisica(x, y, vel));
-        registrarCreador(TipoCuerpo.AGUJERO_NEGRO, (x, y, factorMasa, vel) -> {
+        registro.put(TipoCuerpo.PLANETA_ROCOSO, (x, y, factorMasa, vel) -> crearPlaneta(TipoCuerpo.PLANETA_ROCOSO, x, y, factorMasa, vel));
+        registro.put(TipoCuerpo.PLANETA_AGUA, (x, y, factorMasa, vel) -> crearPlaneta(TipoCuerpo.PLANETA_AGUA, x, y, factorMasa, vel));
+        registro.put(TipoCuerpo.PLANETA_LAVA, (x, y, factorMasa, vel) -> crearPlaneta(TipoCuerpo.PLANETA_LAVA, x, y, factorMasa, vel));
+        registro.put(TipoCuerpo.PLANETA_GASEOSO, (x, y, factorMasa, vel) -> crearPlaneta(TipoCuerpo.PLANETA_GASEOSO, x, y, factorMasa, vel));
+        registro.put(TipoCuerpo.PLANETA_HELADO, (x, y, factorMasa, vel) -> crearPlaneta(TipoCuerpo.PLANETA_HELADO, x, y, factorMasa, vel));
+        registro.put(TipoCuerpo.LUNA, this::crearLunaInstancia);
+        registro.put(TipoCuerpo.SATELITE, this::crearSateliteInstancia);
+        registro.put(TipoCuerpo.METEORITO, (x, y, factorMasa, vel) -> crearMeteoritoJugadorFisica(x, y, vel));
+        registro.put(TipoCuerpo.AGUJERO_NEGRO, (x, y, factorMasa, vel) -> {
             AgujeroNegro bh = crearAgujeroNegroEstelar(x, y, factorMasa);
             bh.setVelocidad(vel);
             return bh;
         });
-        registrarCreador(TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO, (x, y, factorMasa, vel) -> {
+        registro.put(TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO, (x, y, factorMasa, vel) -> {
             AgujeroNegro bh = crearAgujeroNegroSupermasivo(x, y, factorMasa);
             bh.setVelocidad(vel);
             return bh;
         });
     }
 
-    public static void registrarCreador(TipoCuerpo tipo, CreadorCuerpo creador) {
+    public void registrar(TipoCuerpo tipo, CreadorCuerpo creador) {
         if (tipo != null && creador != null) {
-            REGISTRO_CREADORES.put(tipo, creador);
+            registro.put(tipo, creador);
         }
+    }
+
+    public CuerpoCeleste fabricar(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        CreadorCuerpo creador = registro.get(tipo);
+        return creador != null ? creador.crear(x, y, factorMasa, velocidadInicial) : null;
+    }
+
+    public String generarNombre(String prefijo) {
+        return prefijo + "-" + contadorId.incrementAndGet();
+    }
+
+    public void resetear() {
+        contadorId.set(0);
+    }
+
+    // ===== Métodos Estáticos Delegados =====
+
+    public static void registrarCreador(TipoCuerpo tipo, CreadorCuerpo creador) {
+        INSTANCIA_GLOBAL.registrar(tipo, creador);
     }
 
     public static CuerpoCeleste crearCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        CreadorCuerpo creador = REGISTRO_CREADORES.get(tipo);
-        if (creador != null) {
-            return creador.crear(x, y, factorMasa, velocidadInicial);
-        }
-        return null;
+        return INSTANCIA_GLOBAL.fabricar(tipo, x, y, factorMasa, velocidadInicial);
     }
 
-    private CuerpoCelesteFactory() {}
-
-    private static String generarNombre(String prefijo) {
-        return prefijo + "-" + (++contadorId);
+    public static void resetearContador() {
+        INSTANCIA_GLOBAL.resetear();
     }
 
-    // ===== Estrellas =====
+    // ===== Planetas unificados =====
 
-    public static Estrella crearEstrella(double x, double y, double factorMasa) {
-        double masa = TipoCuerpo.ESTRELLA.masaBase * factorMasa;
-        return new Estrella(generarNombre("Sol"), masa, x, y);
-    }
-
-    public static Estrella crearEstrellaPersonalizada(String nombre, double masa, double x, double y) {
-        return new Estrella(nombre, masa, x, y);
-    }
-
-    // ===== Planetas =====
-
-    public static Planeta crearPlanetaRocoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.PLANETA_ROCOSO.masaBase * factorMasa;
-        Planeta p = new Planeta(generarNombre("Planeta"), masa, x, y, TipoCuerpo.PLANETA_ROCOSO);
+    public static Planeta crearPlaneta(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        TipoCuerpo tipoEfectivo = (tipo != null && tipo.esPlaneta()) ? tipo : TipoCuerpo.PLANETA_ROCOSO;
+        double masa = tipoEfectivo.masaBase * factorMasa;
+        Planeta p = new Planeta(INSTANCIA_GLOBAL.generarNombre("Planeta"), masa, x, y, tipoEfectivo);
         p.setVelocidad(velocidadInicial);
         return p;
+    }
+
+    public static Planeta crearPlanetaRocoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return crearPlaneta(TipoCuerpo.PLANETA_ROCOSO, x, y, factorMasa, velocidadInicial);
+    }
+
+    public static Planeta crearPlanetaAgua(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return crearPlaneta(TipoCuerpo.PLANETA_AGUA, x, y, factorMasa, velocidadInicial);
+    }
+
+    public static Planeta crearPlanetaLava(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return crearPlaneta(TipoCuerpo.PLANETA_LAVA, x, y, factorMasa, velocidadInicial);
+    }
+
+    public static Planeta crearPlanetaGaseoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return crearPlaneta(TipoCuerpo.PLANETA_GASEOSO, x, y, factorMasa, velocidadInicial);
+    }
+
+    public static Planeta crearPlanetaHelado(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return crearPlaneta(TipoCuerpo.PLANETA_HELADO, x, y, factorMasa, velocidadInicial);
     }
 
     public static Planeta crearPlanetaPersonalizado(String nombre, double masa, double x, double y, TipoCuerpo tipo, Vector2D velocidadInicial) {
@@ -99,61 +127,38 @@ public final class CuerpoCelesteFactory {
         return p;
     }
 
-    public static Planeta crearPlanetaGaseoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.PLANETA_GASEOSO.masaBase * factorMasa;
-        Planeta p = new Planeta(generarNombre("Gigante"), masa, x, y, TipoCuerpo.PLANETA_GASEOSO);
-        p.setVelocidad(velocidadInicial);
-        return p;
-    }
-
-    public static Planeta crearPlanetaAgua(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.PLANETA_AGUA.masaBase * factorMasa;
-        Planeta p = new Planeta(generarNombre("Agua"), masa, x, y, TipoCuerpo.PLANETA_AGUA);
-        p.setVelocidad(velocidadInicial);
-        return p;
-    }
-
-    public static Planeta crearPlanetaLava(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.PLANETA_LAVA.masaBase * factorMasa;
-        Planeta p = new Planeta(generarNombre("Lava"), masa, x, y, TipoCuerpo.PLANETA_LAVA);
-        p.setVelocidad(velocidadInicial);
-        return p;
-    }
-
-    public static Planeta crearPlanetaHelado(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.PLANETA_HELADO.masaBase * factorMasa;
-        Planeta p = new Planeta(generarNombre("Helado"), masa, x, y, TipoCuerpo.PLANETA_HELADO);
-        p.setVelocidad(velocidadInicial);
-        return p;
-    }
-
-    /** Crea planeta en órbita circular aproximada alrededor de un cuerpo central */
     public static Planeta crearPlanetaEnOrbita(CuerpoCeleste central, double distancia, double factorMasa, TipoCuerpo tipo) {
-        // Posición inicial: a la derecha del central (eje +X en coordenadas física)
         double x = central.getPosicionX() + distancia;
         double y = central.getPosicionY();
-
-        // Velocidad orbital circular: v = sqrt(G * M / r)
-        // Usar G_ESCALADO centralizado
-        double G = ConstantesFisicas.G_ESCALADO;
-        double vOrbital = Math.sqrt(G * central.getMasa() / distancia);
-
-        // En coordenadas física (Y hacia arriba), órbita contrarreloj = -Y (hacia arriba en pantalla física)
-        // La conversión a JavaFX se hace en el renderizador
+        double vOrbital = CalculadorOrbital.calcularRapidezOrbital(central.getMasa(), distancia);
         Vector2D vel = new Vector2D(0, -vOrbital);
-
         TipoCuerpo tipoPlaneta = (tipo != null && tipo.esPlaneta()) ? tipo : TipoCuerpo.PLANETA_ROCOSO;
         CuerpoCeleste c = crearCuerpo(tipoPlaneta, x, y, factorMasa, vel);
         return (c instanceof Planeta p) ? p : crearPlanetaRocoso(x, y, factorMasa, vel);
     }
 
+    // ===== Estrellas =====
+
+    public static Estrella crearEstrella(double x, double y, double factorMasa) {
+        double masa = TipoCuerpo.ESTRELLA.masaBase * factorMasa;
+        return new Estrella(INSTANCIA_GLOBAL.generarNombre("Sol"), masa, x, y);
+    }
+
+    public static Estrella crearEstrellaPersonalizada(String nombre, double masa, double x, double y) {
+        return new Estrella(nombre, masa, x, y);
+    }
+
     // ===== Satélites y Lunas =====
 
-    public static Luna crearLuna(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+    private Luna crearLunaInstancia(double x, double y, double factorMasa, Vector2D velocidadInicial) {
         double masa = TipoCuerpo.LUNA.masaBase * factorMasa;
         Luna l = new Luna(generarNombre("Luna"), masa, x, y);
         l.setVelocidad(velocidadInicial);
         return l;
+    }
+
+    public static Luna crearLuna(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return INSTANCIA_GLOBAL.crearLunaInstancia(x, y, factorMasa, velocidadInicial);
     }
 
     public static Luna crearLunaPersonalizada(String nombre, double masa, double x, double y, Vector2D velocidadInicial) {
@@ -162,96 +167,101 @@ public final class CuerpoCelesteFactory {
         return l;
     }
 
-    public static Satelite crearSatelite(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+    private Satelite crearSateliteInstancia(double x, double y, double factorMasa, Vector2D velocidadInicial) {
         double masa = TipoCuerpo.SATELITE.masaBase * factorMasa;
         Satelite s = new Satelite(generarNombre("Sat"), masa, x, y);
         s.setVelocidad(velocidadInicial);
         return s;
     }
 
-    public static EscudoProtector crearEscudo(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        double masa = TipoCuerpo.ESCUDO_DOME.masaBase * factorMasa;
-        EscudoProtector e = new EscudoProtector(generarNombre("Escudo"), masa, x, y);
-        e.setVelocidad(velocidadInicial);
-        return e;
+    public static Satelite crearSatelite(double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return INSTANCIA_GLOBAL.crearSateliteInstancia(x, y, factorMasa, velocidadInicial);
     }
 
     // ===== Agujeros Negros =====
 
+    public static AgujeroNegro crearAgujeroNegroPersonalizado(double x, double y, double masa, Vector2D velocidadInicial) {
+        AgujeroNegro bh = new AgujeroNegro(INSTANCIA_GLOBAL.generarNombre("AgujeroNegro"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO);
+        bh.setVelocidad(velocidadInicial);
+        return bh;
+    }
+
     public static AgujeroNegro crearAgujeroNegroEstelar(double x, double y, double factorMasa) {
         double masa = TipoCuerpo.AGUJERO_NEGRO.masaBase * factorMasa;
-        return new AgujeroNegro(generarNombre("BH"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO);
+        return new AgujeroNegro(INSTANCIA_GLOBAL.generarNombre("BH"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO);
     }
 
     public static AgujeroNegro crearAgujeroNegroSupermasivo(double x, double y, double factorMasa) {
         double masa = TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO.masaBase * factorMasa;
-        return new AgujeroNegro(generarNombre("SMBH"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO);
+        return new AgujeroNegro(INSTANCIA_GLOBAL.generarNombre("SMBH"), masa, x, y, TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO);
     }
 
     // ===== Meteoritos =====
 
-    public static org.example.game.cuerpo.Meteorito crearMeteoritoAleatorio(double anchoMundo, double altoMundo) {
-        double lado = Math.random() * 4;
-        double x, y;
-        Vector2D vel;
+    public static Meteorito crearMeteoritoAleatorio(double anchoMundo, double altoMundo) {
+        return crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, null);
+    }
 
-        if (lado < 1) { // Izquierda
-            x = -100; y = Math.random() * altoMundo;
-            vel = new Vector2D(1000 + Math.random() * 5000, (Math.random() - 0.5) * 2000);
-        } else if (lado < 2) { // Derecha
-            x = anchoMundo + 100; y = Math.random() * altoMundo;
-            vel = new Vector2D(-1000 - Math.random() * 5000, (Math.random() - 0.5) * 2000);
-        } else if (lado < 3) { // Arriba
-            x = Math.random() * anchoMundo; y = -100;
-            vel = new Vector2D((Math.random() - 0.5) * 2000, 1000 + Math.random() * 5000);
-        } else { // Abajo
-            x = Math.random() * anchoMundo; y = altoMundo + 100;
-            vel = new Vector2D((Math.random() - 0.5) * 2000, -1000 - Math.random() * 5000);
+    public static Meteorito crearMeteoritoHaciaObjetivo(double anchoMundo, double altoMundo, CuerpoCeleste objetivo) {
+        double semiAncho = Math.max(400.0, anchoMundo / 2.0);
+        double semiAlto = Math.max(300.0, altoMundo / 2.0);
+
+        double lado = Math.random() * 4.0;
+        double xFisica, yFisica;
+
+        if (lado < 1.0) {
+            xFisica = -semiAncho - 50.0;
+            yFisica = (Math.random() * 2.0 - 1.0) * semiAlto;
+        } else if (lado < 2.0) {
+            xFisica = semiAncho + 50.0;
+            yFisica = (Math.random() * 2.0 - 1.0) * semiAlto;
+        } else if (lado < 3.0) {
+            xFisica = (Math.random() * 2.0 - 1.0) * semiAncho;
+            yFisica = semiAlto + 50.0;
+        } else {
+            xFisica = (Math.random() * 2.0 - 1.0) * semiAncho;
+            yFisica = -semiAlto - 50.0;
         }
 
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(x, anchoMundo);
-        double yFisica = ConstantesFisicas.javaFXAFisica(y, altoMundo);
-        vel = new Vector2D(vel.x, -vel.y);
+        Vector2D posInicio = new Vector2D(xFisica, yFisica);
+        Vector2D dir = (objetivo != null)
+                ? objetivo.getPosicion().restar(posInicio)
+                : Vector2D.cero().restar(posInicio);
 
-        return new org.example.game.cuerpo.Meteorito(xFisica, yFisica, vel);
-    }
+        double velMag = ConfiguracionSimulacion.VELOCIDAD_METEORITO_PX_TICK;
+        Vector2D vel = (dir.magnitud() > 1e-3 ? dir.normalizar() : new Vector2D(1, 0)).multiplicar(velMag);
+        double ticksVida = Math.max(1200.0, (semiAncho + semiAlto) * 3.0 / Math.max(1.0, velMag));
 
-    public static org.example.game.cuerpo.Meteorito crearMeteoritoJugador(double x, double y, Vector2D direccion, double potencia) {
-        Vector2D vel = direccion.normalizar().multiplicar(potencia);
-        vel = new Vector2D(vel.x, -vel.y);
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(x, 1920);
-        double yFisica = ConstantesFisicas.javaFXAFisica(y, 1080);
-
-        return new org.example.game.cuerpo.Meteorito(
-            generarNombre("Proyectil"),
-            TipoCuerpo.METEORITO.masaBase * 0.1,
-            xFisica, yFisica, vel, 200, true
+        return new Meteorito(
+                INSTANCIA_GLOBAL.generarNombre("Meteorito"),
+                TipoCuerpo.METEORITO.masaBase * (0.8 + Math.random() * 0.4),
+                posInicio.x(), posInicio.y(),
+                vel, ticksVida, false, objetivo
         );
     }
 
-    public static org.example.game.cuerpo.Meteorito crearMeteoritoJugadorFisica(double xFisica, double yFisica, Vector2D velocidadFisica) {
-        return new org.example.game.cuerpo.Meteorito(
-            generarNombre("Meteorito"),
-            TipoCuerpo.METEORITO.masaBase * 0.1,
-            xFisica, yFisica, velocidadFisica, 300, true
+    public static Meteorito crearMeteoritoJugadorFisica(double x, double y, Vector2D vel) {
+        vel = new Vector2D(vel.x(), -vel.y());
+        return new Meteorito(
+                INSTANCIA_GLOBAL.generarNombre("Meteorito"),
+                TipoCuerpo.METEORITO.masaBase * 0.1,
+                x, y, vel, 2000, true
         );
     }
 
-    /**
-     * Crea un fragmento de escombro (meteorito) producto de una colisión destructiva.
-     * No pasa por el inventario ni cuesta recursos: es una consecuencia física, no una compra.
-     */
+    public static Meteorito crearFragmentoColision(double x, double y, Vector2D velocidadBase, double masaFragmento) {
+        return crearFragmentoEscombro(x, y, velocidadBase, masaFragmento);
+    }
+
     public static Meteorito crearFragmentoEscombro(double xFisica, double yFisica,
                                                     Vector2D velocidadBase, double masaFragmento) {
-        // Dispersión angular aleatoria alrededor de la velocidad base del cuerpo original
-        double anguloExtra = (Math.random() - 0.5) * Math.PI; // +/- 90°
+        double anguloExtra = (Math.random() - 0.5) * Math.PI;
         double velBase = velocidadBase != null ? velocidadBase.magnitud() : 0.0;
-        double velEyeccion = ConfiguracionSimulacion.VELOCIDAD_EYECCION_FRAGMENTOS
-                * (0.5 + Math.random());
+        double velEyeccion = ConfiguracionSimulacion.VELOCIDAD_EYECCION_FRAGMENTOS * (0.5 + Math.random());
 
         double anguloFinal;
         if (velBase > 1e-3 && velocidadBase != null) {
-            double anguloBase = Math.atan2(velocidadBase.y, velocidadBase.x);
+            double anguloBase = Math.atan2(velocidadBase.y(), velocidadBase.x());
             anguloFinal = anguloBase + anguloExtra;
         } else {
             anguloFinal = Math.random() * 2.0 * Math.PI;
@@ -263,45 +273,23 @@ public final class CuerpoCelesteFactory {
         );
 
         return new Meteorito(
-                generarNombre("Escombro"),
+                INSTANCIA_GLOBAL.generarNombre("Escombro"),
                 masaFragmento,
                 xFisica, yFisica,
                 velFragmento,
-                250, // ticksVida — desaparecen solos, no acumulan objetos para siempre
+                250,
                 false
         );
     }
 
-    // ===== Utilidades Orbitales Inteligentes =====
+    // ===== Utilidades Orbitales =====
 
-    /** Calcula la velocidad orbital tangencial exacta en cualquier posición 2D arbitraria respecto al centro */
     public static Vector2D calcularVelocidadOrbitalVector(CuerpoCeleste central, Vector2D posicion, boolean horario) {
-        Vector2D r = posicion.restar(central.getPosicion());
-        double distancia = r.magnitud();
-        if (distancia < 1.0) return Vector2D.cero();
-
-        double G = ConstantesFisicas.G_ESCALADO;
-        double vOrbital = Math.sqrt(G * central.getMasa() / distancia);
-
-        // Vector perpendicular unitario
-        // En coordenadas física: (-ry, rx) gira antihorario; (ry, -rx) gira horario
-        Vector2D unitarioRadial = r.dividir(distancia);
-        Vector2D unitarioTangencial = horario
-                ? new Vector2D(unitarioRadial.y, -unitarioRadial.x)
-                : new Vector2D(-unitarioRadial.y, unitarioRadial.x);
-
-        // Sumar velocidad propia del cuerpo central para orbitas relativas (ej. Luna orbitando Planeta que orbita Estrella)
-        return central.getVelocidad().sumar(unitarioTangencial.multiplicar(vOrbital));
+        return CalculadorOrbital.calcularVelocidadOrbitalVector(central, posicion, horario);
     }
 
-    /** Calcula velocidad orbital circular simple para una distancia */
     public static Vector2D calcularVelocidadOrbital(CuerpoCeleste central, double distancia, boolean horario) {
-        double G = ConstantesFisicas.G_ESCALADO;
-        double v = Math.sqrt(G * central.getMasa() / distancia);
+        double v = CalculadorOrbital.calcularRapidezOrbital(central.getMasa(), distancia);
         return horario ? new Vector2D(0, v) : new Vector2D(0, -v);
-    }
-
-    public static void resetearContador() {
-        contadorId = 0;
     }
 }

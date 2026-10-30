@@ -2,7 +2,7 @@ package org.example.game.render;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.Vector2D;
 
@@ -55,10 +55,10 @@ public class GestorEstelas {
             for (Vector2D pt : pts) {
                 if (prev != null) {
                     double progress = (double) i / total;
-                    double x1 = ConstantesFisicas.fisicaAXJavaFX(prev.x, anchoCanvas);
-                    double y1 = ConstantesFisicas.fisicaAYJavaFX(prev.y, altoCanvas);
-                    double x2 = ConstantesFisicas.fisicaAXJavaFX(pt.x, anchoCanvas);
-                    double y2 = ConstantesFisicas.fisicaAYJavaFX(pt.y, altoCanvas);
+                    double x1 = ConstantesFisicas.fisicaAXJavaFX(prev.x(), anchoCanvas);
+                    double y1 = ConstantesFisicas.fisicaAYJavaFX(prev.y(), altoCanvas);
+                    double x2 = ConstantesFisicas.fisicaAXJavaFX(pt.x(), anchoCanvas);
+                    double y2 = ConstantesFisicas.fisicaAYJavaFX(pt.y(), altoCanvas);
 
                     gc.setStroke(Color.color(baseCol.getRed(), baseCol.getGreen(), baseCol.getBlue(), progress * 0.45));
                     gc.setLineWidth(Math.max(1.0, progress * 2.5));

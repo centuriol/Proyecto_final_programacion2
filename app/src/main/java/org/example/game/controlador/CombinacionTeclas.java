@@ -6,23 +6,13 @@ import javafx.scene.input.KeyEvent;
 import java.util.Objects;
 
 /**
- * Representa una combinacion inmutable de tecla y modificadores (Ctrl, Shift, Alt).
- *
- * Principios SOLID:
- * - SRP: Encapsula la identidad, extraccion y comparacion de combinaciones de teclas.
- * - OCP: Permite registrar cualquier combinacion arbitraria sin modificar la estructura del controlador.
+ * Representa una combinación inmutable de tecla y modificadores (Ctrl, Shift, Alt).
+ * Implementado como Java 17 record.
  */
-public final class CombinacionTeclas {
-    private final KeyCode keyCode;
-    private final boolean control;
-    private final boolean shift;
-    private final boolean alt;
+public record CombinacionTeclas(KeyCode keyCode, boolean control, boolean shift, boolean alt) {
 
-    public CombinacionTeclas(KeyCode keyCode, boolean control, boolean shift, boolean alt) {
-        this.keyCode = Objects.requireNonNull(keyCode, "KeyCode no puede ser null");
-        this.control = control;
-        this.shift = shift;
-        this.alt = alt;
+    public CombinacionTeclas {
+        Objects.requireNonNull(keyCode, "KeyCode no puede ser null");
     }
 
     public static CombinacionTeclas de(KeyCode keyCode) {
@@ -65,19 +55,6 @@ public final class CombinacionTeclas {
 
     public boolean isAlt() {
         return alt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CombinacionTeclas that = (CombinacionTeclas) o;
-        return control == that.control && shift == that.shift && alt == that.alt && keyCode == that.keyCode;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(keyCode, control, shift, alt);
     }
 
     @Override

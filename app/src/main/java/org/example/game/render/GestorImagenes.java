@@ -14,21 +14,19 @@ import java.util.*;
  * Gestor centralizado de imágenes y sprites Pixel Art del juego.
  *
  * Principios SOLID:
- * - SRP: Su única responsabilidad es cargar, decodificar (archivos PNG o JSON .pixil)
- *   y almacenar en memoria los sprites de los ítems y cuerpos celestes.
- * - OCP: Permite registrar dinámicamente nuevas imágenes o mapeos para futuros tipos
- *   de cuerpos (como planeta lava o planeta de agua) sin alterar el resto del código.
+ * - SRP: Cargar, decodificar y almacenar sprites en memoria.
+ * - DIP: Implementa RepositorioSprites para proveer inyección de dependencias como instancia.
+ * - OCP: Registro extensible de nuevos mapeos sprite/tipo.
  */
-public class GestorImagenes {
+public class GestorImagenes implements RepositorioSprites {
 
-    private static final Map<String, Image> cacheImagenes = new HashMap<>();
-    private static final Set<String> recursosFallidos = new HashSet<>();
+    private static final GestorImagenes INSTANCIA = new GestorImagenes();
 
-    // Mapeo por defecto de TipoCuerpo a nombre de sprite
-    private static final Map<TipoCuerpo, String> MAPEO_CUERPOS = new HashMap<>();
-    private static String nombreFondoActivo = "fondo_final";
+    private final Map<String, Image> cacheImagenes = new HashMap<>();
+    private final Set<String> recursosFallidos = new HashSet<>();
+    private final Map<TipoCuerpo, String> mapeoCuerpos = new EnumMap<>(TipoCuerpo.class);
+    private String nombreFondoActivo = "fondo_final";
 
-    // Rutas candidatas para búsqueda en el sistema de archivos
     private static final List<String> DIRECTORIOS_BUSQUEDA = List.of(
             "app/src/main/resources/org/example/game/Imagenes/",
             "src/main/resources/org/example/game/Imagenes/",
@@ -38,61 +36,47 @@ public class GestorImagenes {
             "src/main/resources/imagenes/"
     );
 
-    static {
-        // Mapeo inicial de ítems con sprites Pixel Art
-        MAPEO_CUERPOS.put(TipoCuerpo.ESTRELLA, "sol");
-        MAPEO_CUERPOS.put(TipoCuerpo.PLANETA_ROCOSO, "planeta porro");
-        MAPEO_CUERPOS.put(TipoCuerpo.LUNA, "luna");
-        MAPEO_CUERPOS.put(TipoCuerpo.PLANETA_AGUA, "planeta_de_agua");
-        MAPEO_CUERPOS.put(TipoCuerpo.PLANETA_LAVA, "planeta lava");
-        precargarImagenes();
+    public GestorImagenes() {
+        mapeoCuerpos.put(TipoCuerpo.ESTRELLA, "sol");
+        mapeoCuerpos.put(TipoCuerpo.PLANETA_ROCOSO, "planeta porro");
+        mapeoCuerpos.put(TipoCuerpo.LUNA, "luna");
+        mapeoCuerpos.put(TipoCuerpo.PLANETA_AGUA, "planeta_de_agua");
+        mapeoCuerpos.put(TipoCuerpo.PLANETA_LAVA, "planeta lava");
     }
 
-    /**
-     * Precarga al inicio los sprites registrados para evitar accesos a disco por frame.
-     */
-    public static void precargarImagenes() {
-        for (String nombre : MAPEO_CUERPOS.values()) {
-            getImagenPorNombre(nombre);
+    public static GestorImagenes getInstancia() {
+        return INSTANCIA;
+    }
+
+    public void precargar() {
+        for (String nombre : mapeoCuerpos.values()) {
+            obtenerImagenPorNombre(nombre);
         }
-        getImagenFondo();
+        obtenerImagenFondo();
     }
 
-    /**
-     * Obtiene la imagen asociada a un TipoCuerpo según el mapeo actual.
-     *
-     * @param tipo Tipo de cuerpo celeste.
-     * @return Image de JavaFX o null si no existe imagen registrada o no se pudo cargar.
-     */
-    public static Image getImagen(TipoCuerpo tipo) {
+    @Override
+    public Image obtenerImagen(TipoCuerpo tipo) {
         if (tipo == null) return null;
-        String clave = MAPEO_CUERPOS.get(tipo);
+        String clave = mapeoCuerpos.get(tipo);
         if (clave == null) return null;
-        return getImagenPorNombre(clave);
+        return obtenerImagenPorNombre(clave);
     }
 
-    /**
-     * Verifica si existe una imagen cargable para el TipoCuerpo dado.
-     */
-    public static boolean tieneImagen(TipoCuerpo tipo) {
-        return getImagen(tipo) != null;
+    @Override
+    public boolean tieneSprite(TipoCuerpo tipo) {
+        return obtenerImagen(tipo) != null;
     }
 
-    /**
-     * Permite asociar o actualizar el nombre de sprite para un TipoCuerpo (OCP).
-     */
-    public static void registrarMapeo(TipoCuerpo tipo, String nombreRecurso) {
+    @Override
+    public void asociarMapeo(TipoCuerpo tipo, String nombreRecurso) {
         if (tipo != null && nombreRecurso != null) {
-            MAPEO_CUERPOS.put(tipo, nombreRecurso);
+            mapeoCuerpos.put(tipo, nombreRecurso);
         }
     }
 
-    /**
-     * Obtiene una imagen por su nombre (ej. "sol", "luna", "planeta porro").
-     * Si no se encuentra en caché, intenta cargarla desde PNG o decodificarla desde .pixil.
-     * Cachea tanto resultados positivos como negativos (para evitar reintentos a disco cada frame).
-     */
-    public static Image getImagenPorNombre(String nombre) {
+    @Override
+    public Image obtenerImagenPorNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) return null;
         String key = nombre.toLowerCase().trim();
 
@@ -103,8 +87,8 @@ public class GestorImagenes {
             return null;
         }
 
-        Image img = cargarImagen(key);
-        if (img != null) {
+        Image img = cargarImagen(nombre);
+        if (img != null && !img.isError()) {
             cacheImagenes.put(key, img);
         } else {
             recursosFallidos.add(key);
@@ -112,69 +96,83 @@ public class GestorImagenes {
         return img;
     }
 
-    /**
-     * Crea un ImageView configurado para Pixel Art (smooth = false) con el tamaño deseado.
-     */
-    public static ImageView crearImageView(TipoCuerpo tipo, double ancho, double alto) {
-        Image img = getImagen(tipo);
+    @Override
+    public ImageView crearVistaIcono(TipoCuerpo tipo, double ancho, double alto) {
+        Image img = obtenerImagen(tipo);
         if (img == null) return null;
 
         ImageView iv = new ImageView(img);
         iv.setFitWidth(ancho);
         iv.setFitHeight(alto);
         iv.setPreserveRatio(true);
-        iv.setSmooth(false); // Pixel-art nítido sin borrosidad bilineal
+        iv.setSmooth(false);
         return iv;
     }
 
-    /**
-     * Crea un nodo decorativo con el sprite del ítem dentro de un recuadro oscuro.
-     */
-    public static StackPane crearContenedorIcono(TipoCuerpo tipo, double ancho, double alto) {
-        ImageView iv = crearImageView(tipo, ancho, alto);
+    @Override
+    public StackPane crearContenedorSprite(TipoCuerpo tipo, double ancho, double alto) {
+        ImageView iv = crearVistaIcono(tipo, ancho, alto);
         StackPane contenedor = new StackPane();
         contenedor.setAlignment(Pos.CENTER);
         contenedor.setPrefSize(ancho + 4, alto + 4);
         contenedor.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 1px; -fx-background-radius: 3px; -fx-border-radius: 3px;");
         if (iv != null) {
             contenedor.getChildren().add(iv);
+        } else if (tipo != null) {
+            javafx.scene.control.Label lbl = new javafx.scene.control.Label(tipo.getIcono());
+            lbl.setFont(javafx.scene.text.Font.font("Monospace", javafx.scene.text.FontWeight.BOLD, 10));
+            lbl.setTextFill(javafx.scene.paint.Color.web(tipo.getColorHexString()));
+            contenedor.getChildren().add(lbl);
         }
         return contenedor;
     }
 
-    /**
-     * Permite cambiar dinámicamente el nombre de la imagen de fondo espacial activa.
-     */
-    public static void setNombreFondoActivo(String nombre) {
+    public void setNombreFondoActivoInstancia(String nombre) {
         if (nombre != null && !nombre.isBlank()) {
-            nombreFondoActivo = nombre.trim();
+            this.nombreFondoActivo = nombre.trim();
         }
     }
 
-    /**
-     * Obtiene la imagen de fondo espacial del juego (prioriza "fondo_final", luego "fondo_prime", "imagen_fonde" o "imagen_fondo").
-     */
-    public static Image getImagenFondo() {
-        Image fondo = (nombreFondoActivo != null) ? getImagenPorNombre(nombreFondoActivo) : null;
+    @Override
+    public Image obtenerImagenFondo() {
+        Image fondo = (nombreFondoActivo != null) ? obtenerImagenPorNombre(nombreFondoActivo) : null;
         if (fondo == null && (nombreFondoActivo == null || !nombreFondoActivo.equalsIgnoreCase("fondo_final"))) {
-            fondo = getImagenPorNombre("fondo_final");
+            fondo = obtenerImagenPorNombre("fondo_final");
         }
         if (fondo == null) {
-            fondo = getImagenPorNombre("fondo_prime");
+            fondo = obtenerImagenPorNombre("fondo_prime");
         }
         if (fondo == null) {
-            fondo = getImagenPorNombre("imagen_fonde");
+            fondo = obtenerImagenPorNombre("imagen_fonde");
         }
         if (fondo == null) {
-            fondo = getImagenPorNombre("imagen_fondo");
+            fondo = obtenerImagenPorNombre("imagen_fondo");
         }
         if (fondo == null) {
-            fondo = getImagenPorNombre("fondo");
+            fondo = obtenerImagenPorNombre("fondo");
         }
         return fondo;
     }
 
-    private static Image cargarImagen(String nombre) {
+    public void limpiarCacheInstancia() {
+        cacheImagenes.clear();
+        recursosFallidos.clear();
+    }
+
+    // ===== Métodos Estáticos para Compatibilidad (Delegación a INSTANCIA) =====
+
+    public static void precargarImagenes() { INSTANCIA.precargar(); }
+    public static Image getImagen(TipoCuerpo tipo) { return INSTANCIA.obtenerImagen(tipo); }
+    public static boolean tieneImagen(TipoCuerpo tipo) { return INSTANCIA.tieneSprite(tipo); }
+    public static void registrarMapeo(TipoCuerpo tipo, String nombreRecurso) { INSTANCIA.asociarMapeo(tipo, nombreRecurso); }
+    public static Image getImagenPorNombre(String nombre) { return INSTANCIA.obtenerImagenPorNombre(nombre); }
+    public static ImageView crearImageView(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearVistaIcono(tipo, ancho, alto); }
+    public static StackPane crearContenedorIcono(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearContenedorSprite(tipo, ancho, alto); }
+    public static void setNombreFondoActivo(String nombre) { INSTANCIA.setNombreFondoActivoInstancia(nombre); }
+    public static Image getImagenFondo() { return INSTANCIA.obtenerImagenFondo(); }
+    public static void limpiarCache() { INSTANCIA.limpiarCacheInstancia(); }
+
+    private Image cargarImagen(String nombre) {
         String baseNombre = nombre;
         List<String> extensiones;
 
@@ -192,7 +190,6 @@ public class GestorImagenes {
         }
 
         for (String ext : extensiones) {
-            // 1. Intentar desde el Classpath
             InputStream isClasspath = obtenerStreamClasspath(baseNombre, ext);
             if (isClasspath != null) {
                 try {
@@ -205,7 +202,6 @@ public class GestorImagenes {
                 } catch (Exception ignored) {}
             }
 
-            // 2. Intentar desde el sistema de archivos
             for (String dir : DIRECTORIOS_BUSQUEDA) {
                 File f = new File(dir, baseNombre + ext);
                 if (f.exists() && f.isFile()) {
@@ -220,12 +216,10 @@ public class GestorImagenes {
                 }
             }
         }
-
         return null;
     }
 
-    private static InputStream obtenerStreamClasspath(String nombre, String extension) {
-        // Variantes de nombres para classpath
+    private InputStream obtenerStreamClasspath(String nombre, String extension) {
         List<String> variantes = List.of(
                 "/org/example/game/Imagenes/" + nombre + extension,
                 "/Imagenes/" + nombre + extension,
@@ -240,10 +234,6 @@ public class GestorImagenes {
         return null;
     }
 
-    /**
-     * Decodifica una imagen almacenada dentro de la estructura JSON de un archivo .pixil de Pixilart.
-     * El archivo contiene una cadena Base64 con el payload del PNG después del prefijo "base64,".
-     */
     public static Image decodificarPixil(InputStream is) {
         try {
             String contenido = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -261,13 +251,5 @@ public class GestorImagenes {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * Limpia la caché en memoria (útil para pruebas unitarias).
-     */
-    public static void limpiarCache() {
-        cacheImagenes.clear();
-        recursosFallidos.clear();
     }
 }

@@ -1,10 +1,11 @@
 package org.example.game.simulacion;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -17,7 +18,23 @@ import java.util.function.Consumer;
  */
 public class GeneradorEventosCosmicos {
 
-    private int ticksUltimoMeteorito = 0;
+    private int ticksHastaSiguiente;
+    private final java.util.Random random = new java.util.Random();
+
+    public GeneradorEventosCosmicos() {
+        // Tiempo de gracia inicial generoso para que el jugador pueda construir y desarrollar ciencia con calma
+        this.ticksHastaSiguiente = 3600;
+    }
+
+    public GeneradorEventosCosmicos(int ticksIniciales) {
+        this.ticksHastaSiguiente = ticksIniciales;
+    }
+
+    private int calcularSiguienteIntervalo() {
+        // ~2400 ticks con ±30% de aleatoriedad (2400 * [0.7 .. 1.3] = 1680 .. 3120 ticks)
+        double variacion = 0.7 + (Math.random() * 0.6);
+        return (int) (2400 * variacion);
+    }
 
     public void actualizarEventosCosmicos(
             List<CuerpoCeleste> cuerpos,
@@ -27,27 +44,41 @@ public class GeneradorEventosCosmicos {
             Consumer<MensajeEvento> emisorEventos,
             long tickActual
     ) {
-        ticksUltimoMeteorito++;
-        if (ticksUltimoMeteorito >= ConfiguracionSimulacion.INTERVALO_METEORITOS_ALEATORIOS) {
-            ticksUltimoMeteorito = 0;
+        if (cuerpos == null) return;
 
-            long meteoritosActivos = 0;
-            if (cuerpos != null) {
-                for (CuerpoCeleste c : cuerpos) {
-                    if (c != null && c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
-                        meteoritosActivos++;
-                    }
+        // Filtrar planetas válidos para ser objetivo
+        List<CuerpoCeleste> planetas = new ArrayList<>();
+        long meteoritosActivos = 0;
+
+        for (CuerpoCeleste c : cuerpos) {
+            if (c != null && c.esSimulado()) {
+                if (c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+                    meteoritosActivos++;
+                } else if (c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta()) {
+                    planetas.add(c);
                 }
             }
+        }
 
-            if (meteoritosActivos < ConfiguracionSimulacion.MAX_METEORITOS_SIMULTANEOS) {
-                Meteorito m = CuerpoCelesteFactory.crearMeteoritoAleatorio(anchoMundo, altoMundo);
+        // Sin planetas, no genera
+        if (planetas.isEmpty()) {
+            return;
+        }
+
+        ticksHastaSiguiente--;
+        if (ticksHastaSiguiente <= 0) {
+            ticksHastaSiguiente = calcularSiguienteIntervalo();
+
+            if (meteoritosActivos < 2) { // Máximo 2 simultáneos
+                CuerpoCeleste objetivo = planetas.get(random.nextInt(planetas.size()));
+                Meteorito m = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo);
+
                 if (agregadorCuerpo != null) {
                     agregadorCuerpo.accept(m);
                 }
                 if (emisorEventos != null) {
                     emisorEventos.accept(new MensajeEvento(
-                            "Alerta cosmica: Nuevo meteorito detectado en trayectoria.",
+                            "Alerta: Meteorito en camino hacia " + objetivo.getNombre(),
                             MensajeEvento.TipoMensaje.ADVERTENCIA,
                             tickActual
                     ));
@@ -57,6 +88,6 @@ public class GeneradorEventosCosmicos {
     }
 
     public void resetear() {
-        ticksUltimoMeteorito = 0;
+        ticksHastaSiguiente = calcularSiguienteIntervalo();
     }
 }

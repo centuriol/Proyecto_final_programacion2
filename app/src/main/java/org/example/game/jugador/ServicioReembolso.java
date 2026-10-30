@@ -1,6 +1,6 @@
 package org.example.game.jugador;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.simulacion.MensajeEvento;
 import java.util.Collections;
@@ -44,6 +44,10 @@ public final class ServicioReembolso {
             }
         }
         return Collections.unmodifiableMap(reembolso);
+    }
+
+    public static boolean reembolsarYEliminar(CuerpoCeleste cuerpo, SimulacionSolar simulacion) {
+        return desmantelarCuerpo(simulacion, cuerpo);
     }
 
     /**

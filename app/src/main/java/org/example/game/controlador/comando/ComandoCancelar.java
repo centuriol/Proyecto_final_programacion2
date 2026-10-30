@@ -13,6 +13,7 @@ public class ComandoCancelar implements Comando {
     private final SimulacionSolar simulacion;
     private final BarraInventarioHotbar hotbar;
     private final ControladorMouse controladorMouse;
+    private Runnable accionExtra;
 
     public ComandoCancelar(SimulacionSolar simulacion, BarraInventarioHotbar hotbar, ControladorMouse controladorMouse) {
         this.simulacion = simulacion;
@@ -20,8 +21,15 @@ public class ComandoCancelar implements Comando {
         this.controladorMouse = controladorMouse;
     }
 
+    public void setAccionExtra(Runnable accionExtra) {
+        this.accionExtra = accionExtra;
+    }
+
     @Override
     public void ejecutar() {
+        if (accionExtra != null) {
+            accionExtra.run();
+        }
         if (simulacion != null) {
             simulacion.salirModoColocacion();
         }
@@ -30,6 +38,7 @@ public class ComandoCancelar implements Comando {
         }
         if (controladorMouse != null) {
             controladorMouse.limpiarSeleccion();
+            controladorMouse.cancelarModoColonizacion();
         }
     }
 }

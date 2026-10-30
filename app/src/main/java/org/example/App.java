@@ -5,46 +5,38 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.example.game.controlador.BucleJuego;
-import org.example.game.controlador.ControladorMouse;
-import org.example.game.controlador.ControladorTeclado;
-import org.example.game.controlador.SincronizadorUI;
+import org.example.game.controlador.*;
+import org.example.game.controlador.comando.*;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.*;
-import org.example.game.controlador.comando.ComandoDebugMaxRecursos;
 
 /**
- * Punto de entrada principal de "Orbita" - Sandbox espacial Pixel Art.
- *
- * Principios SOLID aplicados:
- * - SRP: Su única responsabilidad es inicializar la aplicación JavaFX, configurar el árbol
- *   de vistas y componer los controladores dedicados. No implementa funciones de teclado,
- *   eventos de ratón ni ciclos de simulación directamente.
- * - DIP: Delega la lógica de negocio a SimulacionSolar/MotorFisica, el dibujo a RenderizadorPixelArt,
- *   la temporización a BucleJuego y el manejo de entradas a ControladorTeclado y ControladorMouse.
+ * Punto de entrada principal de la aplicación JavaFX "Órbita".
+ * Principios SOLID:
+ * - SRP: Métodos de inicialización breves y modulares para simulación, controladores, interfaz y bucle.
+ * - DIP: Inyección de componentes e interfaces.
  */
 public class App extends Application {
 
-    private static final int ANCHO_VENTANA_BASE = 1366;
-    private static final int ALTO_VENTANA_BASE = 768;
+    public static final double ANCHO_VENTANA_BASE = 1280.0;
+    public static final double ALTO_VENTANA_BASE = 720.0;
 
     private SimulacionSolar simulacion;
     private RenderizadorPixelArt renderizador;
     private BucleJuego bucleJuego;
+
     private ControladorTeclado controladorTeclado;
     private ControladorMouse controladorMouse;
 
-    // Componentes UI
     private HUDRecursosTop hudRecursos;
     private BarraInventarioHotbar hotbar;
     private ControlTiempoWidget controlTiempo;
@@ -52,39 +44,65 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        // Obtener dimensiones ideales de la pantalla del usuario
-        double anchoInicial = ANCHO_VENTANA_BASE;
-        double altoInicial = ALTO_VENTANA_BASE;
+        double[] dims = obtenerDimensionesIniciales();
+        double ancho = dims[0];
+        double alto = dims[1];
+
+        inicializarSimulacionYRender(ancho, alto);
+        ResizableCanvas canvasJuego = new ResizableCanvas(ancho, alto);
+        inicializarComponentesUI();
+        configurarControladores(stage, canvasJuego, ancho, alto);
+
+        PantallaArbolProgresion pantallaArbol = new PantallaArbolProgresion(simulacion, null);
+        configurarAtajosArbol(pantallaArbol);
+
+        BorderPane overlayUI = construirOverlayUI(pantallaArbol);
+        PantallaGameOver pantallaGameOver = new PantallaGameOver(simulacion);
+        simulacion.setOnGameOver(pantallaGameOver::mostrar);
+
+        StackPane root = new StackPane(canvasJuego, overlayUI, pantallaArbol, pantallaGameOver);
+        root.setStyle("-fx-background-color: #0e1017;");
+        root.setOnKeyPressed(controladorTeclado);
+
+        simulacion.agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
+        iniciarBucle(canvasJuego);
+        mostrarVentana(stage, root, ancho, alto);
+    }
+
+    private double[] obtenerDimensionesIniciales() {
+        double ancho = ANCHO_VENTANA_BASE;
+        double alto = ALTO_VENTANA_BASE;
         try {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-            anchoInicial = bounds.getWidth();
-            altoInicial = bounds.getHeight();
+            ancho = bounds.getWidth();
+            alto = bounds.getHeight();
         } catch (Exception ignored) {}
+        return new double[]{ancho, alto};
+    }
 
-        // 1. Simulación & Motor de física permisiva
-        simulacion = new SimulacionSolar(anchoInicial, altoInicial);
+    private void inicializarSimulacionYRender(double ancho, double alto) {
+        simulacion = new SimulacionSolar(ancho, alto);
+        renderizador = new RenderizadorPixelArt(ancho, alto);
+        renderizador.setProveedorNaves(() -> simulacion.getGestorColonizacion().getNaves());
+        renderizador.setGestorEfectos(simulacion.getGestorEfectos());
+    }
 
-        // 2. Renderizador Pixel Art
-        renderizador = new RenderizadorPixelArt(anchoInicial, altoInicial);
-
-        // 3. Canvas principal de juego redimensionable (ocupa el 100% de la ventana sin recortes ni zoom)
-        ResizableCanvas canvasJuego = new ResizableCanvas(anchoInicial, altoInicial);
-
-        // 4. Componentes UI
+    private void inicializarComponentesUI() {
         hudRecursos = new HUDRecursosTop(simulacion);
         hotbar = new BarraInventarioHotbar(simulacion);
         controlTiempo = new ControlTiempoWidget(simulacion);
         panelNotificaciones = new PanelNotificaciones(simulacion);
+    }
 
-        // 5. Controladores de entrada encapsulados según POO y SOLID
+    private void configurarControladores(Stage stage, ResizableCanvas canvas, double ancho, double alto) {
         controladorMouse = new ControladorMouse(
                 simulacion,
                 hotbar,
-                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage),
-                anchoInicial,
-                altoInicial
+                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage, controladorMouse),
+                ancho,
+                alto
         );
-        controladorMouse.conectar(canvasJuego);
+        controladorMouse.conectar(canvas);
         controladorMouse.setCamaraZoom(renderizador.getCamaraZoom());
 
         controladorTeclado = new ControladorTeclado();
@@ -92,37 +110,76 @@ public class App extends Application {
                 simulacion, controlTiempo, hotbar, renderizador, controladorMouse
         );
 
-        // [TEMPORAL - Remover antes de la entrega final]
-        controladorTeclado.setComandoCtrlM(new ComandoDebugMaxRecursos(simulacion, renderizador));
+        canvas.widthProperty().addListener((obs, oldV, newV) -> sincronizarCanvas(canvas));
+        canvas.heightProperty().addListener((obs, oldV, newV) -> sincronizarCanvas(canvas));
+    }
 
-        // Sincronizar dimensiones cuando el canvas cambie de tamaño
-        Runnable sincronizarDimensiones = () -> {
-            double w = canvasJuego.getWidth();
-            double h = canvasJuego.getHeight();
-            if (w > 0 && h > 0) {
-                renderizador.setDimensiones(w, h);
-                simulacion.setDimensionesMundo(w, h);
-                controladorMouse.setDimensiones(w, h);
+    private void sincronizarCanvas(ResizableCanvas canvas) {
+        double w = canvas.getWidth();
+        double h = canvas.getHeight();
+        if (w > 0 && h > 0) {
+            renderizador.setDimensiones(w, h);
+            simulacion.setDimensionesMundo(w, h);
+            controladorMouse.setDimensiones(w, h);
+        }
+    }
+
+    private void configurarAtajosArbol(PantallaArbolProgresion pantallaArbol) {
+        controladorTeclado.registrarComando(KeyCode.P, new ComandoAbrirProgresion(simulacion, pantallaArbol::alternar));
+        hotbar.setAccionAbrirArbol(pantallaArbol::mostrar);
+
+        ComandoCancelar comandoCancelar = new ComandoCancelar(simulacion, hotbar, controladorMouse);
+        comandoCancelar.setAccionExtra(() -> {
+            if (pantallaArbol.isVisible()) {
+                pantallaArbol.ocultar();
             }
-        };
-        canvasJuego.widthProperty().addListener((obs, oldV, newV) -> sincronizarDimensiones.run());
-        canvasJuego.heightProperty().addListener((obs, oldV, newV) -> sincronizarDimensiones.run());
+        });
+        controladorTeclado.registrarComando(KeyCode.ESCAPE, comandoCancelar);
+    }
 
-        // 6. Layout Superpuesto (HUD sobre Canvas)
-        BorderPane overlayUI = new BorderPane();
-        overlayUI.setPadding(new Insets(12));
-        overlayUI.setPickOnBounds(false); // Permite click-through al canvas
+    private BorderPane construirOverlayUI(PantallaArbolProgresion pantallaArbol) {
+        BorderPane overlay = new BorderPane();
+        overlay.setPadding(new Insets(12));
+        overlay.setPickOnBounds(false);
 
-        // Barra Superior: Recursos Der
-        HBox topBar = new HBox(EspaciadorUI.crearHorizontal(), hudRecursos);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
+        overlay.setTop(construirTopBar(pantallaArbol));
+        overlay.setLeft(panelNotificaciones);
+        overlay.setBottom(construirBottomBar());
+        return overlay;
+    }
+
+    private HBox construirTopBar(PantallaArbolProgresion pantallaArbol) {
+        HBox navTabs = new HBox(8);
+        navTabs.setAlignment(Pos.CENTER_LEFT);
+        navTabs.setPickOnBounds(true);
+
+        Button btnTabSim = new Button("[SIMULADOR]");
+        btnTabSim.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+        Button btnTabArbol = new Button("[ÁRBOL DE INVESTIGACIÓN (P)]");
+        btnTabArbol.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
+
+        String tabActiva = "-fx-background-color: #172a38; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
+        String tabInactiva = "-fx-background-color: #1a1c26; -fx-text-fill: #8c92a4; -fx-border-color: #2b2d3a; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
+
+        btnTabSim.setStyle(tabActiva);
+        btnTabArbol.setStyle(tabInactiva);
+
+        pantallaArbol.visibleProperty().addListener((obs, oldV, arbolVisible) -> {
+            btnTabSim.setStyle(arbolVisible ? tabInactiva : tabActiva);
+            btnTabArbol.setStyle(arbolVisible ? tabActiva : tabInactiva);
+        });
+
+        btnTabSim.setOnAction(e -> pantallaArbol.ocultar());
+        btnTabArbol.setOnAction(e -> pantallaArbol.mostrar());
+        navTabs.getChildren().addAll(btnTabSim, btnTabArbol);
+
+        HBox topBar = new HBox(navTabs, EspaciadorUI.crearHorizontal(), hudRecursos);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPickOnBounds(false);
-        overlayUI.setTop(topBar);
+        return topBar;
+    }
 
-        // Panel lateral izquierdo para notificaciones
-        overlayUI.setLeft(panelNotificaciones);
-
-        // Barra Inferior: Control Tiempo fijado en esquina inferior izquierda, Hotbar centrada
+    private BorderPane construirBottomBar() {
         BorderPane bottomBar = new BorderPane();
         bottomBar.setPickOnBounds(false);
 
@@ -136,7 +193,6 @@ public class App extends Application {
         BorderPane.setAlignment(contenedorHotbar, Pos.BOTTOM_CENTER);
         bottomBar.setCenter(contenedorHotbar);
 
-        // Espaciador derecho invisible para balancear horizontalmente el centro de la hotbar
         Region balanceadorDerecho = new Region();
         balanceadorDerecho.setPickOnBounds(false);
         balanceadorDerecho.setMouseTransparent(true);
@@ -144,30 +200,22 @@ public class App extends Application {
         balanceadorDerecho.prefWidthProperty().bind(controlTiempo.widthProperty());
         bottomBar.setRight(balanceadorDerecho);
 
-        overlayUI.setBottom(bottomBar);
+        return bottomBar;
+    }
 
-        StackPane root = new StackPane(canvasJuego, overlayUI);
-        root.setStyle("-fx-background-color: #0e1017;");
-
-        // Vincular el controlador de teclado al root pane
-        root.setOnKeyPressed(controladorTeclado);
-
-        // 7. Sincronización de callbacks UI encapsulada (Observer desacoplado)
-        simulacion.agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
-
-        // 8. Bucle principal de animación (Ticks fijos + Render desacoplado)
-        bucleJuego = new BucleJuego(simulacion, renderizador, canvasJuego, controladorMouse);
+    private void iniciarBucle(ResizableCanvas canvas) {
+        bucleJuego = new BucleJuego(simulacion, renderizador, canvas, controladorMouse);
         bucleJuego.iniciar();
+    }
 
-        // 9. Mostrar ventana maximizada aprovechando toda la resolución de pantalla
-        Scene scene = new Scene(root, anchoInicial, altoInicial);
+    private void mostrarVentana(Stage stage, StackPane root, double ancho, double alto) {
+        Scene scene = new Scene(root, ancho, alto);
         scene.setFill(Color.web("#0e1017"));
 
         stage.setScene(scene);
         stage.setTitle("Orbita - Simulador de Sistemas Solares");
         stage.setMaximized(true);
         stage.show();
-
         root.requestFocus();
     }
 
@@ -179,25 +227,11 @@ public class App extends Application {
         super.stop();
     }
 
-    public SimulacionSolar getSimulacion() {
-        return simulacion;
-    }
-
-    public ControladorTeclado getControladorTeclado() {
-        return controladorTeclado;
-    }
-
-    public ControladorMouse getControladorMouse() {
-        return controladorMouse;
-    }
-
-    public BucleJuego getBucleJuego() {
-        return bucleJuego;
-    }
-
-    public RenderizadorPixelArt getRenderizador() {
-        return renderizador;
-    }
+    public SimulacionSolar getSimulacion() { return simulacion; }
+    public ControladorTeclado getControladorTeclado() { return controladorTeclado; }
+    public ControladorMouse getControladorMouse() { return controladorMouse; }
+    public BucleJuego getBucleJuego() { return bucleJuego; }
+    public RenderizadorPixelArt getRenderizador() { return renderizador; }
 
     public static void main(String[] args) {
         launch(args);

@@ -1,6 +1,6 @@
 package org.example.game.motor;
 
-import org.example.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 
@@ -146,7 +146,7 @@ public class TransformadorCuerpos {
         if (estrellas.isEmpty()) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (!c.esSimulado() || !c.esTransformable()) continue;
+            if (!c.esSimulado() || !(c instanceof org.example.game.cuerpo.Transformable t && t.esTransformable())) continue;
 
             // Un cuerpo no puede tener dos procesos a la vez
             if (procesosActivos.containsKey(c)) continue;
@@ -204,7 +204,9 @@ public class TransformadorCuerpos {
                 }
 
                 // Aplicar transformacion estetica y fisica al cumplirse el tiempo (Tarea 2)
-                cuerpo.transformarA(proceso.tipoDestino);
+                if (cuerpo instanceof org.example.game.cuerpo.Transformable trans) {
+                    trans.transformarA(proceso.tipoDestino);
+                }
                 cuerpo.setNombre(proceso.nombreResultante);
 
                 // Iniciar migracion gradual
@@ -234,12 +236,8 @@ public class TransformadorCuerpos {
                 cuerpo.setRadioOrbita(proceso.radioOrbitaDestino);
 
                 // Calibrar velocidad tangencial circular exacta
-                Vector2D r = cuerpo.getPosicion().restar(estrella.getPosicion());
-                double d = Math.max(0.1, r.magnitud());
-                Vector2D uRadial = r.dividir(d);
-                Vector2D uTangencial = new Vector2D(-uRadial.y, uRadial.x);
-                double vOrb = Math.sqrt(ConstantesFisicas.G_ESCALADO * estrella.getMasa() / d);
-                cuerpo.setVelocidad(estrella.getVelocidad().sumar(uTangencial.multiplicar(vOrb)));
+                Vector2D velOrb = CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, cuerpo.getPosicion(), false);
+                cuerpo.setVelocidad(velOrb);
 
                 procesosActivos.remove(cuerpo);
             }
@@ -253,48 +251,11 @@ public class TransformadorCuerpos {
      * Si no existe ninguna posicion libre, retorna null.
      */
     public Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
-        double radioBase = radioActivacion + 40.0;
-        Vector2D dirActual = cuerpo.getPosicion().restar(estrella.getPosicion());
-        double anguloActual = (dirActual.magnitud() > 0.001) ? Math.atan2(dirActual.y, dirActual.x) : 0.0;
-
-        int pasosAngulares = 16;
-        for (int intentoRadio = 0; intentoRadio <= ConfiguracionSimulacion.MAX_INTENTOS_ORBITA_LIBRE; intentoRadio++) {
-            double radioTest = radioBase + (intentoRadio * ConfiguracionSimulacion.PASO_BUSQUEDA_ORBITA_PX);
-
-            for (int i = 0; i < pasosAngulares; i++) {
-                double offsetAngulo = (i == 0) ? 0.0 : ((i % 2 == 1 ? 1.0 : -1.0) * (Math.PI * 2.0 / pasosAngulares) * ((i + 1) / 2));
-                double angulo = anguloActual + offsetAngulo;
-                Vector2D posCandidata = estrella.getPosicion().sumar(new Vector2D(
-                        Math.cos(angulo) * radioTest,
-                        Math.sin(angulo) * radioTest
-                ));
-
-                if (posicionEstaLibre(posCandidata, cuerpo, cuerpos)) {
-                    return posCandidata;
-                }
-            }
-        }
-
-        return null;
+        return BuscadorOrbitaLibre.encontrarPosicionOrbitalLibre(cuerpo, estrella, radioActivacion, cuerpos);
     }
 
-    /**
-     * Comprueba si una posicion candidata respeta la distancia minima
-     * (suma de radios + margen configurable) respecto a todos los demas cuerpos.
-     */
     public boolean posicionEstaLibre(Vector2D pos, CuerpoCeleste cuerpo, List<CuerpoCeleste> cuerpos) {
-        double radioCuerpo = cuerpo.getRadio();
-        double margen = ConfiguracionSimulacion.MARGEN_SEGURIDAD_ORBITA_LIBRE;
-
-        for (CuerpoCeleste otro : cuerpos) {
-            if (otro == cuerpo || !otro.esSimulado()) continue;
-            double dist = pos.distanciaA(otro.getPosicion());
-            double distMinimaSegura = radioCuerpo + otro.getRadio() + margen;
-            if (dist < distMinimaSegura) {
-                return false;
-            }
-        }
-        return true;
+        return BuscadorOrbitaLibre.posicionEstaLibre(pos, cuerpo, cuerpos);
     }
 
     public void cancelarProceso(CuerpoCeleste cuerpo) {
