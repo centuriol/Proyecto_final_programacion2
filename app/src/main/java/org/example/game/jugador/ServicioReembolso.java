@@ -46,6 +46,10 @@ public final class ServicioReembolso {
         return Collections.unmodifiableMap(reembolso);
     }
 
+    public static boolean reembolsarYEliminar(CuerpoCeleste cuerpo, SimulacionSolar simulacion) {
+        return desmantelarCuerpo(simulacion, cuerpo);
+    }
+
     /**
      * Desmantela el cuerpo en la simulación, acreditando el reembolso correspondiente
      * al inventario del jugador y emitiendo un evento informativo.

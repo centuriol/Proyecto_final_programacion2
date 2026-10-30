@@ -18,24 +18,21 @@ import java.util.Map;
 /**
  * Contador de recursos superior estilo interfaz de gestion espacial.
  * SRP: Muestra los recursos del jugador y la poblacion con identificadores claros.
- * OCP: Se adapta automaticamente si se agregan mas TipoRecurso en el futuro.
+ * Composición: Los widgets de recursos son componentes directos sin jerarquías de herencia profundas.
  */
 public class HUDRecursosTop extends HBox {
 
-    private final SimulacionSolar simulacion;
     private final InventarioJugador inventario;
     private final Map<TipoRecurso, ItemRecursoWidget> itemsRecursos = new LinkedHashMap<>();
 
     public HUDRecursosTop(SimulacionSolar simulacion) {
-        this.simulacion = simulacion;
-        this.inventario = simulacion.getInventario();
+        this.inventario = simulacion != null ? simulacion.getInventario() : new InventarioJugador();
 
         setAlignment(Pos.CENTER_RIGHT);
         setPadding(new Insets(6, 12, 6, 12));
         setSpacing(14);
         setStyle("-fx-background-color: #1a1c26; -fx-border-color: #000000; -fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
-        // Generar items dinamicamente para los 4 recursos
         for (TipoRecurso tipo : TipoRecurso.values()) {
             ItemRecursoWidget item = new ItemRecursoWidget(tipo);
             itemsRecursos.put(tipo, item);
@@ -56,25 +53,31 @@ public class HUDRecursosTop extends HBox {
     }
 
     /**
-     * Clase base reutilizable para items contadores del HUD superior.
+     * Componente visual para un recurso individual (hereda directamente de VBox, sin clases intermedias).
      */
-    public abstract static class ItemContadorBase extends VBox {
-        protected final Label lblNombre;
-        protected final Label lblValor;
+    public static class ItemRecursoWidget extends VBox {
+        private final TipoRecurso tipo;
+        private final Label lblNombre;
+        private final Label lblValor;
 
-        public ItemContadorBase(String titulo, String colorValorHex) {
+        public ItemRecursoWidget(TipoRecurso tipo) {
+            super(1);
+            this.tipo = tipo;
             setAlignment(Pos.CENTER);
-            setSpacing(1);
 
-            lblNombre = new Label(titulo);
+            lblNombre = new Label(tipo.nombre.toUpperCase());
             lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
             lblNombre.setTextFill(Color.web("#8c92a4"));
 
             lblValor = new Label("0");
             lblValor.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-            lblValor.setTextFill(Color.web(colorValorHex));
+            lblValor.setTextFill(Color.web(tipo.getColorHex()));
 
             getChildren().addAll(lblNombre, lblValor);
+        }
+
+        public void actualizar(double cantidad) {
+            lblValor.setText(FormateadorNumero.formatear(cantidad));
         }
 
         public String getNombreLabelText() {
@@ -83,22 +86,6 @@ public class HUDRecursosTop extends HBox {
 
         public String getValorLabelText() {
             return lblValor.getText();
-        }
-    }
-
-    /**
-     * Componente reutilizable que representa el contador de un recurso individual.
-     */
-    public static class ItemRecursoWidget extends ItemContadorBase {
-        private final TipoRecurso tipo;
-
-        public ItemRecursoWidget(TipoRecurso tipo) {
-            super(tipo.nombre.toUpperCase(), tipo.getColorHex());
-            this.tipo = tipo;
-        }
-
-        public void actualizar(double cantidad) {
-            lblValor.setText(FormateadorNumero.formatear(cantidad));
         }
 
         public TipoRecurso getTipo() {

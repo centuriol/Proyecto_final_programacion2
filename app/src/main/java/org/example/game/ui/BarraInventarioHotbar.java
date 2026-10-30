@@ -4,25 +4,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.Tooltip;
-import javafx.scene.Cursor;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.TipoRecurso;
-import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.SimulacionSolar;
 
 import java.util.ArrayList;
@@ -35,34 +22,12 @@ import java.util.Map;
  */
 public class BarraInventarioHotbar extends HBox {
 
-    private static final Background BG_BARRA = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4), Insets.EMPTY));
-    private static final Border BORDER_BARRA = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
-
-    private static final Background BG_SLOT_NORMAL = new Background(new BackgroundFill(Color.web("#2b2d3a"), new CornerRadii(4), Insets.EMPTY));
-    private static final Background BG_SLOT_HOVER = new Background(new BackgroundFill(Color.web("#3b3d4f"), new CornerRadii(4), Insets.EMPTY));
-    private static final Background BG_SLOT_SELECTED = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4), Insets.EMPTY));
-
-    private static final Border BORDER_SLOT_NORMAL = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
-    private static final Border BORDER_SLOT_HOVER = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
-    private static final Border BORDER_SLOT_SELECTED = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(2)));
-
-    private static final DropShadow SHADOW_SELECTED = new DropShadow(6, Color.web("#5be3ff"));
-
-    private static final Background BG_BTN_TOGGLE = new Background(new BackgroundFill(Color.web("#1a1c26"), new CornerRadii(4, 4, 0, 0, false), Insets.EMPTY));
-    private static final Background BG_BTN_TOGGLE_HOVER = new Background(new BackgroundFill(Color.web("#2b2d3a"), new CornerRadii(4, 4, 0, 0, false), Insets.EMPTY));
-    private static final Border BORDER_BTN_TOGGLE = new Border(new BorderStroke(Color.web("#3b3d4f"), BorderStrokeStyle.SOLID, new CornerRadii(4, 4, 0, 0, false), new BorderWidths(1, 1, 0, 1)));
-    private static final Border BORDER_BTN_TOGGLE_HOVER = new Border(new BorderStroke(Color.web("#5be3ff"), BorderStrokeStyle.SOLID, new CornerRadii(4, 4, 0, 0, false), new BorderWidths(1, 1, 0, 1)));
-
     private final SimulacionSolar simulacion;
-    private final List<VBox> slotCards = new ArrayList<>();
+    private final List<SlotHotbar> slotCards = new ArrayList<>();
     private TipoCuerpo tipoSeleccionado = null;
     private boolean retraida = false;
     private Button btnToggleRetraccion;
     private Runnable accionAbrirArbol;
-
-    public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
-        this.accionAbrirArbol = accionAbrirArbol;
-    }
 
     public static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
@@ -73,26 +38,19 @@ public class BarraInventarioHotbar extends HBox {
             TipoCuerpo.PLANETA_LAVA
     };
 
-    private static final String[] ICONOS_HOTBAR = {
-            "[SOL]", "[POR]", "[LUN]", "[AGU]", "[SAT]", "[LAV]"
-    };
-
     public BarraInventarioHotbar(SimulacionSolar simulacion) {
         this.simulacion = simulacion;
 
         setAlignment(Pos.CENTER);
         setPadding(new Insets(6, 12, 6, 12));
         setSpacing(8);
-        setBackground(BG_BARRA);
-        setBorder(BORDER_BARRA);
+        setBackground(TemaUI.BG_PANEL);
+        setBorder(TemaUI.BORDE_PANEL_NEGRO);
 
-        // Slots de inventario
         for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
             TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            String icono = ICONOS_HOTBAR[i];
             int hotkey = i + 1;
-
-            VBox slot = crearSlot(tipo, icono, hotkey);
+            SlotHotbar slot = new SlotHotbar(tipo, hotkey, this::seleccionarTipo);
             slotCards.add(slot);
             getChildren().add(slot);
         }
@@ -101,19 +59,15 @@ public class BarraInventarioHotbar extends HBox {
         this.simulacion.agregarListenerUI(this::actualizarBloqueos);
     }
 
+    public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
+        this.accionAbrirArbol = accionAbrirArbol;
+    }
+
     public Button getBotonToggle() {
         if (btnToggleRetraccion == null) {
             btnToggleRetraccion = new Button("Ocultar Planetas");
             btnToggleRetraccion.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             actualizarEstiloBotonToggle();
-            btnToggleRetraccion.setOnMouseEntered(e -> {
-                btnToggleRetraccion.setBackground(BG_BTN_TOGGLE_HOVER);
-                btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE_HOVER);
-            });
-            btnToggleRetraccion.setOnMouseExited(e -> {
-                btnToggleRetraccion.setBackground(BG_BTN_TOGGLE);
-                btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE);
-            });
             btnToggleRetraccion.setOnAction(e -> alternarRetraccion());
         }
         return btnToggleRetraccion;
@@ -139,69 +93,74 @@ public class BarraInventarioHotbar extends HBox {
 
     private void actualizarEstiloBotonToggle() {
         if (btnToggleRetraccion == null) return;
-        btnToggleRetraccion.setBackground(BG_BTN_TOGGLE);
-        btnToggleRetraccion.setBorder(BORDER_BTN_TOGGLE);
-        btnToggleRetraccion.setTextFill(Color.web(retraida ? "#5be3ff" : "#8c92a4"));
-        btnToggleRetraccion.setCursor(Cursor.HAND);
-        btnToggleRetraccion.setPadding(new Insets(3, 12, 3, 12));
+        btnToggleRetraccion.setStyle(TemaUI.CSS_BTN_SECUNDARIO);
     }
 
-    private VBox crearSlot(TipoCuerpo tipo, String icono, int hotkey) {
-        VBox slot = new VBox(4);
-        slot.setAlignment(Pos.CENTER);
-        slot.setPrefSize(100, 84);
-        slot.setPadding(new Insets(5, 8, 5, 8));
-        slot.setBackground(BG_SLOT_NORMAL);
-        slot.setBorder(BORDER_SLOT_NORMAL);
-        slot.setCursor(Cursor.HAND);
-
-        // Tecla de acceso rápido
-        Label lblKey = new Label("[" + hotkey + "]");
-        lblKey.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
-        lblKey.setTextFill(Color.web("#8c92a4"));
-
-        // Icono / Imagen del cuerpo celeste
-        javafx.scene.layout.StackPane iconBox = org.example.game.render.GestorImagenes.crearContenedorIcono(tipo, 40, 40);
-
-        // Nombre del cuerpo celeste
-        Label lblNom = new Label(tipo.nombre.toUpperCase());
-        lblNom.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
-        lblNom.setTextFill(Color.web(tipo.getColorHexString()));
-        lblNom.setAlignment(Pos.CENTER);
-        lblNom.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-
-        slot.getChildren().addAll(lblKey, iconBox, lblNom);
-
-        // Hover y Click sin invalidar CSS
-        slot.setOnMouseEntered(e -> {
-            if (tipoSeleccionado != tipo) {
-                slot.setBackground(BG_SLOT_HOVER);
-                slot.setBorder(BORDER_SLOT_HOVER);
-            }
-        });
-
-        slot.setOnMouseExited(e -> {
-            if (tipoSeleccionado != tipo) {
-                slot.setBackground(BG_SLOT_NORMAL);
-                slot.setBorder(BORDER_SLOT_NORMAL);
-            }
-        });
-
-        slot.setOnMouseClicked(e -> seleccionarTipo(tipo));
-
-        return slot;
+    public void abrirVentanaColocacion(TipoCuerpo tipo) {
+        if (tipo == null) return;
+        javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+        VentanaDescripcionCuerpo.mostrarParaColocar(tipo, simulacion, owner, () -> marcarSeleccionado(tipo));
     }
 
-    private static String formatearMapaRecursos(String prefijo, String formatoValor, Map<TipoRecurso, Double> mapa, String siVacio) {
-        if (mapa == null || mapa.isEmpty()) return siVacio;
-        StringBuilder sb = new StringBuilder(prefijo);
-        int i = 0;
-        for (var e : mapa.entrySet()) {
-            if (i > 0) sb.append(", ");
-            sb.append(String.format(formatoValor, e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
-            i++;
+    public void marcarSeleccionado(TipoCuerpo tipo) {
+        this.tipoSeleccionado = tipo;
+        actualizarEstilos();
+    }
+
+    public void seleccionarTipo(TipoCuerpo tipo) {
+        if (simulacion.getProgresion().estaDesbloqueado(tipo)) {
+            abrirVentanaColocacion(tipo);
+        } else {
+            if (accionAbrirArbol != null) {
+                accionAbrirArbol.run();
+            } else {
+                javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+                VentanaProgresion.mostrar(simulacion, owner);
+            }
         }
-        return sb.toString();
+    }
+
+    public void actualizarBloqueos() {
+        if (simulacion == null || simulacion.getProgresion() == null) return;
+        var prog = simulacion.getProgresion();
+
+        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
+            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
+            SlotHotbar slot = slotCards.get(i);
+            Label lblNom = (Label) slot.getChildren().get(2);
+
+            boolean desbloqueado = prog.estaDesbloqueado(tipo);
+            slot.setBloqueado(!desbloqueado);
+            if (desbloqueado) {
+                lblNom.setText(tipo.nombre.toUpperCase());
+                lblNom.setTextFill(Color.web(tipo.getColorHexString()));
+            } else {
+                double costo = obtenerCostoDesbloqueo(tipo);
+                lblNom.setText(tipo.nombre.toUpperCase() + " [BLOQ " + (int) costo + " CIE]");
+                lblNom.setTextFill(TemaUI.COLOR_TEXTO_MUTED);
+            }
+        }
+    }
+
+    private double obtenerCostoDesbloqueo(TipoCuerpo tipo) {
+        if (tipo == TipoCuerpo.LUNA) return org.example.game.progresion.ElementoDesbloqueable.LUNA.costoCiencia;
+        if (tipo == TipoCuerpo.PLANETA_ROCOSO) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_PORRO.costoCiencia;
+        if (tipo == TipoCuerpo.SATELITE) return org.example.game.progresion.ElementoDesbloqueable.SATELITE.costoCiencia;
+        if (tipo == TipoCuerpo.PLANETA_LAVA) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_LAVA.costoCiencia;
+        return 0;
+    }
+
+    public void deseleccionar() {
+        this.tipoSeleccionado = null;
+        actualizarEstilos();
+    }
+
+    private void actualizarEstilos() {
+        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
+            SlotHotbar slot = slotCards.get(i);
+            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
+            slot.setSeleccionado(tipo == tipoSeleccionado);
+        }
     }
 
     public static String formatearResumenCosto(TipoCuerpo tipo) {
@@ -236,81 +195,15 @@ public class BarraInventarioHotbar extends HBox {
         return sb.toString();
     }
 
-    public void abrirVentanaColocacion(TipoCuerpo tipo) {
-        if (tipo == null) return;
-        javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-        VentanaDescripcionCuerpo.mostrarParaColocar(tipo, simulacion, owner, () -> {
-            marcarSeleccionado(tipo);
-        });
-    }
-
-    public void marcarSeleccionado(TipoCuerpo tipo) {
-        this.tipoSeleccionado = tipo;
-        actualizarEstilos();
-    }
-
-    public void seleccionarTipo(TipoCuerpo tipo) {
-        if (simulacion.getProgresion().estaDesbloqueado(tipo)) {
-            abrirVentanaColocacion(tipo);
-        } else {
-            if (accionAbrirArbol != null) {
-                accionAbrirArbol.run();
-            } else {
-                javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-                VentanaProgresion.mostrar(simulacion, owner);
-            }
+    private static String formatearMapaRecursos(String prefijo, String formatoValor, Map<TipoRecurso, Double> mapa, String siVacio) {
+        if (mapa == null || mapa.isEmpty()) return siVacio;
+        StringBuilder sb = new StringBuilder(prefijo);
+        int i = 0;
+        for (var e : mapa.entrySet()) {
+            if (i > 0) sb.append(", ");
+            sb.append(String.format(formatoValor, e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
+            i++;
         }
-    }
-
-    public void actualizarBloqueos() {
-        if (simulacion == null || simulacion.getProgresion() == null) return;
-        var prog = simulacion.getProgresion();
-
-        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
-            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            VBox slot = slotCards.get(i);
-            Label lblNom = (Label) slot.getChildren().get(2);
-
-            boolean desbloqueado = prog.estaDesbloqueado(tipo);
-            if (desbloqueado) {
-                slot.setOpacity(1.0);
-                lblNom.setText(tipo.nombre.toUpperCase());
-                lblNom.setTextFill(Color.web(tipo.getColorHexString()));
-            } else {
-                slot.setOpacity(0.5);
-                double costo = obtenerCostoDesbloqueo(tipo);
-                lblNom.setText(tipo.nombre.toUpperCase() + " [BLOQ " + (int) costo + " CIE]");
-                lblNom.setTextFill(Color.web("#8c92a4"));
-            }
-        }
-    }
-
-    private double obtenerCostoDesbloqueo(TipoCuerpo tipo) {
-        if (tipo == TipoCuerpo.LUNA) return org.example.game.progresion.ElementoDesbloqueable.LUNA.costoCiencia;
-        if (tipo == TipoCuerpo.PLANETA_ROCOSO) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_PORRO.costoCiencia;
-        if (tipo == TipoCuerpo.SATELITE) return org.example.game.progresion.ElementoDesbloqueable.SATELITE.costoCiencia;
-        if (tipo == TipoCuerpo.PLANETA_LAVA) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_LAVA.costoCiencia;
-        return 0;
-    }
-
-    public void deseleccionar() {
-        this.tipoSeleccionado = null;
-        actualizarEstilos();
-    }
-
-    private void actualizarEstilos() {
-        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
-            VBox slot = slotCards.get(i);
-            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            if (tipo == tipoSeleccionado) {
-                slot.setBackground(BG_SLOT_SELECTED);
-                slot.setBorder(BORDER_SLOT_SELECTED);
-                slot.setEffect(SHADOW_SELECTED);
-            } else {
-                slot.setBackground(BG_SLOT_NORMAL);
-                slot.setBorder(BORDER_SLOT_NORMAL);
-                slot.setEffect(null);
-            }
-        }
+        return sb.toString();
     }
 }
