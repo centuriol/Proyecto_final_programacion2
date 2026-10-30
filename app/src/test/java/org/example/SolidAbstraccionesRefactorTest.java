@@ -13,9 +13,11 @@ import org.example.game.motor.MotorFisicaBase;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.GestorEstelas;
 import org.example.game.ui.FormateadorNumero;
+import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -25,14 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests unitarios que verifican las nuevas abstracciones desacopladas segun los principios SOLID:
- * - SRP: FormateadorNumero, GestorEstelas, ServicioReembolso, ConfiguradorAtajosTeclado.
- * - OCP: Registro extensible de CreadorCuerpo en CuerpoCelesteFactory.
- * - LSP: MotorFisicaBase y jerarquia de comandos.
- * - ISP: ProveedorEstadoInteraccion y listeners atomicos.
- * - DIP: Inyeccion de dependencias y desacoplamiento de clases concretas.
- */
+@ExtendWith(JavaFXExtension.class)
 public class SolidAbstraccionesRefactorTest {
 
     private InventarioJugador inventario;
@@ -190,7 +185,9 @@ public class SolidAbstraccionesRefactorTest {
             super(radioMundo);
         }
         @Override
-        public void avanzarPaso(List<CuerpoCeleste> cuerpos) {}
+        public void avanzarPaso(List<CuerpoCeleste> cuerpos) {
+            limpiarCuerposExpirados(cuerpos);
+        }
         public void dispararColision() {
             notificarColision(null);
         }

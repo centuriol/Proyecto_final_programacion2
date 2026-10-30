@@ -12,23 +12,18 @@ import org.example.game.motor.MotorFisicaPermisiva;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.CamaraZoom;
 import org.example.game.simulacion.SimulacionSolar;
-import org.junit.jupiter.api.BeforeAll;
+import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(JavaFXExtension.class)
 public class Fase2BugsTest {
-
-    @BeforeAll
-    static void initJFX() {
-        try {
-            javafx.application.Platform.startup(() -> {});
-        } catch (IllegalStateException ignored) {}
-    }
 
     @Test
     @DisplayName("Bug 1: SimulacionSolar.step() avanza exactamente 1 tick y permanece pausado")

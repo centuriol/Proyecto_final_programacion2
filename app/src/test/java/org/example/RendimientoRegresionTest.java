@@ -12,22 +12,17 @@ import org.example.game.motor.TrayectoriaPredictor;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
-import org.junit.jupiter.api.BeforeAll;
+import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(JavaFXExtension.class)
 public class RendimientoRegresionTest {
-
-    @BeforeAll
-    static void initJFX() {
-        try {
-            Platform.startup(() -> {});
-        } catch (IllegalStateException ignored) {}
-    }
 
     @Test
     void testAvanzarTickNoDisparaCallbacksUIDirectamente() {
