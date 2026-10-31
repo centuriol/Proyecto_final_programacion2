@@ -1,13 +1,10 @@
 package org.example.game.simulacion;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * Gestor del ciclo económico y producción pasiva de recursos por tick.
  *
@@ -26,7 +23,7 @@ public class GestorEconomia {
             if (tipo == null) continue;
 
             // Planetas o cuerpos transformados por evento no generan recursos
-            if (c instanceof org.example.game.cuerpo.Transformable trans && trans.isTransformadoPorEvento()) continue;
+            if (c.isTransformadoPorEvento()) continue;
 
             double factorMasa = 1.0;
             if (tipo.masaBase > 0) {
@@ -37,8 +34,8 @@ public class GestorEconomia {
             if (produccionEscalada.isEmpty()) continue;
 
             double factorCiv = 1.0;
-            if (c instanceof org.example.game.cuerpo.Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-                factorCiv = civ.getCivilizacion().calcularMultiplicadorProduccion();
+            if (c.tieneCivilizacion() && c.getCivilizacion() != null) {
+                factorCiv = c.getCivilizacion().calcularMultiplicadorProduccion();
             }
 
             for (Map.Entry<TipoRecurso, Double> entry : produccionEscalada.entrySet()) {

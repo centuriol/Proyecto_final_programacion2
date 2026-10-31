@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.example.game.civilizacion.CivilizacionComponent;
@@ -16,12 +15,9 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class Fase2BugsTest {
 
@@ -147,6 +143,10 @@ public class Fase2BugsTest {
 
         assertTrue(desmantelado);
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(planeta));
-        assertEquals(minAntes + 50.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(
+                minAntes + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * ServicioReembolso.FACTOR_REEMBOLSO,
+                sim.getInventario().getRecurso(TipoRecurso.MINERALES),
+                1e-6
+        );
     }
 }

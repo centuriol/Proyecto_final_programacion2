@@ -1,9 +1,7 @@
 package org.example.game.colonizacion;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 /**
  * Entidad ligera que representa una nave colonizadora en tránsito.
  * NO es un CuerpoCeleste, no entra al motor físico gravitatorio.
@@ -42,9 +40,7 @@ public class NaveColonizadora {
             // Llegó al destino
             this.posicion = posDestino;
             this.completada = true;
-            if (destino instanceof org.example.game.cuerpo.Colonizable col) {
-                col.recibirColonos(poblacionColonos);
-            }
+            destino.recibirColonos(poblacionColonos);
         } else {
             Vector2D desplazamiento = dir.normalizar().multiplicar(vel);
             this.posicion = this.posicion.sumar(desplazamiento);

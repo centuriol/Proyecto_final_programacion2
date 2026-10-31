@@ -1,11 +1,8 @@
 package org.example.game.render;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-
 import java.util.HashMap;
 import java.util.Map;
-
 /**
  * SRP: Métodos de utilidad y caché de colores compartidos para el renderizado visual.
  */

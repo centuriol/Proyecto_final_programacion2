@@ -1,11 +1,8 @@
 package org.example.game.cuerpo;
-
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Tipos de cuerpos celestes con propiedades fisicas y de juego distintas.
  *

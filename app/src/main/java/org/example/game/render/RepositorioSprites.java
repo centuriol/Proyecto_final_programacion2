@@ -1,10 +1,8 @@
 package org.example.game.render;
-
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import org.example.game.cuerpo.TipoCuerpo;
-
 /**
  * Contrato para el acceso desacoplado al catálogo y sprites de la simulación (DIP / ISP).
  */

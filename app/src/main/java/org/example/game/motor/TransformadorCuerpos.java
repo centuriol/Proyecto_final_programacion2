@@ -1,12 +1,9 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.*;
 import java.util.function.Consumer;
-
 /**
  * Sistema de transformacion gradual de cuerpos celestes basado en proximidad a estrellas.
  *
@@ -146,7 +143,7 @@ public class TransformadorCuerpos {
         if (estrellas.isEmpty()) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (!c.esSimulado() || !(c instanceof org.example.game.cuerpo.Transformable t && t.esTransformable())) continue;
+            if (!c.esSimulado() || !c.esTransformable()) continue;
 
             // Un cuerpo no puede tener dos procesos a la vez
             if (procesosActivos.containsKey(c)) continue;
@@ -204,9 +201,7 @@ public class TransformadorCuerpos {
                 }
 
                 // Aplicar transformacion estetica y fisica al cumplirse el tiempo (Tarea 2)
-                if (cuerpo instanceof org.example.game.cuerpo.Transformable trans) {
-                    trans.transformarA(proceso.tipoDestino);
-                }
+                cuerpo.transformarA(proceso.tipoDestino);
                 cuerpo.setNombre(proceso.nombreResultante);
 
                 // Iniciar migracion gradual

@@ -1,24 +1,5 @@
 package org.example;
-
-import javafx.scene.input.ScrollEvent;
-import org.example.game.civilizacion.EstadoCivilizacion;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.controlador.ControladorMouse;
-import org.example.game.cuerpo.*;
-import org.example.game.motor.MotorFisicaPermisiva;
-import org.example.game.motor.Vector2D;
-import org.example.game.render.CamaraZoom;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import javafx.scene.input.ScrollEvent; import org.example.game.civilizacion.EstadoCivilizacion; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.controlador.ControladorMouse; import org.example.game.cuerpo.*; import org.example.game.motor.MotorFisicaPermisiva; import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.ArrayList; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class MecanicasColisionYVidaTest {
 
@@ -71,7 +52,8 @@ class MecanicasColisionYVidaTest {
         assertEquals(masaEsperadaMayor, mayor.getMasa(), 1e-6);
 
         long countMeteoritos = cuerpos.stream().filter(c -> c instanceof Meteorito).count();
-        assertEquals(ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO, countMeteoritos);
+        assertTrue(countMeteoritos >= ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO);
+        assertTrue(countMeteoritos <= ConfiguracionSimulacion.MAX_FRAGMENTOS_POR_COLAPSO);
     }
 
     @Test
@@ -86,7 +68,8 @@ class MecanicasColisionYVidaTest {
 
         assertFalse(cuerpos.contains(p1));
         assertFalse(cuerpos.contains(p2));
-        assertEquals(ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO * 2, cuerpos.size());
+        assertTrue(cuerpos.size() >= ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO * 2);
+        assertTrue(cuerpos.size() <= ConfiguracionSimulacion.MAX_FRAGMENTOS_POR_COLAPSO * 2);
     }
 
     @Test

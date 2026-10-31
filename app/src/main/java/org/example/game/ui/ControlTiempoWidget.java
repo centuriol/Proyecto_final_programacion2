@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -17,7 +16,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * Widget compacto de control de tiempo (esquina inferior izquierda).
  * Dispone exclusivamente de los controles de pausado/corriendo y velocidades 1x, 2x, 3x y 4x.

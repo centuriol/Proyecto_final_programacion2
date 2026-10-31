@@ -1,7 +1,4 @@
 package org.example.game.cuerpo;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-
 /**
  * Satélite artificial que recopila datos científicos y transmite energía.
  * SRP: Representa un artefacto tecnológico creado por el jugador o civilizaciones.
@@ -32,6 +29,16 @@ public class Satelite extends CuerpoCeleste implements Actualizable {
 
     public double getEnergiaGenerada() {
         return energiaGenerada;
+    }
+
+    public void restaurarProduccionAcumulada(double ciencia, double energia) {
+        this.cienciaGenerada = Math.max(0.0, ciencia);
+        this.energiaGenerada = Math.max(0.0, energia);
+    }
+
+    @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarSatelite(this);
     }
 
     @Override

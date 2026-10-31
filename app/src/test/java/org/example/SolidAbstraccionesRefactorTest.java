@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.KeyCode;
 import org.example.game.cuerpo.*;
 import org.example.game.motor.MotorFisica;
@@ -18,15 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class SolidAbstraccionesRefactorTest {
 

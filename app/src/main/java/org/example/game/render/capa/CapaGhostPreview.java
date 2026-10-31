@@ -1,5 +1,4 @@
 package org.example.game.render.capa;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -8,7 +7,6 @@ import org.example.game.motor.ConstantesFisicas;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.RepositorioSprites;
 import org.example.game.render.UtilidadRender;
-
 /**
  * Capa de renderizado para el fantasma (ghost preview) y guía de colocación en tiempo real (SRP).
  */

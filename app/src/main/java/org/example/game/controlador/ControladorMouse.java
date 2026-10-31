@@ -1,5 +1,4 @@
 package org.example.game.controlador;
-
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -11,10 +10,8 @@ import org.example.game.render.CamaraZoom;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
-
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Encapsula la gestión de eventos de mouse y la interacción sobre el canvas de simulación.
  *
@@ -28,10 +25,11 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     private final BarraInventarioHotbar hotbar;
     private final SeleccionadorCuerpoMouse seleccionador;
     private final PredictorPreviewMouse predictorPreview;
+    private final ControlArrastreCamara controlArrastre = new ControlArrastreCamara();
     private Consumer<CuerpoCeleste> onInspeccionarCuerpo;
     private double anchoMundo;
     private double altoMundo;
-    private CamaraZoom camaraZoom;
+    private CamaraZoom camaraZoom = new CamaraZoom();
 
     private CuerpoCeleste cuerpoSeleccionado = null;
     private Planeta planetaOrigenColonizacion = null;
@@ -90,15 +88,11 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     public double transformarX(double mouseX) {
-        if (camaraZoom == null || camaraZoom.esZoomNeutro()) return mouseX;
-        double cx = anchoMundo / 2.0;
-        return cx + (mouseX - cx) / camaraZoom.getNivelZoom();
+        return camaraZoom != null ? camaraZoom.pantallaAMundoX(mouseX, anchoMundo) : mouseX;
     }
 
     public double transformarY(double mouseY) {
-        if (camaraZoom == null || camaraZoom.esZoomNeutro()) return mouseY;
-        double cy = altoMundo / 2.0;
-        return cy + (mouseY - cy) / camaraZoom.getNivelZoom();
+        return camaraZoom != null ? camaraZoom.pantallaAMundoY(mouseY, altoMundo) : mouseY;
     }
 
     public void manejarMouseMovido(MouseEvent e) {
@@ -121,17 +115,20 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     public void manejarMousePresionado(MouseEvent e) {
+        if (e == null) return;
         double worldX = transformarX(e.getX());
         double worldY = transformarY(e.getY());
 
         if (planetaOrigenColonizacion != null) {
+            controlArrastre.cancelar();
             procesarClickColonizacion(e, worldX, worldY);
             return;
         }
 
         if (e.getButton() == MouseButton.PRIMARY) {
-            procesarClickIzquierdo(worldX, worldY);
+            procesarClickIzquierdo(e.getX(), e.getY(), worldX, worldY);
         } else if (e.getButton() == MouseButton.SECONDARY) {
+            controlArrastre.cancelar();
             procesarClickDerecho(worldX, worldY);
         }
     }
@@ -149,8 +146,9 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         }
     }
 
-    private void procesarClickIzquierdo(double worldX, double worldY) {
+    private void procesarClickIzquierdo(double screenX, double screenY, double worldX, double worldY) {
         if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
+            controlArrastre.cancelar();
             simulacion.actualizarPosicionPreview(worldX, worldY);
             simulacion.confirmarColocacionAutoOrbita();
             limpiarSeleccion();
@@ -158,7 +156,8 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
                 hotbar.deseleccionar();
             }
         } else {
-            inspeccionarCuerpoBajoCursor(worldX, worldY);
+            controlArrastre.iniciar(screenX, screenY);
+            seleccionarCuerpoBajoCursor(worldX, worldY);
         }
     }
 
@@ -175,7 +174,15 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     public void manejarMouseArrastrado(MouseEvent e) {
-        actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
+        if (e == null) return;
+        if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO || isModoColonizacion()) {
+            controlArrastre.cancelar();
+            actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
+            return;
+        }
+        if (e.getButton() != MouseButton.SECONDARY && controlArrastre.estaActivo()) {
+            controlArrastre.arrastrar(e.getX(), e.getY(), camaraZoom);
+        }
     }
 
     private void actualizarPreviewColocacion(double x, double y) {
@@ -187,22 +194,23 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
 
     private void inspeccionarCuerpoBajoCursor(double x, double y) {
         seleccionarCuerpoBajoCursor(x, y);
-        if (cuerpoSeleccionado != null && onInspeccionarCuerpo != null) {
+        if (cuerpoSeleccionado != null && cuerpoSeleccionado.esInteractuablePorUsuario() && onInspeccionarCuerpo != null) {
             onInspeccionarCuerpo.accept(cuerpoSeleccionado);
         }
     }
 
     public void manejarMouseLiberado(MouseEvent e) {
-        // Slingshot manual inhabilitado
+        if (e == null) return;
+        if (e.getButton() == MouseButton.PRIMARY && controlArrastre.finalizarYEsClickSimple()) {
+            inspeccionarCuerpoBajoCursor(transformarX(e.getX()), transformarY(e.getY()));
+        }
     }
 
     public void manejarScroll(ScrollEvent e) {
-        if (e.isControlDown() && camaraZoom != null) {
-            double delta = e.getDeltaY() > 0 ? 0.1 : -0.1;
-            camaraZoom.ajustarPorDelta(delta);
-        } else {
-            double delta = e.getDeltaY() > 0 ? 1.15 : 0.87;
-            simulacion.setFactorMasaColocacion(simulacion.getFactorMasaColocacion() * delta);
+        if (e == null) return;
+        if (camaraZoom != null) {
+            camaraZoom.aplicarRueda(e.getDeltaY());
+            actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
         }
         e.consume();
     }
@@ -233,7 +241,7 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     public void setCuerpoSeleccionado(CuerpoCeleste cuerpo) {
-        this.cuerpoSeleccionado = cuerpo;
+        this.cuerpoSeleccionado = (cuerpo != null && cuerpo.esInteractuablePorUsuario()) ? cuerpo : null;
     }
 
     public void setDimensiones(double ancho, double alto) {

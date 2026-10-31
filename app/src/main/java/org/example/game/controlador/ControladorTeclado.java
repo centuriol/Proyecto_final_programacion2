@@ -1,5 +1,4 @@
 package org.example.game.controlador;
-
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -8,10 +7,8 @@ import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
-
 import java.util.HashMap;
 import java.util.Map;
-
 /**
  * Controlador que encapsula la recepcion y procesamiento de eventos de teclado.
  *

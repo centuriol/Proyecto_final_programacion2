@@ -1,11 +1,8 @@
 package org.example.game.cuerpo;
-
 import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.motor.CuerpoFisico;
 import org.example.game.motor.Vector2D;
-
 import java.util.List;
-
 /**
  * SRP: guarda datos básicos (nombre, masa, posición, velocidad, fuerza).
  * OCP: getColorHex()/getRadio() son abstractos -> cada subclase nueva
@@ -149,16 +146,155 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
     }
 
     /**
+     * Indica si el cuerpo fue transformado por un evento cosmico.
+     */
+    public boolean isTransformadoPorEvento() {
+        return false;
+    }
+
+    /**
+     * Indica si el cuerpo tiene capacidad para transformarse bajo condiciones extremas.
+     */
+    public boolean esTransformable() {
+        return false;
+    }
+
+    /**
+     * Marca o desmarca este cuerpo como transformado por un evento cosmico.
+     */
+    public void setTransformadoPorEvento(boolean transformado) {
+        // Implementado por subclases transformables
+    }
+
+    /**
+     * Transforma polimorficamente este cuerpo hacia otro tipo celeste si es transformable.
+     */
+    public void transformarA(TipoCuerpo nuevoTipo) {
+        // Implementado por subclases transformables
+    }
+
+    /**
+     * Absorbe a otro cuerpo celeste en este cuerpo (por ejemplo horizonte de sucesos).
+     */
+    public void absorber(CuerpoCeleste victima) {
+        // Implementado por subclases masivas absorbentes
+    }
+
+    /**
      * Indica si el jugador puede recibir un reembolso de recursos al desmantelar este cuerpo.
      */
     public boolean permiteReembolso() {
-        if (this instanceof Transformable t) {
-            return !t.isTransformadoPorEvento();
-        }
+        return !isTransformadoPorEvento();
+    }
+
+    /**
+     * Indica si el cuerpo puede ser seleccionado, inspeccionado o eliminado por interaccion directa del usuario.
+     */
+    public boolean esInteractuablePorUsuario() {
         return true;
     }
 
-    // ===== Métodos abstractos para vista =====
+    /**
+     * Indica si el cuerpo posee una civilizacion activa.
+     */
+    public boolean tieneCivilizacion() {
+        return false;
+    }
+
+    /**
+     * Obtiene el componente de civilizacion asociado, o null si no posee.
+     */
+    public org.example.game.civilizacion.CivilizacionComponent getCivilizacion() {
+        return null;
+    }
+
+    /**
+     * Actualiza el estado de la civilizacion planetaria si corresponde.
+     */
+    public void actualizarCivilizacion(java.util.List<CuerpoCeleste> cuerpos) {
+        // Implementado por subclases habitadas
+    }
+
+    /**
+     * Indica si el cuerpo es apto para recibir escudos defensivos.
+     */
+    public boolean puedeRecibirEscudo() {
+        return false;
+    }
+
+    /**
+     * Indica polimorficamente si el cuerpo mantiene un escudo defensivo activo.
+     */
+    public boolean tieneEscudo() {
+        return false;
+    }
+
+    /**
+     * Cantidad de impactos de meteorito que el escudo puede soportar antes de disiparse.
+     */
+    public int getGolpesEscudoRestantes() {
+        return 0;
+    }
+
+    /**
+     * Absorbe un impacto en el escudo si se encuentra activo. Retorna true si fue absorbido.
+     */
+    public boolean absorberGolpeEscudo() {
+        return false;
+    }
+
+    /**
+     * Indica si el cuerpo es apto para ser colonizado.
+     */
+    public boolean puedeSerColonizado() {
+        return false;
+    }
+
+    /**
+     * Recibe una expedicion de colonos en este cuerpo celeste si es apto.
+     */
+    public void recibirColonos(double colonos) {
+        // Implementado por subclases colonizables
+    }
+
+    /**
+     * Indica si el cuerpo ha expirado y debe retirarse de la simulacion.
+     */
+    public boolean estaExpirado() {
+        return false;
+    }
+
+    /**
+     * Actualiza el estado autonomo de la entidad por tick de simulacion.
+     */
+    public void actualizarEntidad(double dt) {
+        // Implementado por entidades autonomas
+    }
+
+    /**
+     * Actualiza estado interno por paso de tiempo fisico.
+     */
+    public void actualizarEstado(double dt) {
+        // Implementado por subclases dinamicas
+    }
+
+    /**
+     * Factor de progreso asignado al origen balistico del cuerpo celeste.
+     */
+    public double getFactorProgresoOrigen() {
+        return -1.0;
+    }
+
+    /**
+     * Indica si el cuerpo posee un progreso de amenaza explicito.
+     */
+    public boolean tieneProgresoExplicito() {
+        return false;
+    }
+
+    // ===== Métodos abstractos para vista y despacho polimórfico =====
+
+    public abstract <R> R aceptar(VisitanteCuerpo<R> visitante);
 
     public abstract String describir();
 

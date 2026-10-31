@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import org.example.game.controlador.BucleJuego;
@@ -15,12 +14,9 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class RendimientoRegresionTest {
 

@@ -1,12 +1,10 @@
 package org.example.game.jugador;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.simulacion.MensajeEvento;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Servicio de negocio para el cálculo de reembolsos y desmantelamiento de cuerpos celestes.
  *
@@ -55,7 +53,7 @@ public final class ServicioReembolso {
      * al inventario del jugador y emitiendo un evento informativo.
      */
     public static boolean desmantelarCuerpo(SimulacionSolar simulacion, CuerpoCeleste cuerpo) {
-        if (simulacion == null || cuerpo == null) return false;
+        if (simulacion == null || cuerpo == null || !cuerpo.esInteractuablePorUsuario()) return false;
 
         boolean permiteReembolso = cuerpo.permiteReembolso();
         Map<TipoRecurso, Double> reembolso = permiteReembolso ? calcularReembolso(cuerpo) : Collections.emptyMap();

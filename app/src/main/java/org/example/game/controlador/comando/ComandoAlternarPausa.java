@@ -1,8 +1,6 @@
 package org.example.game.controlador.comando;
-
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.ControlTiempoWidget;
-
 /**
  * SRP: Encapsula la acción de alternar el estado de pausa de la simulación
  * y sincronizar la selección visual en el widget de control de tiempo.

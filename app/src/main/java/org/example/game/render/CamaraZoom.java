@@ -1,67 +1,142 @@
 package org.example.game.render;
-
 /**
- * Componente de camara que gestiona el nivel de zoom de la vista.
+ * Encapsula el estado y la logica de zoom y desplazamiento (pan) de la camara de juego.
+ * Girar la rueda hacia adelante (deltaY positivo) acerca hasta 1.5x;
+ * girar hacia atras (deltaY negativo) aleja hasta 0.5x.
+ * El arrastre traslada la vista respetando el nivel de zoom activo.
  *
  * Principios SOLID:
- * - SRP: Encapsula exclusivamente el estado y logica de zoom, sin mezclar
- *   responsabilidades de renderizado ni de simulacion.
- * - OCP: Se puede extender con pan/scroll sin modificar la clase existente.
+ * - SRP: Coordina los limites de escala y delega el desplazamiento 2D a DesplazamientoCamara.
+ * - DIP: Implementa la abstraccion ControlZoom.
  */
-public class CamaraZoom {
+public class CamaraZoom implements ControlZoom {
 
-    private static final double ZOOM_MINIMO = 0.5;
-    private static final double ZOOM_MAXIMO = 1.5;
-    private static final double ZOOM_INICIAL = 1.0;
-    private static final double INCREMENTO_ZOOM = 0.1;
+    public static final double ZOOM_MINIMO = 0.5;
+    public static final double ZOOM_MAXIMO = 1.5;
+    public static final double ZOOM_INICIAL = 1.0;
+    public static final double INCREMENTO_POR_DEFECTO = 0.1;
 
-    private double nivelZoom = ZOOM_INICIAL;
+    private final double incrementoZoom;
+    private final DesplazamientoCamara desplazamiento = new DesplazamientoCamara();
+    private double nivelZoom;
 
-    /**
-     * Acerca el zoom un paso (incrementa el nivel).
-     */
+    public CamaraZoom() {
+        this(ZOOM_INICIAL, INCREMENTO_POR_DEFECTO);
+    }
+
+    public CamaraZoom(double zoomInicial, double incrementoZoom) {
+        this.incrementoZoom = incrementoZoom > 0 && Double.isFinite(incrementoZoom)
+                ? incrementoZoom
+                : INCREMENTO_POR_DEFECTO;
+        this.nivelZoom = acotarZoom(zoomInicial);
+    }
+
     public void acercar() {
-        nivelZoom = Math.min(ZOOM_MAXIMO, nivelZoom + INCREMENTO_ZOOM);
+        ajustarPorDelta(incrementoZoom);
     }
 
-    /**
-     * Aleja el zoom un paso (decrementa el nivel).
-     */
     public void alejar() {
-        nivelZoom = Math.max(ZOOM_MINIMO, nivelZoom - INCREMENTO_ZOOM);
+        ajustarPorDelta(-incrementoZoom);
     }
 
-    /**
-     * Resetea el zoom al nivel por defecto (1.0x).
-     */
+    @Override
+    public void aplicarRueda(double deltaY) {
+        if (!Double.isFinite(deltaY) || deltaY == 0.0) {
+            return;
+        }
+        ajustarPorDelta(deltaY > 0.0 ? incrementoZoom : -incrementoZoom);
+    }
+
+    @Override
     public void resetear() {
-        nivelZoom = ZOOM_INICIAL;
+        this.nivelZoom = ZOOM_INICIAL;
+        this.desplazamiento.centrar();
     }
 
-    /**
-     * Ajusta el zoom por un delta arbitrario (positivo acerca, negativo aleja).
-     * @param delta Cantidad a sumar al nivel actual de zoom.
-     */
     public void ajustarPorDelta(double delta) {
-        nivelZoom = Math.max(ZOOM_MINIMO, Math.min(ZOOM_MAXIMO, nivelZoom + delta));
+        if (Double.isFinite(delta)) {
+            this.nivelZoom = acotarZoom(this.nivelZoom + delta);
+        }
     }
 
+    @Override
+    public void setNivelZoom(double nuevoNivel) {
+        if (Double.isFinite(nuevoNivel)) {
+            this.nivelZoom = acotarZoom(nuevoNivel);
+        }
+    }
+
+    @Override
     public double getNivelZoom() {
         return nivelZoom;
     }
 
-    public double getZoomMinimo() {
-        return ZOOM_MINIMO;
-    }
-
-    public double getZoomMaximo() {
-        return ZOOM_MAXIMO;
-    }
-
-    /**
-     * Indica si el zoom esta en el nivel por defecto (sin escala aplicada).
-     */
+    @Override
     public boolean esZoomNeutro() {
         return Math.abs(nivelZoom - ZOOM_INICIAL) < 0.001;
+    }
+
+    public boolean esVistaNeutra() {
+        return esZoomNeutro() && desplazamiento.esCentrada();
+    }
+
+    @Override
+    public void desplazarPorPantalla(double deltaPantallaX, double deltaPantallaY) {
+        desplazamiento.desplazarPorPantalla(deltaPantallaX, deltaPantallaY, nivelZoom);
+    }
+
+    @Override
+    public void enfocarPuntoFisico(double xFisica, double yFisica) {
+        desplazamiento.enfocarPuntoFisico(xFisica, yFisica);
+    }
+
+    @Override
+    public DesplazamientoCamara getDesplazamiento() {
+        return desplazamiento;
+    }
+
+    @Override
+    public double pantallaAMundo(double coordenadaPantalla, double dimensionVista) {
+        if (esZoomNeutro() || dimensionVista <= 0.0) {
+            return coordenadaPantalla;
+        }
+        double centro = dimensionVista / 2.0;
+        return centro + (coordenadaPantalla - centro) / nivelZoom;
+    }
+
+    @Override
+    public double mundoAPantallaX(double xFisica, double anchoVista) {
+        return anchoVista / 2.0 + (xFisica + desplazamiento.getX()) * nivelZoom;
+    }
+
+    @Override
+    public double mundoAPantallaY(double yFisica, double altoVista) {
+        return altoVista / 2.0 + (-yFisica + desplazamiento.getY()) * nivelZoom;
+    }
+
+    public double pantallaAMundoX(double xPantalla, double anchoVista) {
+        return pantallaAMundo(xPantalla, anchoVista) - desplazamiento.getX();
+    }
+
+    public double pantallaAMundoY(double yPantalla, double altoVista) {
+        return pantallaAMundo(yPantalla, altoVista) - desplazamiento.getY();
+    }
+
+    public double calcularTraslacionX(double anchoVista) {
+        return calcularDesplazamientoCentro(anchoVista) + desplazamiento.getX() * nivelZoom;
+    }
+
+    public double calcularTraslacionY(double altoVista) {
+        return calcularDesplazamientoCentro(altoVista) + desplazamiento.getY() * nivelZoom;
+    }
+
+    public double calcularDesplazamientoCentro(double dimensionVista) {
+        return (dimensionVista / 2.0) * (1.0 - nivelZoom);
+    }
+
+    private double acotarZoom(double valor) {
+        double limitado = Math.max(ZOOM_MINIMO, Math.min(ZOOM_MAXIMO, valor));
+        double redondeado = Math.rint(limitado * 1_000_000.0) / 1_000_000.0;
+        return Math.max(ZOOM_MINIMO, Math.min(ZOOM_MAXIMO, redondeado));
     }
 }

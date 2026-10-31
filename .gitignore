@@ -6,3 +6,9 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+# Ignore runtime saved games directory
+partidas_guardadas/
+
+# Ignore runtime saved games directory
+partidas_guardadas/

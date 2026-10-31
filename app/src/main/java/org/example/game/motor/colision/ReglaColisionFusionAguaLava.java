@@ -1,10 +1,8 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.cuerpo.Transformable;
 import org.example.game.motor.Vector2D;
-
 /**
  * Regla de reacción hidro-magmática (Easter egg) que fusiona Agua y Lava en Planeta Porro inerte.
  */
@@ -40,10 +38,8 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
         sobreviviente.setVelocidad(nuevaVel);
         sobreviviente.setMasa(masaTotal);
         sobreviviente.setNombre("Planeta Porro");
-        if (sobreviviente instanceof Transformable t) {
-            t.transformarA(TipoCuerpo.PLANETA_ROCOSO);
-            t.setTransformadoPorEvento(true);
-        }
+        sobreviviente.transformarA(TipoCuerpo.PLANETA_ROCOSO);
+        sobreviviente.setTransformadoPorEvento(true);
 
         if (sobreviviente.getCuerpoOrbitado() == null && absorbido.getCuerpoOrbitado() != null) {
             sobreviviente.setCuerpoOrbitado(absorbido.getCuerpoOrbitado());

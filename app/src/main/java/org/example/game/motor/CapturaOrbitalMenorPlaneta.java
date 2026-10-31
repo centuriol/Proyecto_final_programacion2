@@ -1,10 +1,7 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
-
 import java.util.function.Consumer;
-
 /**
  * Estrategia de captura para satélites y lunas alrededor de planetas.
  */

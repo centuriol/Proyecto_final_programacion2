@@ -1,13 +1,10 @@
 package org.example.game.render.capa;
-
 import javafx.scene.canvas.GraphicsContext;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.render.UtilidadRender;
-
 import java.util.List;
-
 /**
  * Capa de renderizado para zonas y órbitas de referencia alrededor de estrellas (SRP).
  */

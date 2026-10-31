@@ -1,5 +1,4 @@
 package org.example.game.cuerpo;
-
 /**
  * Cuerpos celestes susceptibles de metamorfosis astrofísica (ISP / OCP).
  */

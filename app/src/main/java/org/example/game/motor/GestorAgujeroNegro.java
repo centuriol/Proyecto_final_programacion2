@@ -1,6 +1,5 @@
 package org.example.game.motor;
 
-import org.example.game.cuerpo.AgujeroNegro;
 import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.ArrayList;
@@ -9,11 +8,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Gestor del campo gravitacional extremo y absorción en el horizonte de sucesos de los agujeros negros.
+ * Gestor del campo gravitacional extremo y absorcion en el horizonte de sucesos de los agujeros negros.
  *
  * Principios SOLID:
- * - SRP: Modela exclusivamente la atracción creciente y la absorción en el horizonte de sucesos.
- * - LSP: Aplica atracción y absorción polimórficamente sin discriminar planetas protegidos por escudo.
+ * - SRP: Modela exclusivamente la atraccion creciente y la absorcion en el horizonte de sucesos.
+ * - LSP: Aplica atraccion y absorcion polimorficamente sin discriminar planetas protegidos por escudo.
  * - DIP: Desacoplado y configurable mediante callbacks.
  */
 public class GestorAgujeroNegro {
@@ -21,47 +20,63 @@ public class GestorAgujeroNegro {
     public static final double FACTOR_RADIO_INFLUENCIA = 4.0;
 
     public void procesar(List<CuerpoCeleste> cuerpos, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
-        if (cuerpos == null || cuerpos.isEmpty()) return;
+        if (cuerpos == null || cuerpos.isEmpty()) {
+            return;
+        }
 
-        List<AgujeroNegro> agujeros = new ArrayList<>();
+        List<CuerpoCeleste> agujeros = filtrarAgujerosNegros(cuerpos);
+        if (agujeros.isEmpty()) {
+            return;
+        }
+
+        for (CuerpoCeleste bh : agujeros) {
+            for (CuerpoCeleste c : cuerpos) {
+                if (esObjetivoValido(bh, c)) {
+                    procesarInteraccion(bh, c, aEliminar, emisorMensajes);
+                }
+            }
+        }
+    }
+
+    private List<CuerpoCeleste> filtrarAgujerosNegros(List<CuerpoCeleste> cuerpos) {
+        List<CuerpoCeleste> agujeros = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado() && c.getTipoCuerpo() != null && c.getTipoCuerpo().esAgujeroNegro()) {
-                if (c instanceof AgujeroNegro an) {
-                    agujeros.add(an);
-                }
+                agujeros.add(c);
             }
         }
+        return agujeros;
+    }
 
-        if (agujeros.isEmpty()) return;
+    private boolean esObjetivoValido(CuerpoCeleste bh, CuerpoCeleste c) {
+        return c != null && c != bh && c.esSimulado() && (c.getTipoCuerpo() == null || !c.getTipoCuerpo().esAgujeroNegro());
+    }
 
-        for (AgujeroNegro bh : agujeros) {
-            double rHorizonte = bh.getRadio();
-            double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
-
-            for (CuerpoCeleste c : cuerpos) {
-                if (c == bh || c == null || !c.esSimulado() || (c.getTipoCuerpo() != null && c.getTipoCuerpo().esAgujeroNegro())) {
-                    continue;
-                }
-
-                double dist = bh.getPosicion().distanciaA(c.getPosicion());
-                if (dist <= rHorizonte) {
-                    // Absorción en el horizonte de sucesos (el escudo NO protege)
-                    bh.absorber(c);
-                    if (aEliminar != null && !aEliminar.contains(c)) {
-                        aEliminar.add(c);
-                    }
-                    if (emisorMensajes != null) {
-                        emisorMensajes.accept(bh.getNombre() + " devoró completamente a " + c.getNombre() + " en su horizonte de eventos.");
-                    }
-                } else {
-                    // Atracción universal implacable sin importar la distancia (alcance total y fuerza extrema)
-                    Vector2D dir = bh.getPosicion().restar(c.getPosicion()).normalizar();
-                    double distSegura = Math.max(10.0, dist);
-                    double fuerzaArrastre = Math.max(12.0, (120000.0 / (distSegura * distSegura)) + (1200.0 / distSegura));
-                    c.setVelocidad(c.getVelocidad().sumar(dir.multiplicar(fuerzaArrastre)));
-                }
-            }
+    private void procesarInteraccion(CuerpoCeleste bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
+        double rHorizonte = bh.getRadio();
+        double dist = bh.getPosicion().distanciaA(c.getPosicion());
+        if (dist <= rHorizonte) {
+            absorberEnHorizonte(bh, c, aEliminar, emisorMensajes);
+        } else {
+            aplicarAtraccionImplacable(bh, c, dist);
         }
+    }
+
+    private void absorberEnHorizonte(CuerpoCeleste bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
+        bh.absorber(c);
+        if (aEliminar != null && !aEliminar.contains(c)) {
+            aEliminar.add(c);
+        }
+        if (emisorMensajes != null) {
+            emisorMensajes.accept(bh.getNombre() + " devoró completamente a " + c.getNombre() + " en su horizonte de eventos.");
+        }
+    }
+
+    private void aplicarAtraccionImplacable(CuerpoCeleste bh, CuerpoCeleste c, double dist) {
+        Vector2D dir = bh.getPosicion().restar(c.getPosicion()).normalizar();
+        double distSegura = Math.max(10.0, dist);
+        double fuerzaArrastre = Math.max(12.0, (120000.0 / (distSegura * distSegura)) + (1200.0 / distSegura));
+        c.setVelocidad(c.getVelocidad().sumar(dir.multiplicar(fuerzaArrastre)));
     }
 
     private static double calcularProximidadNormalizada(CuerpoCeleste c, List<CuerpoCeleste> todos) {
@@ -90,7 +105,9 @@ public class GestorAgujeroNegro {
 
     public static double calcularRotacionExtra(CuerpoCeleste c, List<CuerpoCeleste> todos, long tick) {
         double t = calcularProximidadNormalizada(c, todos);
-        if (t >= 1.0) return 0.0;
+        if (t >= 1.0) {
+            return 0.0;
+        }
         double cercania = 1.0 - t;
         return tick * cercania * 15.0;
     }

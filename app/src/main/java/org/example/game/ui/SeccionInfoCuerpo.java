@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -15,7 +14,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.render.GestorImagenes;
-
 /**
  * Secciones visuales reutilizables para ventanas modales de información y configuración de cuerpos celestes (SRP).
  */

@@ -9,86 +9,104 @@ import org.example.game.simulacion.ConfiguracionSimulacion;
 import java.util.List;
 
 /**
- * SRP: Evalúa las condiciones astrofísicas de habitabilidad alrededor de un planeta.
+ * Evalua las condiciones astrofisicas de habitabilidad alrededor de un planeta.
+ *
+ * Principios SOLID:
+ * - SRP: Descompone el analisis de habitabilidad en evaluadores especificos (estelar, agujero negro, orbita).
  */
 public final class EvaluadorHabitabilidad {
+
+    private record AstrosRelevantes(CuerpoCeleste estrella, double distEstrella, CuerpoCeleste agujero, double distAgujero) {}
+    private record EvaluacionEstelar(double distIdeal, double ratioZona, boolean enZona, double flujo) {}
+    private record EvaluacionAgujero(double distancia, boolean bajoAmenaza, double intensidad) {}
 
     private EvaluadorHabitabilidad() {}
 
     public static CondicionesHabitabilidad evaluar(Planeta planeta, List<CuerpoCeleste> cuerpos) {
-        if (planeta == null || cuerpos == null) return CondicionesHabitabilidad.porDefecto();
+        if (planeta == null || cuerpos == null) {
+            return CondicionesHabitabilidad.porDefecto();
+        }
 
+        AstrosRelevantes astros = buscarAstrosRelevantes(planeta, cuerpos);
+        EvaluacionEstelar estelar = calcularCondicionesEstelares(astros.estrella(), astros.distEstrella());
+        EvaluacionAgujero agujero = calcularAmenazaAgujero(astros.agujero(), astros.distAgujero());
+        double excentricidad = calcularExcentricidadAproximada(planeta, astros.estrella());
+
+        return new CondicionesHabitabilidad(
+                astros.distEstrella(),
+                estelar.distIdeal(),
+                estelar.ratioZona(),
+                estelar.enZona(),
+                estelar.flujo(),
+                agujero.distancia(),
+                agujero.bajoAmenaza(),
+                agujero.intensidad(),
+                excentricidad
+        );
+    }
+
+    private static AstrosRelevantes buscarAstrosRelevantes(Planeta planeta, List<CuerpoCeleste> cuerpos) {
         CuerpoCeleste estrellaMasCercana = null;
         double distEstrellaMin = Double.MAX_VALUE;
-
         CuerpoCeleste agujeroMasCercano = null;
         double distAgujeroMin = Double.MAX_VALUE;
 
         for (CuerpoCeleste otro : cuerpos) {
-            if (otro == planeta) continue;
-
+            if (otro == planeta) {
+                continue;
+            }
             double dist = planeta.getPosicion().distanciaA(otro.getPosicion());
             if (otro.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
                 if (dist < distEstrellaMin) {
                     distEstrellaMin = dist;
                     estrellaMasCercana = otro;
                 }
-            } else if (otro.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO ||
-                       otro.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
+            } else if (otro.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO || otro.getTipoCuerpo() == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
                 if (dist < distAgujeroMin) {
                     distAgujeroMin = dist;
                     agujeroMasCercano = otro;
                 }
             }
         }
+        return new AstrosRelevantes(estrellaMasCercana, distEstrellaMin, agujeroMasCercano, distAgujeroMin);
+    }
 
-        double distanciaIdeal = -1;
-        double ratioZonaHabitable = 0;
-        boolean enZonaHabitable = false;
-        double flujoEnergetico = 0;
-
-        if (estrellaMasCercana != null) {
-            double masaSol = 1.989e30;
-            double factorLuminosidad = Math.pow(Math.max(0.0, estrellaMasCercana.getMasa()) / masaSol, 3.5);
-            distanciaIdeal = Math.max(0.001, Math.sqrt(factorLuminosidad) * 150);
-            ratioZonaHabitable = distEstrellaMin / distanciaIdeal;
-            enZonaHabitable = ratioZonaHabitable >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
-                    && ratioZonaHabitable <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX;
-            double dist2 = Math.max(0.001, distEstrellaMin * distEstrellaMin);
-            flujoEnergetico = factorLuminosidad / dist2;
+    private static EvaluacionEstelar calcularCondicionesEstelares(CuerpoCeleste estrella, double distEstrella) {
+        if (estrella == null) {
+            return new EvaluacionEstelar(-1, 0, false, 0);
         }
+        double masaSol = 1.989e30;
+        double factorLuminosidad = Math.pow(Math.max(0.0, estrella.getMasa()) / masaSol, 3.5);
+        double distIdeal = Math.max(0.001, Math.sqrt(factorLuminosidad) * 150);
+        double ratioZona = distEstrella / distIdeal;
+        boolean enZona = ratioZona >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
+                && ratioZona <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX;
+        double dist2 = Math.max(0.001, distEstrella * distEstrella);
+        double flujo = factorLuminosidad / dist2;
+        return new EvaluacionEstelar(distIdeal, ratioZona, enZona, flujo);
+    }
 
-        double distanciaAgujero = -1;
-        boolean bajoAmenaza = false;
-        double intensidadAmenaza = 0;
-
-        if (agujeroMasCercano != null) {
-            distanciaAgujero = distAgujeroMin;
-            bajoAmenaza = distAgujeroMin < ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO;
-            intensidadAmenaza = 1.0 - (distAgujeroMin / ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO);
+    private static EvaluacionAgujero calcularAmenazaAgujero(CuerpoCeleste agujero, double distAgujero) {
+        if (agujero == null) {
+            return new EvaluacionAgujero(-1, false, 0);
         }
-
-        double excentricidad = calcularExcentricidadAproximada(planeta, estrellaMasCercana);
-
-        return new CondicionesHabitabilidad(
-                distEstrellaMin,
-                distanciaIdeal,
-                ratioZonaHabitable,
-                enZonaHabitable,
-                flujoEnergetico,
-                distanciaAgujero,
-                bajoAmenaza,
-                intensidadAmenaza,
-                excentricidad
-        );
+        boolean bajoAmenaza = distAgujero < ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO;
+        double intensidad = 1.0 - (distAgujero / ConfiguracionSimulacion.AMENAZA_AGUJERO_NEGRO_RADIO);
+        return new EvaluacionAgujero(distAgujero, bajoAmenaza, intensidad);
     }
 
     private static double calcularExcentricidadAproximada(Planeta planeta, CuerpoCeleste estrella) {
-        if (estrella == null) return 0;
+        if (estrella == null) {
+            return 0;
+        }
         double r = planeta.getPosicion().distanciaA(estrella.getPosicion());
-        if (r <= 0.001 || estrella.getMasa() <= 0) return 1.0;
+        if (r <= 0.001 || estrella.getMasa() <= 0) {
+            return 1.0;
+        }
         double vCircular = CalculadorOrbital.calcularRapidezOrbital(estrella.getMasa(), r);
-        if (vCircular <= 0.001) return 1.0;
+        if (vCircular <= 0.001) {
+            return 1.0;
+        }
         double vActual = planeta.getVelocidad().magnitud();
         return Math.abs(vActual - vCircular) / vCircular;
     }

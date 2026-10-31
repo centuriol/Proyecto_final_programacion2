@@ -1,13 +1,10 @@
 package org.example.game.render;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 /**
  * Responsable exclusivo de dibujar el fondo espacial, nebulosas procedimentales,
  * grilla opcional y estrellas titilantes.
@@ -85,22 +82,45 @@ public class RenderizadorFondo {
     }
 
     public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas) {
+        dibujarGrilla(gc, anchoCanvas, altoCanvas, 1.0);
+    }
+
+    public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas, double nivelZoom) {
+        CamaraZoom temporal = new CamaraZoom(nivelZoom, CamaraZoom.INCREMENTO_POR_DEFECTO);
+        dibujarGrilla(gc, anchoCanvas, altoCanvas, temporal);
+    }
+
+    public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas, CamaraZoom camara) {
+        CamaraZoom cam = camara != null ? camara : new CamaraZoom();
+        double minX = cam.pantallaAMundoX(0.0, anchoCanvas);
+        double maxX = cam.pantallaAMundoX(anchoCanvas, anchoCanvas);
+        double minY = cam.pantallaAMundoY(0.0, altoCanvas);
+        double maxY = cam.pantallaAMundoY(altoCanvas, altoCanvas);
+
         gc.setStroke(COLOR_GRILLA_LINEA);
         gc.setLineWidth(1.0);
         gc.setGlobalAlpha(0.25);
 
         int tamanoCelda = 32;
-        for (double x = 0; x < anchoCanvas; x += tamanoCelda) {
-            gc.strokeLine(x, 0, x, altoCanvas);
+        double inicioX = Math.floor(minX / tamanoCelda) * tamanoCelda;
+        double inicioY = Math.floor(minY / tamanoCelda) * tamanoCelda;
+        for (double x = inicioX; x <= maxX; x += tamanoCelda) {
+            gc.strokeLine(x, minY, x, maxY);
         }
-        for (double y = 0; y < altoCanvas; y += tamanoCelda) {
-            gc.strokeLine(0, y, anchoCanvas, y);
+        for (double y = inicioY; y <= maxY; y += tamanoCelda) {
+            gc.strokeLine(minX, y, maxX, y);
         }
 
         gc.setStroke(COLOR_GRILLA_EJE);
         gc.setGlobalAlpha(0.18);
-        gc.strokeLine(anchoCanvas / 2.0, 0, anchoCanvas / 2.0, altoCanvas);
-        gc.strokeLine(0, altoCanvas / 2.0, anchoCanvas, altoCanvas / 2.0);
+        double ejeX = anchoCanvas / 2.0;
+        double ejeY = altoCanvas / 2.0;
+        if (ejeX >= minX && ejeX <= maxX) {
+            gc.strokeLine(ejeX, minY, ejeX, maxY);
+        }
+        if (ejeY >= minY && ejeY <= maxY) {
+            gc.strokeLine(minX, ejeY, maxX, ejeY);
+        }
 
         gc.setGlobalAlpha(1.0);
     }

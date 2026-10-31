@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
@@ -14,7 +13,6 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * Panel visual de notificaciones de eventos en tiempo real.
  * SRP: Muestra alertas y mensajes importantes en la interfaz de juego.
@@ -45,12 +43,12 @@ public class PanelNotificaciones extends VBox {
     private void agregarElementoVisual(MensajeEvento evento) {
         Label item = new Label("[" + evento.tipo().name() + "] " + evento.mensaje());
         item.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-        item.setTextFill(Color.web(evento.tipo().colorHex));
+        item.setTextFill(Color.web(evento.tipo().getColorHex()));
         item.setWrapText(true);
         item.setMaxWidth(360);
         item.setPadding(new Insets(5, 10, 5, 10));
         item.setStyle("-fx-background-color: rgba(26, 28, 38, 0.92); -fx-border-color: "
-                + evento.tipo().colorHex + "; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+                + evento.tipo().getColorHex() + "; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
 
         // Limitar cantidad visible
         while (getChildren().size() >= MAX_MENSAJES_VISIBLES) {

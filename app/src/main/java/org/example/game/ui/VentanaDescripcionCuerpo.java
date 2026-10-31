@@ -1,12 +1,10 @@
 package org.example.game.ui;
-
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import org.example.game.controlador.ControladorMouse;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * Fachada para las ventanas modales de inspección y colocación de cuerpos celestes (Facade / SRP).
  */

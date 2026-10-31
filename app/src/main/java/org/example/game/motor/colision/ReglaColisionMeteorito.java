@@ -1,17 +1,36 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.ConfiguracionColisiones;
+import org.example.game.simulacion.EscaladorAmenazaMeteorito;
 import org.example.game.simulacion.MensajeEvento;
-
+import java.util.function.DoubleSupplier;
 /**
- * Regla de colisión para impactos balísticos de meteoritos y coexistencia de satélites.
+ * Regla de colision para impactos balisticos de meteoritos con dano escalado segun el progreso
+ * del jugador y coexistencia de satelites (SRP / OCP / DIP).
  */
 public class ReglaColisionMeteorito implements ReglaColision {
+
+    private DoubleSupplier proveedorProgreso;
+
+    public ReglaColisionMeteorito() {
+        this(() -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
+    }
+
+    public ReglaColisionMeteorito(DoubleSupplier proveedorProgreso) {
+        this.proveedorProgreso = proveedorProgreso != null
+                ? proveedorProgreso
+                : () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL;
+    }
+
+    public void setProveedorProgreso(DoubleSupplier proveedorProgreso) {
+        if (proveedorProgreso != null) {
+            this.proveedorProgreso = proveedorProgreso;
+        }
+    }
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
@@ -37,33 +56,23 @@ public class ReglaColisionMeteorito implements ReglaColision {
             return;
         }
 
-        Meteorito meteorito = (ta == TipoCuerpo.METEORITO) ? (Meteorito) a : (Meteorito) b;
+        CuerpoCeleste meteorito = (ta == TipoCuerpo.METEORITO) ? a : b;
         CuerpoCeleste objetivo = (meteorito == a) ? b : a;
 
         UtilidadColision.desactivarYEliminar(meteorito, ctx.aEliminar());
 
+        if (objetivo.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+            ctx.emitirExplosion(meteorito.getPosicion(), meteorito.getRadio() * 2.0);
+            ctx.emitirEvento(
+                    "El satélite " + objetivo.getNombre() + " interceptó y detuvo a " + meteorito.getNombre() + ".",
+                    MensajeEvento.TipoMensaje.INFO
+            );
+            ctx.emitirMensaje("Satélite " + objetivo.getNombre() + " detuvo a " + meteorito.getNombre() + ".");
+            return;
+        }
+
         if (objetivo.getTipoCuerpo() != null && objetivo.getTipoCuerpo().esPlaneta()) {
-            double masaInicial = objetivo.getMasaInicial();
-            double factorDano = ConfiguracionColisiones.DANO_METEORITO_MIN_FRACCION
-                    + (Math.random() * (ConfiguracionColisiones.DANO_METEORITO_MAX_FRACCION - ConfiguracionColisiones.DANO_METEORITO_MIN_FRACCION));
-            double danoMasa = masaInicial * factorDano;
-            double nuevaMasa = Math.max(0.0, objetivo.getMasa() - danoMasa);
-            objetivo.setMasa(nuevaMasa);
-
-            if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-                civ.getCivilizacion().recalcularPoblacionMaxima();
-                civ.getCivilizacion().recibirImpactoMeteorito();
-            }
-
-            boolean esPlanetaInicialFragil = masaInicial <= TipoCuerpo.PLANETA_ROCOSO.masaBase * 0.6 + 1e-6;
-            if (nuevaMasa < masaInicial * ConfiguracionColisiones.UMBRAL_EXPLOSION_MASA_FRACCION || esPlanetaInicialFragil) {
-                UtilidadColision.desactivarYEliminar(objetivo, ctx.aEliminar());
-                ctx.emitirExplosion(objetivo.getPosicion(), objetivo.getRadio() * 2.5);
-                ctx.emitirEvento("¡CATASTROFE! El impacto de meteorito masivo destruyó completamente al planeta " + objetivo.getNombre() + ".", MensajeEvento.TipoMensaje.PELIGRO);
-                return;
-            }
-
-            ctx.emitirMensaje(meteorito.getNombre() + " impactó en " + objetivo.getNombre() + " reduciendo su masa en " + String.format("%.1f%%", factorDano * 100) + ".");
+            aplicarImpactoAPlaneta(meteorito, objetivo, ctx);
             return;
         }
 
@@ -73,10 +82,41 @@ public class ReglaColisionMeteorito implements ReglaColision {
             objetivo.setVelocidad(nuevaVelocidad);
         }
 
-        if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-            civ.getCivilizacion().recibirImpactoMeteorito();
+        if (objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
+            objetivo.getCivilizacion().recibirImpactoMeteorito();
         }
 
         ctx.emitirMensaje(meteorito.getNombre() + " colisionó contra " + objetivo.getNombre() + ".");
+    }
+
+    private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
+        double masaInicial = planeta.getMasaInicial();
+        double progresoEfectivo = meteorito.tieneProgresoExplicito()
+                ? meteorito.getFactorProgresoOrigen()
+                : proveedorProgreso.getAsDouble();
+        double factorDano = EscaladorAmenazaMeteorito.calcularFraccionDano(progresoEfectivo);
+        double danoMasa = masaInicial * factorDano;
+        double nuevaMasa = Math.max(0.0, planeta.getMasa() - danoMasa);
+        planeta.setMasa(nuevaMasa);
+
+        if (planeta.tieneCivilizacion() && planeta.getCivilizacion() != null) {
+            planeta.getCivilizacion().recalcularPoblacionMaxima();
+            planeta.getCivilizacion().recibirImpactoMeteorito();
+        }
+
+        if (nuevaMasa <= 0.0 || nuevaMasa < masaInicial * ConfiguracionColisiones.UMBRAL_EXPLOSION_MASA_FRACCION) {
+            UtilidadColision.desactivarYEliminar(planeta, ctx.aEliminar());
+            ctx.emitirExplosion(planeta.getPosicion(), planeta.getRadio() * 2.5);
+            ctx.emitirEvento(
+                    "¡CATASTROFE! El impacto de meteorito masivo destruyó completamente al planeta " + planeta.getNombre() + ".",
+                    MensajeEvento.TipoMensaje.PELIGRO
+            );
+            return;
+        }
+
+        ctx.emitirMensaje(
+                meteorito.getNombre() + " impactó en " + planeta.getNombre()
+                        + " reduciendo su masa en " + String.format("%.1f%%", factorDano * 100.0) + "."
+        );
     }
 }

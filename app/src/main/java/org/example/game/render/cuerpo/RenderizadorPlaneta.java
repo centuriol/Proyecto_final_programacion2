@@ -1,5 +1,4 @@
 package org.example.game.render.cuerpo;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.shape.ArcType;
@@ -9,7 +8,6 @@ import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.render.RenderizadorCuerpo;
 import org.example.game.render.RepositorioSprites;
 import org.example.game.render.UtilidadRender;
-
 /**
  * Renderizador Pixel Art para planetas (rocoso, agua, lava, gaseoso, helado) (SRP / OCP).
  */
@@ -47,7 +45,7 @@ public class RenderizadorPlaneta implements RenderizadorCuerpo {
         double tam = Math.max(22.0, r * 2.0);
         gc.drawImage(imgPlaneta, Math.round(-tam / 2.0), Math.round(-tam / 2.0), tam, tam);
 
-        if (c instanceof Civilizable civ && civ.tieneCivilizacion()) {
+        if (c != null && c.tieneCivilizacion()) {
             gc.setFill(UtilidadRender.colorWeb("#5be3ff"));
             gc.fillRect(-r * 0.3, -r * 0.2, 2, 2);
             gc.fillRect(r * 0.2, r * 0.1, 2, 2);
@@ -66,7 +64,7 @@ public class RenderizadorPlaneta implements RenderizadorCuerpo {
         gc.setFill(UtilidadRender.colorRgb(10, 20, 40, 0.45));
         gc.fillArc(-r, -r, r * 2, r * 2, 90, 180, ArcType.ROUND);
 
-        if (c instanceof Civilizable civ && civ.tieneCivilizacion()) {
+        if (c != null && c.tieneCivilizacion()) {
             gc.setFill(UtilidadRender.colorWeb("#5be3ff"));
             gc.fillRect(-r * 0.4, -r * 0.1, 2, 2);
             gc.fillRect(-r * 0.2, r * 0.3, 2, 2);

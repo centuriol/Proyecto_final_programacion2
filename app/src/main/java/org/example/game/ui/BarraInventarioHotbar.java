@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -11,11 +10,9 @@ import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Barra de inventario inferior (Hotbar) estilo RimWorld.
  * SRP: Gestiona la selección rápida de los 8 tipos de cuerpos y el factor de masa.

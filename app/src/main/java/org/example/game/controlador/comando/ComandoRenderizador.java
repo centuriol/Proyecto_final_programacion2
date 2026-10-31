@@ -1,7 +1,5 @@
 package org.example.game.controlador.comando;
-
 import org.example.game.render.RenderizadorPixelArt;
-
 /**
  * Clase base para comandos que interactuan con el renderizador visual.
  *

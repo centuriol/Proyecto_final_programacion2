@@ -1,9 +1,6 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-
 import java.util.function.Consumer;
-
 /**
  * Estrategia de captura para planetas alrededor de estrellas o agujeros negros.
  */

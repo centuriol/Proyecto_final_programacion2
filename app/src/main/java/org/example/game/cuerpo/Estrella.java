@@ -1,8 +1,12 @@
 package org.example.game.cuerpo;
-
 public class Estrella extends CuerpoCeleste {
     public Estrella(String nombre, double masa, double x, double y) {
         super(nombre, masa, x, y, TipoCuerpo.ESTRELLA);
+    }
+
+    @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarEstrella(this);
     }
 
     @Override

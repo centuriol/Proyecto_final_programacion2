@@ -1,10 +1,8 @@
 package org.example.game.simulacion;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
 /**
  * Bus de eventos desacoplado para notificaciones de simulación y sincronización con UI (SRP / Observer).
  */
@@ -25,7 +23,9 @@ public class BusEventos {
         for (Consumer<MensajeEvento> listener : listenersEvento) {
             try {
                 listener.accept(evento);
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                System.err.println("[WARN] Error al despachar evento de bus a listener: " + ex.getMessage());
+            }
         }
         System.out.println("[Tick " + evento.tick() + "] [" + evento.tipo().name() + "] " + evento.mensaje());
     }
@@ -50,7 +50,9 @@ public class BusEventos {
         for (Runnable r : listenersUI) {
             try {
                 r.run();
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                System.err.println("[WARN] Error al ejecutar listener de UI: " + ex.getMessage());
+            }
         }
     }
 

@@ -1,7 +1,5 @@
 package org.example.game.simulacion;
-
 import org.example.game.cuerpo.TipoCuerpo;
-
 /**
  * Configuración centralizada de la simulación para balanceo y tuning.
  * Todos los valores mágicos están aquí para fácil ajuste.
@@ -9,30 +7,50 @@ import org.example.game.cuerpo.TipoCuerpo;
 public final class ConfiguracionSimulacion {
 
     // ===== Límites de masa (colocación) =====
-    public static final double MASA_FACTOR_MIN = 0.3;
+    public static final double MASA_FACTOR_MIN = ConfiguracionEconomia.FACTOR_MASA_INICIAL;
     public static final double MASA_FACTOR_MAX = 10.0;
-    public static final double[] ESCALONES_MASA_MAX = {0.3, 0.6, 1.0, 2.0, 5.0, 10.0};
-    public static final double[] COSTOS_ESCALON_MASA = {0.0, 100.0, 500.0, 1500.0, 3500.0, 8000.0};
+    public static final double[] ESCALONES_MASA_MAX = {MASA_FACTOR_MIN, 0.6, 1.0, 2.0, 5.0, 10.0};
+    public static final double[] COSTOS_ESCALON_MASA = {
+            0.0,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5
+    };
 
-    // ===== Costos de desbloqueo de progresión por ciencia (Escalado acelerado: 100, 500, 1500, 3500, 8000) =====
-    public static final double COSTO_DESBLOQUEO_LUNA = 100.0;
-    public static final double COSTO_DESBLOQUEO_PORRO = 500.0;
-    public static final double COSTO_DESBLOQUEO_SATELITE = 1500.0;
-    public static final double COSTO_DESBLOQUEO_ESCUDO = 3500.0;
-    public static final double COSTO_DESBLOQUEO_LAVA = 8000.0;
+    // ===== Costos de desbloqueo de progresión por ciencia delegados a ConfiguracionEconomia =====
+    public static final double COSTO_DESBLOQUEO_LUNA = ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1;
+    public static final double COSTO_DESBLOQUEO_PORRO = ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2;
+    public static final double COSTO_DESBLOQUEO_SATELITE = ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3;
+    public static final double COSTO_DESBLOQUEO_ESCUDO = ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4;
+    public static final double COSTO_DESBLOQUEO_LAVA = ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5;
 
     // ===== Capacidad máxima de planetas en simulación =====
     public static final int PLANETAS_INICIALES_MAX = 3;
     public static final int[] ESCALONES_CANTIDAD_PLANETAS = {3, 4, 5, 6, 8, 12};
-    public static final double[] COSTOS_ESCALON_CANTIDAD_PLANETAS = {0.0, 100.0, 500.0, 1500.0, 3500.0, 8000.0};
+    public static final double[] COSTOS_ESCALON_CANTIDAD_PLANETAS = {
+            0.0,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4,
+            ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5
+    };
 
     // ===== Niveles de escudo =====
     public static final int NIVEL_ESCUDO_MAX = 4;
-    public static final double[] COSTOS_NIVEL_ESCUDO = {0.0, 100.0, 200.0, 350.0, 500.0};
-    public static final double COSTO_ACTIVACION_ESCUDO_ENERGIA = 50.0;
+    public static final double[] COSTOS_NIVEL_ESCUDO = {
+            0.0,
+            ConfiguracionEconomia.COSTO_ESCUDO_NIVEL_1,
+            ConfiguracionEconomia.COSTO_ESCUDO_NIVEL_2,
+            ConfiguracionEconomia.COSTO_ESCUDO_NIVEL_3,
+            ConfiguracionEconomia.COSTO_ESCUDO_NIVEL_4
+    };
+    public static final double COSTO_ACTIVACION_ESCUDO_ENERGIA = ConfiguracionEconomia.COSTO_ACTIVACION_ESCUDO_ENERGIA;
 
     // ===== Producción de Ciencia =====
-    public static final double PRODUCCION_ESTRELLA_CIENCIA = 0.06;
+    public static final double PRODUCCION_ESTRELLA_CIENCIA = ConfiguracionEconomia.PRODUCCION_ESTRELLA_CIENCIA;
 
     // ===== Física (Delegada a ConstantesFisicas como única fuente de verdad) =====
     public static final double G_ESCALADO = org.example.game.motor.ConstantesFisicas.G_ESCALADO;
@@ -44,10 +62,15 @@ public final class ConfiguracionSimulacion {
     public static final double RATIO_COLISION_COLAPSO = ConfiguracionColisiones.RATIO_COLISION_COLAPSO;
     public static final double RATIO_ABSORCION_MASA = ConfiguracionColisiones.RATIO_ABSORCION_MASA;
     public static final int FRAGMENTOS_POR_COLAPSO = ConfiguracionColisiones.FRAGMENTOS_POR_COLAPSO;
+    public static final int MAX_FRAGMENTOS_POR_COLAPSO = ConfiguracionColisiones.MAX_FRAGMENTOS_POR_COLAPSO;
     public static final double FRACCION_MASA_DISIPADA = ConfiguracionColisiones.FRACCION_MASA_DISIPADA;
     public static final double VELOCIDAD_EYECCION_FRAGMENTOS = ConfiguracionColisiones.VELOCIDAD_EYECCION_FRAGMENTOS;
     public static final double FRACCION_MASA_MINIMA_SOBREVIVIENTE = ConfiguracionColisiones.FRACCION_MASA_MINIMA_SOBREVIVIENTE;
     public static final double PORCENTAJE_GANANCIA_MASA_COLISION = ConfiguracionColisiones.PORCENTAJE_GANANCIA_MASA_COLISION;
+    public static final double MASA_MAXIMA_METEORITO = ConfiguracionColisiones.MASA_MAXIMA_METEORITO;
+    public static final double RADIO_MINIMO_METEORITO = ConfiguracionColisiones.RADIO_MINIMO_METEORITO;
+    public static final double RADIO_MAXIMO_METEORITO = ConfiguracionColisiones.RADIO_MAXIMO_METEORITO;
+    public static final double RADIO_INTERCEPCION_SATELITE = ConfiguracionColisiones.RADIO_INTERCEPCION_SATELITE;
 
     // ===== Transformacion de cuerpos delegada a ConfiguracionTransformacion =====
     public static final double RADIO_TRANSFORMACION_AGUA_PORRO = ConfiguracionTransformacion.RADIO_TRANSFORMACION_AGUA_PORRO;
@@ -76,6 +99,10 @@ public final class ConfiguracionSimulacion {
     public static final double COSTO_SATELITE_ENERGIA = ConfiguracionEconomia.COSTO_SATELITE_ENERGIA;
     public static final double COSTO_PLANETA_LAVA_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_LAVA_MINERALES;
     public static final double COSTO_PLANETA_LAVA_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_LAVA_ENERGIA;
+    public static final double COSTO_PLANETA_GASEOSO_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_GASEOSO_MINERALES;
+    public static final double COSTO_PLANETA_GASEOSO_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_GASEOSO_ENERGIA;
+    public static final double COSTO_PLANETA_HELADO_MINERALES = ConfiguracionEconomia.COSTO_PLANETA_HELADO_MINERALES;
+    public static final double COSTO_PLANETA_HELADO_ENERGIA = ConfiguracionEconomia.COSTO_PLANETA_HELADO_ENERGIA;
 
     // ===== Producción por Tick delegada a ConfiguracionEconomia =====
     public static final double PRODUCCION_ESTRELLA_ENERGIA = ConfiguracionEconomia.PRODUCCION_ESTRELLA_ENERGIA;
@@ -83,18 +110,24 @@ public final class ConfiguracionSimulacion {
     public static final double PRODUCCION_PLANETA_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_MINERALES;
     public static final double PRODUCCION_PLANETA_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_CIENCIA;
     public static final double PRODUCCION_PLANETA_POBLACION = ConfiguracionEconomia.PRODUCCION_PLANETA_POBLACION;
-    public static final double PRODUCCION_PLANETA_AGUA_MINERALES = 0.04;
-    public static final double PRODUCCION_PLANETA_AGUA_CIENCIA = 0.03;
-    public static final double PRODUCCION_PLANETA_AGUA_ENERGIA = 0.025;
+    public static final double PRODUCCION_PLANETA_AGUA_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_MINERALES;
+    public static final double PRODUCCION_PLANETA_AGUA_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_CIENCIA;
+    public static final double PRODUCCION_PLANETA_AGUA_ENERGIA = ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_ENERGIA;
     public static final double PRODUCCION_PLANETA_AGUA_POBLACION = 0.0;
-    public static final double PRODUCCION_SATELITE_CIENCIA = 0.08;
-    public static final double PRODUCCION_SATELITE_ENERGIA = 0.03;
-    public static final double PRODUCCION_PLANETA_LAVA_MINERALES = 0.09;
-    public static final double PRODUCCION_PLANETA_LAVA_CIENCIA = 0.06;
+    public static final double PRODUCCION_SATELITE_CIENCIA = ConfiguracionEconomia.PRODUCCION_SATELITE_CIENCIA;
+    public static final double PRODUCCION_SATELITE_ENERGIA = ConfiguracionEconomia.PRODUCCION_SATELITE_ENERGIA;
+    public static final double PRODUCCION_PLANETA_LAVA_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_LAVA_MINERALES;
+    public static final double PRODUCCION_PLANETA_LAVA_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_LAVA_CIENCIA;
     public static final double PRODUCCION_PLANETA_LAVA_POBLACION = 0.0;
+    public static final double PRODUCCION_PLANETA_GASEOSO_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_MINERALES;
+    public static final double PRODUCCION_PLANETA_GASEOSO_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_CIENCIA;
+    public static final double PRODUCCION_PLANETA_GASEOSO_ENERGIA = ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_ENERGIA;
+    public static final double PRODUCCION_PLANETA_HELADO_MINERALES = ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_MINERALES;
+    public static final double PRODUCCION_PLANETA_HELADO_CIENCIA = ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_CIENCIA;
+    public static final double PRODUCCION_PLANETA_HELADO_ENERGIA = ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_ENERGIA;
 
     // Luna: da Minerales
-    public static final double PRODUCCION_LUNA_MINERALES = 0.035;
+    public static final double PRODUCCION_LUNA_MINERALES = ConfiguracionEconomia.PRODUCCION_LUNA_MINERALES;
 
     // Modificadores pasivos legacy mantenidos para compatibilidad interna
     public static final double GANANCIA_PASIVA_POR_TICK = 0.0;
@@ -116,10 +149,11 @@ public final class ConfiguracionSimulacion {
     public static final double PENALIZACION_EVENTO_CATASTROFE = 0.50;
     public static final int DURACION_TICKS_EFECTO_EVENTO = 100;
 
-    // ===== Daño de Meteorito a Planeta (5% a 15% masa inicial, destrucción bajo 30%) =====
-    public static final double DANO_METEORITO_MIN_FRACCION = 0.05;
-    public static final double DANO_METEORITO_MAX_FRACCION = 0.15;
-    public static final double UMBRAL_EXPLOSION_MASA_FRACCION = 0.30;
+    // ===== Daño progresivo de Meteorito a Planeta delegado a ConfiguracionColisiones =====
+    public static final double DANO_METEORITO_MIN_FRACCION = ConfiguracionColisiones.DANO_METEORITO_INICIAL_FRACCION;
+    public static final double DANO_METEORITO_PROGRESO_BAJO_MAX_FRACCION = ConfiguracionColisiones.DANO_METEORITO_PROGRESO_BAJO_MAX_FRACCION;
+    public static final double DANO_METEORITO_MAX_FRACCION = ConfiguracionColisiones.DANO_METEORITO_PROGRESO_ALTO_FRACCION;
+    public static final double UMBRAL_EXPLOSION_MASA_FRACCION = ConfiguracionColisiones.UMBRAL_EXPLOSION_MASA_FRACCION;
     public static final double GUIADO_METEORITO = 0.05;
     public static final double VELOCIDAD_METEORITO_PX_TICK = 3.0;
 
@@ -134,8 +168,8 @@ public final class ConfiguracionSimulacion {
     public static final double POBLACION_MAXIMA_FACTOR = 1e6;
 
     // Costo de lanzamiento de nave colonizadora
-    public static final double COSTO_COLONIZAR_ENERGIA = 40.0;
-    public static final double COSTO_COLONIZAR_MINERALES = 50.0;
+    public static final double COSTO_COLONIZAR_ENERGIA = ConfiguracionEconomia.COSTO_COLONIZAR_ENERGIA;
+    public static final double COSTO_COLONIZAR_MINERALES = ConfiguracionEconomia.COSTO_COLONIZAR_MINERALES;
     public static final double PORCENTAJE_POBLACION_COLONIZADORA = 0.10; // 10%
     public static final double UMBRAL_COLONIZAR_PORCENTAJE = 80.0; // 80% de capacidad
     public static final double VELOCIDAD_NAVE_COLONIZADORA = 4.0; // px/tick
@@ -153,11 +187,11 @@ public final class ConfiguracionSimulacion {
     public static final int PANEL_LATERAL_ANCHO = 280;
     public static final int HUD_ALTO = 60;
 
-    // Costos base (referencia, los reales están en InventarioJugador)
-    public static final double COSTO_BASE_ESTRELLA = 1000;
-    public static final double COSTO_BASE_PLANETA_ROCOSO = 100;
-    public static final double COSTO_BASE_PLANETA_GASEOSO = 500;
-    public static final double COSTO_BASE_AGUJERO_NEGRO = 500;
+    // Costos base delegados a ConfiguracionEconomia (sin numeros sueltos)
+    public static final double COSTO_BASE_ESTRELLA = ConfiguracionEconomia.COSTO_ESTRELLA_MINERALES;
+    public static final double COSTO_BASE_PLANETA_ROCOSO = ConfiguracionEconomia.COSTO_PLANETA_MINERALES;
+    public static final double COSTO_BASE_PLANETA_GASEOSO = ConfiguracionEconomia.COSTO_PLANETA_GASEOSO_MINERALES;
+    public static final double COSTO_BASE_AGUJERO_NEGRO = ConfiguracionEconomia.COSTO_REFERENCIA_AGUJERO_NEGRO;
 
     private ConfiguracionSimulacion() {} // No instanciar
 }

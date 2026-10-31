@@ -1,7 +1,5 @@
 package org.example.game.controlador.comando;
-
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * SRP: Encapsula la acción de escalar el factor de masa de colocación actual de la simulación.
  */

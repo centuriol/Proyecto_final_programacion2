@@ -1,5 +1,4 @@
 package org.example;
-
 import org.example.game.cuerpo.*;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.MotorFisicaPermisiva;
@@ -10,12 +9,9 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class CivilizacionSinergiaTest {
 

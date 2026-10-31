@@ -1,9 +1,10 @@
 package org.example.game.jugador;
-
 /**
  * Cantidad de un recurso específico.
  */
 public final class Recurso {
+    private static final double TOLERANCIA_PRECISION = 1.0e-9;
+
     private final TipoRecurso tipo;
     private double cantidad;
 
@@ -30,8 +31,8 @@ public final class Recurso {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad a gastar no puede ser negativa: " + cantidad);
         }
-        if (this.cantidad >= cantidad) {
-            this.cantidad -= cantidad;
+        if (this.cantidad + TOLERANCIA_PRECISION >= cantidad) {
+            this.cantidad = Math.max(0.0, this.cantidad - cantidad);
             return true;
         }
         return false;
@@ -41,7 +42,7 @@ public final class Recurso {
         if (cantidad < 0) {
             return false;
         }
-        return this.cantidad >= cantidad;
+        return this.cantidad + TOLERANCIA_PRECISION >= cantidad;
     }
 
     public void setCantidad(double cantidad) {
