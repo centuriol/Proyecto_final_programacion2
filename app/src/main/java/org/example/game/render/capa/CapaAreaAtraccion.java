@@ -11,15 +11,12 @@ import java.util.List;
  */
 public class CapaAreaAtraccion {
 
-    private static final Color COLOR_AREA_ESTRELLA = UtilidadRender.colorRgb(255, 215, 0, 0.16);
-    private static final Color COLOR_AREA_LUNA = UtilidadRender.colorRgb(200, 210, 225, 0.15);
-    private static final Color COLOR_AREA_PLANETA = UtilidadRender.colorRgb(91, 227, 255, 0.14);
-
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {
         for (CuerpoCeleste c : cuerpos) {
             if (!c.esSimulado()) continue;
             TipoCuerpo tipo = c.getTipoCuerpo();
-            if (tipo != null && !tieneAreaAtraccion(tipo)) continue;
+            org.example.game.render.EstrategiaVisualTipo est = org.example.game.render.RegistroEstrategiasVisuales.get(tipo);
+            if (!est.tieneAreaAtraccion()) continue;
 
             double rAtraccion = c.getRadioAtraccion();
             if (rAtraccion <= 0) continue;
@@ -27,8 +24,7 @@ public class CapaAreaAtraccion {
             double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
             double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
 
-            Color colorArea = (c.getMasa() >= 1e29) ? COLOR_AREA_ESTRELLA
-                    : (c.getMasa() <= 1e23) ? COLOR_AREA_LUNA : COLOR_AREA_PLANETA;
+            Color colorArea = est.getColorAreaAtraccion();
 
             gc.setStroke(colorArea);
             gc.setLineWidth(1.0);
@@ -36,9 +32,5 @@ public class CapaAreaAtraccion {
             gc.strokeOval(sx - rAtraccion, sy - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
             gc.setLineDashes(null);
         }
-    }
-
-    private boolean tieneAreaAtraccion(TipoCuerpo tipo) {
-        return tipo != TipoCuerpo.SATELITE && tipo != TipoCuerpo.METEORITO;
     }
 }
