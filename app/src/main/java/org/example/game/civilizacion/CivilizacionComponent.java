@@ -1,15 +1,12 @@
 package org.example.game.civilizacion;
-
 import org.example.game.cuerpo.Planeta;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.motor.Vector2D;
 import org.example.game.cuerpo.CuerpoCeleste;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Componente de civilización para planetas.
  * Gestiona población, estabilidad, nivel tecnológico y eventos.
@@ -29,17 +26,23 @@ public class CivilizacionComponent {
     private final List<Double> historialPoblacion = new ArrayList<>();
     private final List<Double> historialEstabilidad = new ArrayList<>();
     private int contadorTicksHistorial = 0;
+    private final EvaluadorHabitabilidad evaluadorHabitabilidad;
 
     public CivilizacionComponent(Planeta planeta) {
-        this(planeta, ConfiguracionSimulacion.POBLACION_INICIAL);
+        this(planeta, ConfiguracionSimulacion.POBLACION_INICIAL, new EvaluadorHabitabilidad());
     }
 
     public CivilizacionComponent(Planeta planeta, double poblacionInicial) {
+        this(planeta, poblacionInicial, new EvaluadorHabitabilidad());
+    }
+
+    public CivilizacionComponent(Planeta planeta, double poblacionInicial, EvaluadorHabitabilidad evaluadorHabitabilidad) {
         this.planeta = planeta;
         this.nivelTecnologico = 0;
         this.estabilidad = 1.0;
         this.felicidad = 1.0;
         this.estado = EstadoCivilizacion.PRÓSPERA;
+        this.evaluadorHabitabilidad = evaluadorHabitabilidad != null ? evaluadorHabitabilidad : new EvaluadorHabitabilidad();
         recalcularPoblacionMaxima();
         this.poblacion = Math.min(poblacionInicial, this.poblacionMaxima);
     }
@@ -52,10 +55,19 @@ public class CivilizacionComponent {
             ticksEfectoEventoReciente--;
         }
 
-        // 1. Calcular condiciones de habitabilidad
-        CondicionesHabitabilidad condiciones = EvaluadorHabitabilidad.evaluar(planeta, todosLosCuerpos);
+        CondicionesHabitabilidad condiciones = evaluadorHabitabilidad.evaluar(planeta, todosLosCuerpos);
+        actualizarPoblacion(condiciones);
+        actualizarEstabilidadYFelicidad(condiciones);
+        estado = determinarEstado();
+        procesarEventosAleatorios();
+        registrarMuestraHistorial();
 
-        // 2. Calcular crecimiento/decadencia de población
+        if (poblacion < 10) {
+            extinguir();
+        }
+    }
+
+    private void actualizarPoblacion(CondicionesHabitabilidad condiciones) {
         double factorCrecimiento = calcularFactorCrecimiento(condiciones);
         if (factorCrecimiento > 0) {
             double saturacion = poblacionMaxima > 0 ? (1.0 - (poblacion / poblacionMaxima)) : 0.0;
@@ -64,17 +76,9 @@ public class CivilizacionComponent {
             poblacion *= (1.0 + factorCrecimiento);
         }
         poblacion = Math.max(0, Math.min(poblacion, poblacionMaxima));
+    }
 
-        // 3. Actualizar estabilidad y felicidad
-        actualizarEstabilidadYFelicidad(condiciones);
-
-        // 4. Determinar nuevo estado
-        estado = determinarEstado();
-
-        // 5. Eventos aleatorios basados en estado
-        procesarEventosAleatorios();
-
-        // 6. Registrar historial (cada 10 ticks para no saturar)
+    private void registrarMuestraHistorial() {
         contadorTicksHistorial++;
         if (contadorTicksHistorial % 10 == 0) {
             historialPoblacion.add(poblacion);
@@ -83,11 +87,6 @@ public class CivilizacionComponent {
                 historialPoblacion.remove(0);
                 historialEstabilidad.remove(0);
             }
-        }
-
-        // 7. Verificar extinción
-        if (poblacion < 10) {
-            extinguir();
         }
     }
 
@@ -273,6 +272,22 @@ public class CivilizacionComponent {
 
     public void setTicksEfectoEventoReciente(int ticks) {
         this.ticksEfectoEventoReciente = Math.max(0, ticks);
+    }
+
+    public void restaurarMetricas(double poblacionGuardada, int nivelTech, double estabilidadGuardada, double felicidadGuardada) {
+        this.nivelTecnologico = Math.max(0, Math.min(10, nivelTech));
+        recalcularPoblacionMaxima();
+        this.estabilidad = Math.max(0.0, Math.min(1.0, estabilidadGuardada));
+        this.felicidad = Math.max(0.0, Math.min(1.0, felicidadGuardada));
+        this.poblacion = Math.max(0.0, Math.min(poblacionGuardada, this.poblacionMaxima));
+    }
+
+    public void restaurarEstadoGeneral(EstadoCivilizacion estadoGuardado, int ticksEvento) {
+        this.estado = estadoGuardado != null ? estadoGuardado : determinarEstado();
+        this.ticksEfectoEventoReciente = Math.max(0, ticksEvento);
+        if (this.estado == EstadoCivilizacion.EXTINGUIDA) {
+            this.poblacion = 0.0;
+        }
     }
 
     // ===== Getters =====

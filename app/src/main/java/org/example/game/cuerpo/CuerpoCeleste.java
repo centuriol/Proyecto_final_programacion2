@@ -1,11 +1,8 @@
 package org.example.game.cuerpo;
-
 import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.motor.CuerpoFisico;
 import org.example.game.motor.Vector2D;
-
 import java.util.List;
-
 /**
  * SRP: guarda datos básicos (nombre, masa, posición, velocidad, fuerza).
  * OCP: getColorHex()/getRadio() son abstractos -> cada subclase nueva
@@ -148,17 +145,49 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
         return Math.max(tipoActual.getRadioAtraccionMin(), tipoActual.getRadioAtraccionMax() * Math.sqrt(factorMasa));
     }
 
+    // ===== Capacidades polimorficas e interfaces pequenas (ISP / OCP) =====
+
+    public java.util.Optional<Civilizable> comoCivilizable() {
+        return this instanceof Civilizable c ? java.util.Optional.of(c) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<Defensor> comoDefensor() {
+        return this instanceof Defensor d ? java.util.Optional.of(d) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<Transformable> comoTransformable() {
+        return this instanceof Transformable t ? java.util.Optional.of(t) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<Colonizable> comoColonizable() {
+        return this instanceof Colonizable c ? java.util.Optional.of(c) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<Actualizable> comoActualizable() {
+        return this instanceof Actualizable a ? java.util.Optional.of(a) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<Expirable> comoExpirable() {
+        return this instanceof Expirable e ? java.util.Optional.of(e) : java.util.Optional.empty();
+    }
+
     /**
      * Indica si el jugador puede recibir un reembolso de recursos al desmantelar este cuerpo.
      */
     public boolean permiteReembolso() {
-        if (this instanceof Transformable t) {
-            return !t.isTransformadoPorEvento();
-        }
         return true;
     }
 
-    // ===== Métodos abstractos para vista =====
+    /**
+     * Indica si el cuerpo puede ser seleccionado, inspeccionado o eliminado por interaccion directa del usuario.
+     */
+    public boolean esInteractuablePorUsuario() {
+        return true;
+    }
+
+    // ===== Métodos abstractos para vista y despacho polimórfico =====
+
+    public abstract <R> R aceptar(VisitanteCuerpo<R> visitante);
 
     public abstract String describir();
 

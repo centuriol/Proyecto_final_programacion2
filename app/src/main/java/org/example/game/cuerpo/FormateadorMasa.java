@@ -1,7 +1,5 @@
 package org.example.game.cuerpo;
-
 import java.util.Locale;
-
 /**
  * SRP: Formatea cantidades de masa física astronómica en unidades legibles (MT).
  */

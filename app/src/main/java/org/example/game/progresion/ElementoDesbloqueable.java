@@ -1,7 +1,5 @@
 package org.example.game.progresion;
-
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 /**
  * Elementos y tecnologías que se pueden desbloquear en la rama planetaria.
  *

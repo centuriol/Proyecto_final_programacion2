@@ -1,8 +1,6 @@
 package org.example.game.ui;
-
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-
 /**
  * SRP: Componente utilitario de interfaz para generar separadores horizontales expansibles
  * en layouts basados en HBox, transparentes a la interacción con el mouse.

@@ -1,11 +1,8 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
-
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Calculador de fuerzas gravitacionales N-Body y atracción hacia colapso estelar/arcade.
  *

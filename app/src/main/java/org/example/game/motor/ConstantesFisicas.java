@@ -1,5 +1,4 @@
 package org.example.game.motor;
-
 /**
  * Constantes físicas centralizadas para toda la simulación.
  * Principio: Single Responsibility - un solo lugar para configuración física.

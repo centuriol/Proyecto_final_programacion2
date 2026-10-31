@@ -1,12 +1,20 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
-
 /**
  * Regla para desintegración de escombros y satélites en la corona estelar.
  */
 public class ReglaColisionEstrella implements ReglaColision {
+
+    private final UtilidadColision utilidadColision;
+
+    public ReglaColisionEstrella() {
+        this(new UtilidadColision());
+    }
+
+    public ReglaColisionEstrella(UtilidadColision utilidadColision) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+    }
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
@@ -23,7 +31,7 @@ public class ReglaColisionEstrella implements ReglaColision {
         CuerpoCeleste estrella = (a.getTipoCuerpo() == TipoCuerpo.ESTRELLA) ? a : b;
         CuerpoCeleste menor = (estrella == a) ? b : a;
 
-        UtilidadColision.desactivarYEliminar(menor, ctx.aEliminar());
+        utilidadColision.desactivarYEliminar(menor, ctx.aEliminar());
         ctx.emitirMensaje(estrella.getNombre() + " desintegró a " + menor.getNombre() + " en su corona.");
     }
 }

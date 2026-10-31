@@ -1,16 +1,24 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.AgujeroNegro;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.MensajeEvento;
-
 /**
  * Regla de colisión para interacción gravitatoria extrema de Agujeros Negros y fusión de estrellas.
  */
 public class ReglaColisionAgujeroNegro implements ReglaColision {
+
+    private final UtilidadColision utilidadColision;
+
+    public ReglaColisionAgujeroNegro() {
+        this(new UtilidadColision());
+    }
+
+    public ReglaColisionAgujeroNegro(UtilidadColision utilidadColision) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+    }
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
@@ -31,12 +39,12 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
             Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
 
             AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroPersonalizado(posCM.x(), posCM.y(), masaTotal, velCM);
-            UtilidadColision.desactivarYEliminar(a, ctx.aEliminar());
-            UtilidadColision.desactivarYEliminar(b, ctx.aEliminar());
+            utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
+            utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.aAgregar().add(bh);
 
             ctx.emitirExplosion(posCM, bh.getRadio() * 3.0);
-            ctx.emitirEvento("¡COLAPSO ESTELAR! Choque entre dos Soles dio origen a un temible Agujero Negro.", MensajeEvento.TipoMensaje.PELIGRO);
+            ctx.emitirEvento("Colapso estelar: Choque entre dos Soles dio origen a un Agujero Negro.", MensajeEvento.TipoMensaje.PELIGRO);
             return;
         }
 
@@ -46,13 +54,13 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
         if (aEsBH && bEsBH) {
             CuerpoCeleste mayor = a.getMasa() >= b.getMasa() ? a : b;
             CuerpoCeleste menor = (mayor == a) ? b : a;
-            UtilidadColision.absorber(mayor, menor, ctx.aEliminar());
+            utilidadColision.absorber(mayor, menor, ctx.aEliminar());
             return;
         }
         if (aEsBH) {
-            UtilidadColision.absorber(a, b, ctx.aEliminar());
+            utilidadColision.absorber(a, b, ctx.aEliminar());
             return;
         }
-        UtilidadColision.absorber(b, a, ctx.aEliminar());
+        utilidadColision.absorber(b, a, ctx.aEliminar());
     }
 }

@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,27 +9,41 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.controlador.ControladorMouse;
 import org.example.game.cuerpo.*;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.ServicioReembolso;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
-
+import java.util.Collections;
 import java.util.Map;
-
 /**
- * Ventana modal para inspeccionar un cuerpo celeste existente en el sistema orbital (SRP).
+ * Ventana modal orientada a objetos para inspeccionar un cuerpo celeste en el sistema orbital (SRP / OCP).
  */
 public class VentanaInspeccion {
 
-    public static void mostrar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
-        if (cuerpo == null) return;
-        TipoCuerpo tipo = cuerpo.getTipoCuerpo();
-        if (tipo == null) return;
+    private final CuerpoCeleste cuerpo;
+    private final SimulacionSolar simulacion;
+    private final Window owner;
 
+    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
+        this.cuerpo = cuerpo;
+        this.simulacion = simulacion;
+        this.owner = owner;
+    }
+
+    public static void mostrar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
+        if (cuerpo == null || !cuerpo.esInteractuablePorUsuario() || cuerpo.getTipoCuerpo() == null) {
+            return;
+        }
+        new VentanaInspeccion(cuerpo, simulacion, owner).abrir();
+    }
+
+    public void abrir() {
         Stage stage = new Stage();
         VBox root = SeccionInfoCuerpo.inicializarDialogo(stage, "Inspeccionar: " + cuerpo.getNombre(), owner);
+        TipoCuerpo tipo = cuerpo.getTipoCuerpo();
 
         HBox header = SeccionInfoCuerpo.crearHeader(
                 SeccionInfoCuerpo.crearNodoIcono(tipo),
@@ -39,8 +52,24 @@ public class VentanaInspeccion {
         );
 
         VBox descBox = SeccionInfoCuerpo.crearSeccionDescripcion(tipo);
+        VBox datosFisicos = construirSeccionTelemetria();
+        agregarDetallesOpcionales(datosFisicos, stage);
+        VBox prodBox = construirSeccionProduccion(tipo);
+        HBox footer = construirFooter(stage);
 
-        // Telemetría
+        root.getChildren().addAll(header, new Separator(), descBox, datosFisicos, prodBox, new Separator(), footer);
+
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: #13151f; -fx-background-color: #13151f;");
+
+        Scene scene = new Scene(scroll, 540, 580);
+        SeccionInfoCuerpo.vincularCierrePorEscape(scene, stage);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private VBox construirSeccionTelemetria() {
         VBox datosFisicos = new VBox(4);
         datosFisicos.setPadding(new Insets(10));
         datosFisicos.setStyle(TemaUI.CSS_SECCION_CARD);
@@ -62,8 +91,76 @@ public class VentanaInspeccion {
         lblPos.setTextFill(Color.web("#d1d5db"));
 
         datosFisicos.getChildren().addAll(lblDatosTitulo, lblMasa, lblVel, lblPos);
+        return datosFisicos;
+    }
 
-        // Producción actual
+    private void agregarDetallesOpcionales(VBox datosFisicos, Stage stage) {
+        cuerpo.comoCivilizable().ifPresent(civ -> {
+            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+                datosFisicos.getChildren().add(construirTarjetaCivilizacion(civ.getCivilizacion()));
+            }
+        });
+        cuerpo.comoDefensor().ifPresent(def -> {
+            if (def.puedeRecibirEscudo()) {
+                datosFisicos.getChildren().add(construirTarjetaEscudo(def, stage));
+            }
+        });
+    }
+
+    private VBox construirTarjetaCivilizacion(CivilizacionComponent comp) {
+        VBox civBox = new VBox(4);
+        civBox.setPadding(new Insets(10));
+        civBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+
+        Label lblCivTitulo = new Label("CIVILIZACIÓN PLANETARIA");
+        lblCivTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        lblCivTitulo.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
+
+        Label lblPob = new Label(String.format("• Población: %.0f habitantes", comp.getPoblacion()));
+        lblPob.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+        lblPob.setTextFill(Color.web("#d1d5db"));
+
+        Label lblEst = new Label("• Estado: " + comp.getEstado().name());
+        lblEst.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+        lblEst.setTextFill(TemaUI.COLOR_VERDE_EXITO);
+
+        civBox.getChildren().addAll(lblCivTitulo, lblPob, lblEst);
+        return civBox;
+    }
+
+    private VBox construirTarjetaEscudo(Defensor def, Stage stage) {
+        VBox escudoBox = new VBox(6);
+        escudoBox.setPadding(new Insets(10));
+        escudoBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
+
+        Label lblEscudoTitulo = new Label("DEFENSA PLANETARIA (ESCUDO)");
+        lblEscudoTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        lblEscudoTitulo.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
+
+        String estadoEscudo = def.tieneEscudo()
+                ? "Escudo: " + def.getGolpesEscudoRestantes() + " golpes restantes"
+                : "Escudo: Inactivo";
+        Label lblEstadoEscudo = new Label(estadoEscudo);
+        lblEstadoEscudo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+        lblEstadoEscudo.setTextFill(Color.web("#d1d5db"));
+
+        escudoBox.getChildren().addAll(lblEscudoTitulo, lblEstadoEscudo);
+
+        if (simulacion != null && cuerpo instanceof Planeta planeta) {
+            Button btnActivarEscudo = new Button("Activar Escudo");
+            btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            btnActivarEscudo.setStyle(TemaUI.CSS_BTN_PRIMARIO);
+            btnActivarEscudo.setOnAction(e -> {
+                simulacion.activarEscudo(planeta);
+                stage.close();
+            });
+            escudoBox.getChildren().add(btnActivarEscudo);
+        }
+
+        return escudoBox;
+    }
+
+    private VBox construirSeccionProduccion(TipoCuerpo tipo) {
         VBox prodBox = new VBox(4);
         prodBox.setPadding(new Insets(10));
         prodBox.setStyle(TemaUI.CSS_SECCION_CARD);
@@ -74,55 +171,17 @@ public class VentanaInspeccion {
         prodBox.getChildren().add(lblProdTitulo);
 
         double factorMasa = tipo.masaBase > 0 ? Math.max(0.1, cuerpo.getMasa() / tipo.masaBase) : 1.0;
-        Map<TipoRecurso, Double> prod = (cuerpo instanceof Transformable t && t.isTransformadoPorEvento())
-                ? java.util.Collections.emptyMap()
+        boolean transformado = cuerpo.comoTransformable()
+                .map(Transformable::isTransformadoPorEvento)
+                .orElse(false);
+        Map<TipoRecurso, Double> prod = transformado
+                ? Collections.emptyMap()
                 : InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
         SeccionInfoCuerpo.poblarListaProduccion(prodBox, prod);
+        return prodBox;
+    }
 
-        // Civilización
-        if (cuerpo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-            var comp = civ.getCivilizacion();
-            VBox civBox = new VBox(4);
-            civBox.setPadding(new Insets(10));
-            civBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
-
-            Label lblCivTitulo = new Label("CIVILIZACIÓN PLANETARIA");
-            lblCivTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
-            lblCivTitulo.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
-
-            Label lblPob = new Label(String.format("• Población: %.0f habitantes", comp.getPoblacion()));
-            lblPob.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
-            lblPob.setTextFill(Color.web("#d1d5db"));
-
-            Label lblEst = new Label("• Estado: " + comp.getEstado().name());
-            lblEst.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
-            lblEst.setTextFill(TemaUI.COLOR_VERDE_EXITO);
-
-            civBox.getChildren().addAll(lblCivTitulo, lblPob, lblEst);
-            datosFisicos.getChildren().add(civBox);
-        }
-
-        // Escudo
-        if (cuerpo instanceof Defensor def && def.puedeRecibirEscudo()) {
-            VBox escudoBox = new VBox(6);
-            escudoBox.setPadding(new Insets(10));
-            escudoBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
-
-            Label lblEscudoTitulo = new Label("DEFENSA PLANETARIA (ESCUDO)");
-            lblEscudoTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
-            lblEscudoTitulo.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
-
-            String estadoEscudo = def.tieneEscudo()
-                    ? "Escudo: " + def.getGolpesEscudoRestantes() + " golpes restantes"
-                    : "Escudo: Inactivo";
-            Label lblEstadoEscudo = new Label(estadoEscudo);
-            lblEstadoEscudo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
-            lblEstadoEscudo.setTextFill(Color.web("#d1d5db"));
-
-            escudoBox.getChildren().addAll(lblEscudoTitulo, lblEstadoEscudo);
-            datosFisicos.getChildren().add(escudoBox);
-        }
-
+    private HBox construirFooter(Stage stage) {
         HBox footer = new HBox(10);
         footer.setAlignment(Pos.CENTER_RIGHT);
 
@@ -136,23 +195,12 @@ public class VentanaInspeccion {
         btnEliminar.setStyle(TemaUI.CSS_BTN_PELIGRO);
         btnEliminar.setOnAction(e -> {
             if (simulacion != null) {
-                ServicioReembolso.reembolsarYEliminar(cuerpo, simulacion);
+                simulacion.desmantelarCuerpo(cuerpo);
             }
             stage.close();
         });
 
         footer.getChildren().addAll(btnEliminar, btnCerrar);
-
-        root.getChildren().addAll(header, new Separator(), descBox, datosFisicos, prodBox, new Separator(), footer);
-
-        ScrollPane scroll = new ScrollPane(root);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background: #13151f; -fx-background-color: #13151f;");
-
-        Scene scene = new Scene(scroll, 540, 580);
-        SeccionInfoCuerpo.vincularCierrePorEscape(scene, stage);
-
-        stage.setScene(scene);
-        stage.show();
+        return footer;
     }
 }

@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.KeyCode;
 import org.example.game.cuerpo.*;
 import org.example.game.motor.MotorFisica;
@@ -18,15 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class SolidAbstraccionesRefactorTest {
 
@@ -95,8 +91,9 @@ public class SolidAbstraccionesRefactorTest {
     @Test
     @DisplayName("ServicioReembolso calcula el 50% de recuperacion y respeta restricciones de transformacion (SRP / LSP)")
     void testServicioReembolso() {
+        ServicioReembolso servicioReembolso = new ServicioReembolso();
         CuerpoCeleste planeta = new Planeta("Mundo", TipoCuerpo.PLANETA_ROCOSO.masaBase, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
-        Map<TipoRecurso, Double> reembolso = ServicioReembolso.calcularReembolso(planeta);
+        Map<TipoRecurso, Double> reembolso = servicioReembolso.calcularReembolso(planeta);
 
         assertNotNull(reembolso);
         assertFalse(reembolso.isEmpty(), "Debe existir reembolso para un cuerpo normal");
@@ -113,7 +110,7 @@ public class SolidAbstraccionesRefactorTest {
             t.setTransformadoPorEvento(true);
         }
         assertFalse(planeta.permiteReembolso());
-        Map<TipoRecurso, Double> reembolsoTransformado = ServicioReembolso.calcularReembolso(planeta);
+        Map<TipoRecurso, Double> reembolsoTransformado = servicioReembolso.calcularReembolso(planeta);
         assertTrue(reembolsoTransformado.isEmpty(), "No debe haber reembolso si fue transformado por evento");
     }
 

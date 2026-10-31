@@ -1,5 +1,4 @@
 package org.example.game.motor;
-
 /**
  * Vector 2D inmutable para cálculos físicos.
  * Usa double para precisión en simulaciones orbitales.

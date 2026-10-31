@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -11,10 +10,8 @@ import javafx.scene.text.FontWeight;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 /**
  * Contador de recursos superior estilo interfaz de gestion espacial.
  * SRP: Muestra los recursos del jugador y la poblacion con identificadores claros.

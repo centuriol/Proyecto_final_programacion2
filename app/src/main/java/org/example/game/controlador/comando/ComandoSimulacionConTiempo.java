@@ -1,8 +1,6 @@
 package org.example.game.controlador.comando;
-
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.ControlTiempoWidget;
-
 /**
  * Clase base para comandos que coordinan la simulación con el widget de control temporal.
  *

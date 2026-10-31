@@ -1,5 +1,4 @@
 package org.example.game.controlador;
-
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -8,10 +7,8 @@ import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
-
 import java.util.HashMap;
 import java.util.Map;
-
 /**
  * Controlador que encapsula la recepcion y procesamiento de eventos de teclado.
  *
@@ -23,6 +20,15 @@ import java.util.Map;
 public class ControladorTeclado implements EventHandler<KeyEvent> {
 
     private final Map<CombinacionTeclas, Comando> mapaComandos = new HashMap<>();
+    private final ConfiguradorAtajosTeclado configuradorAtajos;
+
+    public ControladorTeclado() {
+        this(new ConfiguradorAtajosTeclado());
+    }
+
+    public ControladorTeclado(ConfiguradorAtajosTeclado configuradorAtajos) {
+        this.configuradorAtajos = configuradorAtajos != null ? configuradorAtajos : new ConfiguradorAtajosTeclado();
+    }
 
     public void registrarComando(CombinacionTeclas combinacion, Comando comando) {
         if (combinacion != null && comando != null) {
@@ -89,6 +95,6 @@ public class ControladorTeclado implements EventHandler<KeyEvent> {
             SimulacionSolar sim, ControlTiempoWidget tiempo, BarraInventarioHotbar bar,
             RenderizadorPixelArt render, ControladorMouse mouse
     ) {
-        ConfiguradorAtajosTeclado.configurar(this, sim, tiempo, bar, render, mouse);
+        configuradorAtajos.configurar(this, sim, tiempo, bar, render, mouse);
     }
 }

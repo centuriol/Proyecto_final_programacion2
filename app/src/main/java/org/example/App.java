@@ -1,6 +1,6 @@
 package org.example;
-
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -15,15 +15,16 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.example.game.controlador.*;
 import org.example.game.controlador.comando.*;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.guardado.TemporizadorAutoguardado;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.*;
-
 /**
- * Punto de entrada principal de la aplicación JavaFX "Órbita".
+ * Punto de entrada principal de la aplicacion JavaFX "Centuriol".
  * Principios SOLID:
- * - SRP: Métodos de inicialización breves y modulares para simulación, controladores, interfaz y bucle.
- * - DIP: Inyección de componentes e interfaces.
+ * - SRP: Metodos de inicializacion breves y modulares delegando el flujo de sesion a CoordinadorSesionJuego.
+ * - DIP: Inyeccion de componentes e interfaces.
  */
 public class App extends Application {
 
@@ -32,6 +33,7 @@ public class App extends Application {
 
     private SimulacionSolar simulacion;
     private RenderizadorPixelArt renderizador;
+    private ResizableCanvas canvasJuego;
     private BucleJuego bucleJuego;
 
     private ControladorTeclado controladorTeclado;
@@ -41,6 +43,18 @@ public class App extends Application {
     private BarraInventarioHotbar hotbar;
     private ControlTiempoWidget controlTiempo;
     private PanelNotificaciones panelNotificaciones;
+    private CapaIndicadoresSol capaIndicadoresSol;
+    private HBox topBar;
+    private BorderPane bottomBar;
+    private Button btnArbolInferior;
+
+    private GestorGuardadoPartida gestorGuardado;
+    private TemporizadorAutoguardado autoguardado;
+    private CoordinadorSesionJuego coordinadorSesion;
+    private PantallaArbolProgresion pantallaArbol;
+    private PantallaMenuPausa pantallaMenuPausa;
+    private PantallaMenuPrincipal pantallaMenuPrincipal;
+    private PantallaGameOver pantallaGameOver;
 
     @Override
     public void start(Stage stage) {
@@ -48,25 +62,77 @@ public class App extends Application {
         double ancho = dims[0];
         double alto = dims[1];
 
+        StackPane root = inicializarInterfaz(stage, ancho, alto, null);
+        iniciarBucle(canvasJuego);
+        mostrarVentana(stage, root, ancho, alto);
+    }
+
+    public StackPane inicializarInterfaz(Stage stage,
+                                         double ancho,
+                                         double alto,
+                                         GestorGuardadoPartida gestorPersonalizado) {
         inicializarSimulacionYRender(ancho, alto);
-        ResizableCanvas canvasJuego = new ResizableCanvas(ancho, alto);
+        canvasJuego = new ResizableCanvas(ancho, alto);
         inicializarComponentesUI();
         configurarControladores(stage, canvasJuego, ancho, alto);
 
-        PantallaArbolProgresion pantallaArbol = new PantallaArbolProgresion(simulacion, null);
-        configurarAtajosArbol(pantallaArbol);
+        pantallaArbol = new PantallaArbolProgresion(simulacion, null);
+        configurarSistemaGuardadoYSesion(pantallaArbol, gestorPersonalizado);
 
-        BorderPane overlayUI = construirOverlayUI(pantallaArbol);
-        PantallaGameOver pantallaGameOver = new PantallaGameOver(simulacion);
-        simulacion.setOnGameOver(pantallaGameOver::mostrar);
+        ConfiguradorAtajosSesion configuradorAtajos = new ConfiguradorAtajosSesion();
+        configuradorAtajos.configurarAtajos(
+                controladorTeclado,
+                simulacion,
+                renderizador.getCamaraZoom(),
+                gestorGuardado,
+                coordinadorSesion,
+                controladorMouse,
+                hotbar,
+                pantallaArbol
+        );
 
-        StackPane root = new StackPane(canvasJuego, overlayUI, pantallaArbol, pantallaGameOver);
-        root.setStyle("-fx-background-color: #0e1017;");
-        root.setOnKeyPressed(controladorTeclado);
+        ConstructorOverlayUI constructorOverlay = new ConstructorOverlayUI();
+        ConstructorOverlayUI.EstructuraOverlay estructuraOverlay = constructorOverlay.construir(
+                hudRecursos,
+                hotbar,
+                controlTiempo,
+                panelNotificaciones,
+                pantallaArbol,
+                coordinadorSesion
+        );
+        this.topBar = estructuraOverlay.topBar();
+        this.bottomBar = estructuraOverlay.bottomBar();
+        this.btnArbolInferior = estructuraOverlay.btnArbolInferior();
+        BorderPane overlayUI = estructuraOverlay.overlay();
+
+        capaIndicadoresSol.visibleProperty().bind(overlayUI.visibleProperty());
+        capaIndicadoresSol.managedProperty().bind(overlayUI.managedProperty());
+
+        coordinadorSesion.vincularPantallas(pantallaMenuPrincipal, pantallaGameOver, overlayUI);
+        coordinadorSesion.vincularMenuPausa(pantallaMenuPausa);
+        coordinadorSesion.mostrarMenuInicial();
 
         simulacion.agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
-        iniciarBucle(canvasJuego);
-        mostrarVentana(stage, root, ancho, alto);
+        return ensamblarEscenaRaiz(overlayUI);
+    }
+
+    private StackPane ensamblarEscenaRaiz(BorderPane overlayUI) {
+        StackPane root = new StackPane(
+                canvasJuego,
+                capaIndicadoresSol,
+                overlayUI,
+                pantallaArbol,
+                pantallaMenuPausa,
+                pantallaGameOver,
+                pantallaMenuPrincipal
+        );
+        root.setStyle("-fx-background-color: #0e1017;");
+        root.setOnKeyPressed(evento -> {
+            if (coordinadorSesion.esPartidaEnCurso()) {
+                controladorTeclado.handle(evento);
+            }
+        });
+        return root;
     }
 
     private double[] obtenerDimensionesIniciales() {
@@ -76,7 +142,9 @@ public class App extends Application {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             ancho = bounds.getWidth();
             alto = bounds.getHeight();
-        } catch (Exception ignored) {}
+        } catch (Exception ex) {
+            System.err.println("[INFO] Dimensiones por defecto aplicadas en entorno sin pantalla: " + ex.getMessage());
+        }
         return new double[]{ancho, alto};
     }
 
@@ -92,13 +160,18 @@ public class App extends Application {
         hotbar = new BarraInventarioHotbar(simulacion);
         controlTiempo = new ControlTiempoWidget(simulacion);
         panelNotificaciones = new PanelNotificaciones(simulacion);
+        capaIndicadoresSol = new CapaIndicadoresSol(renderizador.getCamaraZoom());
     }
 
     private void configurarControladores(Stage stage, ResizableCanvas canvas, double ancho, double alto) {
         controladorMouse = new ControladorMouse(
                 simulacion,
                 hotbar,
-                cuerpo -> VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage, controladorMouse),
+                cuerpo -> {
+                    if (stage != null) {
+                        VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage, controladorMouse);
+                    }
+                },
                 ancho,
                 alto
         );
@@ -124,87 +197,64 @@ public class App extends Application {
         }
     }
 
-    private void configurarAtajosArbol(PantallaArbolProgresion pantallaArbol) {
-        controladorTeclado.registrarComando(KeyCode.P, new ComandoAbrirProgresion(simulacion, pantallaArbol::alternar));
-        hotbar.setAccionAbrirArbol(pantallaArbol::mostrar);
+    private void configurarSistemaGuardadoYSesion(PantallaArbolProgresion arbol,
+                                                  GestorGuardadoPartida gestorPersonalizado) {
+        gestorGuardado = gestorPersonalizado != null ? gestorPersonalizado : new GestorGuardadoPartida();
+        autoguardado = new TemporizadorAutoguardado(gestorGuardado, simulacion, renderizador.getCamaraZoom());
 
-        ComandoCancelar comandoCancelar = new ComandoCancelar(simulacion, hotbar, controladorMouse);
-        comandoCancelar.setAccionExtra(() -> {
-            if (pantallaArbol.isVisible()) {
-                pantallaArbol.ocultar();
+        Runnable limpiarVista = () -> {
+            renderizador.limpiarEstelas();
+            controladorMouse.limpiarSeleccion();
+            hotbar.deseleccionar();
+            arbol.ocultar();
+        };
+
+        coordinadorSesion = new CoordinadorSesionJuego(simulacion, renderizador.getCamaraZoom(), gestorGuardado, autoguardado);
+        coordinadorSesion.configurarCallbacks(limpiarVista, () -> {
+            if (bucleJuego != null) {
+                bucleJuego.detener();
+            }
+            if (Platform.isFxApplicationThread()) {
+                Platform.exit();
             }
         });
-        controladorTeclado.registrarComando(KeyCode.ESCAPE, comandoCancelar);
-    }
 
-    private BorderPane construirOverlayUI(PantallaArbolProgresion pantallaArbol) {
-        BorderPane overlay = new BorderPane();
-        overlay.setPadding(new Insets(12));
-        overlay.setPickOnBounds(false);
-
-        overlay.setTop(construirTopBar(pantallaArbol));
-        overlay.setLeft(panelNotificaciones);
-        overlay.setBottom(construirBottomBar());
-        return overlay;
-    }
-
-    private HBox construirTopBar(PantallaArbolProgresion pantallaArbol) {
-        HBox navTabs = new HBox(8);
-        navTabs.setAlignment(Pos.CENTER_LEFT);
-        navTabs.setPickOnBounds(true);
-
-        Button btnTabSim = new Button("[SIMULADOR]");
-        btnTabSim.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-        Button btnTabArbol = new Button("[ÁRBOL DE INVESTIGACIÓN (P)]");
-        btnTabArbol.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
-
-        String tabActiva = "-fx-background-color: #172a38; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
-        String tabInactiva = "-fx-background-color: #1a1c26; -fx-text-fill: #8c92a4; -fx-border-color: #2b2d3a; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-padding: 6 14 6 14; -fx-cursor: hand;";
-
-        btnTabSim.setStyle(tabActiva);
-        btnTabArbol.setStyle(tabInactiva);
-
-        pantallaArbol.visibleProperty().addListener((obs, oldV, arbolVisible) -> {
-            btnTabSim.setStyle(arbolVisible ? tabInactiva : tabActiva);
-            btnTabArbol.setStyle(arbolVisible ? tabActiva : tabInactiva);
+        gestorGuardado.agregarListenerPostCarga(() -> {
+            limpiarVista.run();
+            if (!simulacion.estaPerdida() && pantallaGameOver != null) {
+                pantallaGameOver.ocultar();
+            }
         });
 
-        btnTabSim.setOnAction(e -> pantallaArbol.ocultar());
-        btnTabArbol.setOnAction(e -> pantallaArbol.mostrar());
-        navTabs.getChildren().addAll(btnTabSim, btnTabArbol);
-
-        HBox topBar = new HBox(navTabs, EspaciadorUI.crearHorizontal(), hudRecursos);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPickOnBounds(false);
-        return topBar;
+        inicializarPantallasModales();
     }
 
-    private BorderPane construirBottomBar() {
-        BorderPane bottomBar = new BorderPane();
-        bottomBar.setPickOnBounds(false);
-
-        BorderPane.setAlignment(controlTiempo, Pos.BOTTOM_LEFT);
-        bottomBar.setLeft(controlTiempo);
-
-        VBox contenedorHotbar = new VBox(2, hotbar.getBotonToggle(), hotbar);
-        contenedorHotbar.setAlignment(Pos.BOTTOM_CENTER);
-        contenedorHotbar.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        contenedorHotbar.setPickOnBounds(false);
-        BorderPane.setAlignment(contenedorHotbar, Pos.BOTTOM_CENTER);
-        bottomBar.setCenter(contenedorHotbar);
-
-        Region balanceadorDerecho = new Region();
-        balanceadorDerecho.setPickOnBounds(false);
-        balanceadorDerecho.setMouseTransparent(true);
-        balanceadorDerecho.minWidthProperty().bind(controlTiempo.widthProperty());
-        balanceadorDerecho.prefWidthProperty().bind(controlTiempo.widthProperty());
-        bottomBar.setRight(balanceadorDerecho);
-
-        return bottomBar;
+    private void inicializarPantallasModales() {
+        pantallaMenuPrincipal = new PantallaMenuPrincipal(
+                coordinadorSesion::iniciarNuevaPartida,
+                gestorGuardado::obtenerRanuras,
+                coordinadorSesion::cargarRanura,
+                coordinadorSesion::salir
+        );
+        pantallaMenuPausa = new PantallaMenuPausa(
+                coordinadorSesion::reanudarDesdePausa,
+                coordinadorSesion::guardarDesdePausa,
+                coordinadorSesion::cargarDesdePausa,
+                coordinadorSesion::volverAlMenuPrincipal
+        );
+        pantallaGameOver = new PantallaGameOver(
+                coordinadorSesion::volverAlUltimoGuardado,
+                coordinadorSesion::volverAlMenuPrincipal
+        );
     }
 
     private void iniciarBucle(ResizableCanvas canvas) {
-        bucleJuego = new BucleJuego(simulacion, renderizador, canvas, controladorMouse);
+        bucleJuego = new BucleJuego(simulacion, renderizador, canvas, controladorMouse, autoguardado);
+        bucleJuego.setListenerFrame(() -> capaIndicadoresSol.actualizar(
+                simulacion.getSistemaSolar().getCuerpos(),
+                canvas.getWidth(),
+                canvas.getHeight()
+        ));
         bucleJuego.iniciar();
     }
 
@@ -213,7 +263,7 @@ public class App extends Application {
         scene.setFill(Color.web("#0e1017"));
 
         stage.setScene(scene);
-        stage.setTitle("Orbita - Simulador de Sistemas Solares");
+        stage.setTitle("Centuriol - Simulador de Sistemas Solares");
         stage.setMaximized(true);
         stage.show();
         root.requestFocus();
@@ -221,6 +271,9 @@ public class App extends Application {
 
     @Override
     public void stop() throws Exception {
+        if (autoguardado != null) {
+            autoguardado.desactivar();
+        }
         if (bucleJuego != null) {
             bucleJuego.detener();
         }
@@ -232,6 +285,16 @@ public class App extends Application {
     public ControladorMouse getControladorMouse() { return controladorMouse; }
     public BucleJuego getBucleJuego() { return bucleJuego; }
     public RenderizadorPixelArt getRenderizador() { return renderizador; }
+    public GestorGuardadoPartida getGestorGuardado() { return gestorGuardado; }
+    public CoordinadorSesionJuego getCoordinadorSesion() { return coordinadorSesion; }
+    public PantallaMenuPrincipal getPantallaMenuPrincipal() { return pantallaMenuPrincipal; }
+    public PantallaMenuPausa getPantallaMenuPausa() { return pantallaMenuPausa; }
+    public PantallaArbolProgresion getPantallaArbol() { return pantallaArbol; }
+    public PantallaGameOver getPantallaGameOver() { return pantallaGameOver; }
+    public CapaIndicadoresSol getCapaIndicadoresSol() { return capaIndicadoresSol; }
+    public HBox getTopBar() { return topBar; }
+    public BorderPane getBottomBar() { return bottomBar; }
+    public Button getBtnArbolInferior() { return btnArbolInferior; }
 
     public static void main(String[] args) {
         launch(args);

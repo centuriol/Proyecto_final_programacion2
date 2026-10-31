@@ -1,11 +1,8 @@
 package org.example.game.cuerpo;
-
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Tipos de cuerpos celestes con propiedades fisicas y de juego distintas.
  *
@@ -237,6 +234,62 @@ public enum TipoCuerpo {
 
     public boolean esMenorOrbital() {
         return this == LUNA || this == SATELITE;
+    }
+
+    public int getNivelRequerido() {
+        return switch (this) {
+            case LUNA -> 1;
+            case PLANETA_ROCOSO -> 2;
+            case SATELITE -> 3;
+            case PLANETA_LAVA -> 5;
+            default -> 0;
+        };
+    }
+
+    public double getCostoDesbloqueoCiencia() {
+        return switch (this) {
+            case LUNA -> 100.0;
+            case PLANETA_ROCOSO -> 200.0;
+            case SATELITE -> 350.0;
+            case PLANETA_LAVA -> 800.0;
+            default -> 0.0;
+        };
+    }
+
+    public boolean permiteAjusteMasa() {
+        return this != SATELITE;
+    }
+
+    public double ajustarFactorMasaEfectivo(double factorMasa) {
+        return permiteAjusteMasa() ? factorMasa : 1.0;
+    }
+
+    public double getRadioAtraccionPreview(double factorMasa) {
+        if (esEstrella()) {
+            return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
+        }
+        if (esPlaneta()) {
+            return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
+        }
+        if (esLuna()) {
+            return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
+        }
+        if (esAgujeroNegro()) {
+            return Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
+        }
+        return 30.0;
+    }
+
+    public double getTamanoGhost(double radio) {
+        return esEstrella() ? Math.max(32.0, radio * 2.2) : Math.max(16.0, radio * 2.0);
+    }
+
+    public boolean tieneRotacionAnimada() {
+        return !esEstrella();
+    }
+
+    public boolean tieneAreaAtraccion() {
+        return this != SATELITE && this != METEORITO;
     }
 
     public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }

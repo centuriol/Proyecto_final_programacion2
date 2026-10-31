@@ -1,5 +1,4 @@
 package org.example.game.cuerpo;
-
 public class AgujeroNegro extends CuerpoCeleste {
     private final TipoCuerpo subTipo;
 
@@ -15,12 +14,19 @@ public class AgujeroNegro extends CuerpoCeleste {
     public void absorber(CuerpoCeleste victima) {
         if (victima == null) return;
         setMasa(getMasa() + victima.getMasa());
-        if (victima instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-            civ.getCivilizacion().destruir();
-        }
+        victima.comoCivilizable().ifPresent(civ -> {
+            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+                civ.getCivilizacion().destruir();
+            }
+        });
         victima.setSimulado(false);
         victima.setMasa(0);
         System.out.println(getNombre() + " absorbió a " + victima.getNombre() + "!");
+    }
+
+    @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarAgujeroNegro(this);
     }
 
     @Override

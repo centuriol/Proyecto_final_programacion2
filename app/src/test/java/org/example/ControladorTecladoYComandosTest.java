@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.example.game.controlador.*;
@@ -13,11 +12,8 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class ControladorTecladoYComandosTest {
 

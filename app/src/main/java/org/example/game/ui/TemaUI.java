@@ -1,9 +1,7 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-
 /**
  * Paleta de colores, bordes y estilos CSS unificados de la interfaz estilo RimWorld (DRY / SRP).
  */

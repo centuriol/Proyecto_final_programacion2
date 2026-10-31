@@ -1,5 +1,4 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.motor.colision.ContextoColision;
@@ -14,13 +13,12 @@ import org.example.game.motor.colision.ReglaColisionFusionAguaLava;
 import org.example.game.motor.colision.ReglaColisionMeteorito;
 import org.example.game.motor.colision.UtilidadColision;
 import org.example.game.simulacion.MensajeEvento;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
+import java.util.function.DoubleSupplier;
 /**
  * Resolvedor desacoplado de colisiones e interacciones físicas y destructivas entre cuerpos celestes.
  *
@@ -30,31 +28,46 @@ import java.util.function.Consumer;
  */
 public class ResolvedorColisiones {
 
+    private final UtilidadColision utilidadColision;
     private final List<ReglaColision> reglas = new ArrayList<>();
     private Consumer<String> listenerMensaje;
     private BiConsumer<String, MensajeEvento.TipoMensaje> listenerNotificacion;
     private BiConsumer<Vector2D, Double> listenerExplosion;
 
     public ResolvedorColisiones() {
-        this(crearReglasPorDefecto());
+        this(new UtilidadColision());
+    }
+
+    public ResolvedorColisiones(UtilidadColision utilidadColision) {
+        this(utilidadColision, crearReglasPorDefecto(utilidadColision));
     }
 
     public ResolvedorColisiones(List<ReglaColision> reglas) {
+        this(new UtilidadColision(), reglas);
+    }
+
+    public ResolvedorColisiones(UtilidadColision utilidadColision, List<ReglaColision> reglas) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
         if (reglas != null) {
             this.reglas.addAll(reglas);
         }
     }
 
     public static List<ReglaColision> crearReglasPorDefecto() {
+        return crearReglasPorDefecto(new UtilidadColision());
+    }
+
+    public static List<ReglaColision> crearReglasPorDefecto(UtilidadColision utilidad) {
+        UtilidadColision u = utilidad != null ? utilidad : new UtilidadColision();
         return List.of(
-                new ReglaColisionAgujeroNegro(),
-                new ReglaColisionEstrella(),
-                new ReglaColisionEscudo(),
-                new ReglaColisionMeteorito(),
-                new ReglaColisionFusionAguaLava(),
-                new ReglaColisionAbsorcionPorRatio(),
-                new ReglaColisionColapsoMutuo(),
-                new ReglaColisionAsimetrica()
+                new ReglaColisionAgujeroNegro(u),
+                new ReglaColisionEstrella(u),
+                new ReglaColisionEscudo(u),
+                new ReglaColisionMeteorito(u),
+                new ReglaColisionFusionAguaLava(u),
+                new ReglaColisionAbsorcionPorRatio(u),
+                new ReglaColisionColapsoMutuo(u),
+                new ReglaColisionAsimetrica(u)
         );
     }
 
@@ -76,6 +89,12 @@ public class ResolvedorColisiones {
         this.listenerExplosion = listener;
     }
 
+    public void setProveedorProgreso(DoubleSupplier proveedorProgreso) {
+        for (ReglaColision regla : reglas) {
+            regla.setProveedorProgreso(proveedorProgreso);
+        }
+    }
+
     public void resolverColision(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         if (a == null || b == null) return;
         ContextoColision ctx = new ContextoColision(aEliminar, aAgregar, listenerMensaje, listenerNotificacion, listenerExplosion);
@@ -90,23 +109,31 @@ public class ResolvedorColisiones {
 
     // Métodos utilitarios delegados para compatibilidad
     public void absorber(CuerpoCeleste absorbente, CuerpoCeleste victima, Set<CuerpoCeleste> aEliminar) {
-        UtilidadColision.absorber(absorbente, victima, aEliminar);
+        utilidadColision.absorber(absorbente, victima, aEliminar);
     }
 
     public void impactarMeteorito(Meteorito meteorito, CuerpoCeleste objetivo, Set<CuerpoCeleste> aEliminar) {
         ContextoColision ctx = new ContextoColision(aEliminar, new ArrayList<>(), listenerMensaje, listenerNotificacion, listenerExplosion);
-        new ReglaColisionMeteorito().resolver(meteorito, objetivo, ctx);
+        ReglaColision reglaMeteorito = reglas.stream()
+                .filter(ReglaColisionMeteorito.class::isInstance)
+                .findFirst()
+                .orElseGet(ReglaColisionMeteorito::new);
+        reglaMeteorito.resolver(meteorito, objetivo, ctx);
     }
 
     public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
-        UtilidadColision.generarEscombros(destruido, aEliminar, aAgregar);
+        utilidadColision.generarEscombros(destruido, aEliminar, aAgregar);
     }
 
     public static void reboteElastico(CuerpoFisico a, CuerpoFisico b) {
-        UtilidadColision.reboteElastico(a, b);
+        new UtilidadColision().reboteElastico(a, b);
     }
 
     public void reboteElastico(CuerpoCeleste a, CuerpoCeleste b) {
-        UtilidadColision.reboteElastico(a, b);
+        utilidadColision.reboteElastico(a, b);
+    }
+
+    public UtilidadColision getUtilidadColision() {
+        return utilidadColision;
     }
 }

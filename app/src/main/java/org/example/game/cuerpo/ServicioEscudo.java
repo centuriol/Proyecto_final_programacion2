@@ -1,7 +1,4 @@
 package org.example.game.cuerpo;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.Planeta;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.AsistenteOrbital;
 import org.example.game.motor.Vector2D;
@@ -9,7 +6,6 @@ import org.example.game.progresion.ElementoDesbloqueable;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * Servicio de dominio para la activación y gestión de escudos planetarios y satélites orbitales.
  *
@@ -17,14 +13,20 @@ import org.example.game.simulacion.SimulacionSolar;
  * - SRP: Responsabilidad exclusiva de activar el escudo en un planeta y crear su satélite orbital asociado.
  * - DIP: Trabaja sobre abstracciones de simulación y modelo celeste.
  */
-public final class ServicioEscudo {
+public class ServicioEscudo {
 
-    private ServicioEscudo() {}
+    private static final ServicioEscudo INSTANCIA_POR_DEFECTO = new ServicioEscudo();
+
+    public ServicioEscudo() {}
+
+    public static ServicioEscudo getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
 
     /**
      * Calcula el costo de energía para activar el escudo, escalando con la masa del planeta.
      */
-    public static double calcularCostoEscudo(Planeta planeta) {
+    public double calcularCostoEscudo(Planeta planeta) {
         if (planeta == null) return ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
         double factorMasa = 1.0;
         if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().masaBase > 0) {
@@ -38,7 +40,7 @@ public final class ServicioEscudo {
      * Cobra energía (escalada por masa), aplica golpesEscudo = progresion.getGolpesEscudo(), y crea un único Satélite
      * orbitando el planeta si aún no posee uno.
      */
-    public static boolean activar(SimulacionSolar simulacion, Planeta planeta) {
+    public boolean activar(SimulacionSolar simulacion, Planeta planeta) {
         if (simulacion == null || planeta == null || !planeta.puedeRecibirEscudo()) {
             return false;
         }

@@ -1,5 +1,4 @@
 package org.example.game.simulacion;
-
 /**
  * SRP: Parámetros para eventos de transformación planetaria y búsqueda de órbitas.
  */

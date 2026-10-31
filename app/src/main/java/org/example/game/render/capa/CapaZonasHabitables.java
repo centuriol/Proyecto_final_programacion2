@@ -1,13 +1,10 @@
 package org.example.game.render.capa;
-
 import javafx.scene.canvas.GraphicsContext;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConstantesFisicas;
 import org.example.game.render.UtilidadRender;
-
 import java.util.List;
-
 /**
  * Capa de renderizado para zonas y órbitas de referencia alrededor de estrellas (SRP).
  */
@@ -17,7 +14,7 @@ public class CapaZonasHabitables {
 
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
+            if (c.getTipoCuerpo() != null && c.getTipoCuerpo().esEstrella()) {
                 double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
                 double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
 

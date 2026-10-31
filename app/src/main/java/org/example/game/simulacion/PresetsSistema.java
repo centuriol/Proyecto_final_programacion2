@@ -1,17 +1,23 @@
 package org.example.game.simulacion;
-
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Estrella;
 import org.example.game.cuerpo.Luna;
 import org.example.game.cuerpo.Planeta;
 import org.example.game.motor.Vector2D;
-
 /**
  * Generador de presets y configuraciones iniciales de cuerpos celestes (SRP).
  */
 public class PresetsSistema {
 
-    public static void cargarPresetSistemaBasico(SimulacionSolar simulacion) {
+    private static final PresetsSistema INSTANCIA_POR_DEFECTO = new PresetsSistema();
+
+    public PresetsSistema() {}
+
+    public static PresetsSistema getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
+
+    public void cargarPresetSistemaBasico(SimulacionSolar simulacion) {
         simulacion.limpiarCuerpos();
 
         // 1. Estrella Sol central
@@ -34,7 +40,7 @@ public class PresetsSistema {
         simulacion.agregarCuerpo(luna);
     }
 
-    public static void cargarPresetEstrellaBinaria(SimulacionSolar simulacion) {
+    public void cargarPresetEstrellaBinaria(SimulacionSolar simulacion) {
         simulacion.limpiarCuerpos();
 
         // Dos estrellas orbitándose
@@ -50,5 +56,13 @@ public class PresetsSistema {
         Planeta planetaExt = CuerpoCelesteFactory.crearPlanetaRocoso(0, 360, 1.0, new Vector2D(-88, 0));
         planetaExt.desarrollarCivilizacion();
         simulacion.agregarCuerpo(planetaExt);
+    }
+
+    public static void cargarBasico(SimulacionSolar simulacion) {
+        INSTANCIA_POR_DEFECTO.cargarPresetSistemaBasico(simulacion);
+    }
+
+    public static void cargarBinaria(SimulacionSolar simulacion) {
+        INSTANCIA_POR_DEFECTO.cargarPresetEstrellaBinaria(simulacion);
     }
 }

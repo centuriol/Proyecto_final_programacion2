@@ -1,9 +1,7 @@
 package org.example.game.cuerpo;
-
 import org.example.game.jugador.TipoRecurso;
 import java.util.Collections;
 import java.util.Map;
-
 /**
  * Descriptor inmutable de metadatos economicos, narrativos y visuales para un TipoCuerpo.
  *
@@ -11,17 +9,7 @@ import java.util.Map;
  * - SRP: Responsabilidad exclusiva de albergar las especificaciones de costos, produccion, lore e icono.
  * - OCP: Elimina sentencias switch procedurales descentralizadas para cada tipo de cuerpo celeste.
  */
-public record DescriptorTipoCuerpo(
-        Map<TipoRecurso, Double> costosBase,
-        Map<TipoRecurso, Double> produccionBase,
-        double radioAtraccionMin,
-        double radioAtraccionMax,
-        String nombrePorDefecto,
-        String icono,
-        String subtitulo,
-        String lore,
-        String rutaAudio
-) {
+public record DescriptorTipoCuerpo( Map<TipoRecurso, Double> costosBase, Map<TipoRecurso, Double> produccionBase, double radioAtraccionMin, double radioAtraccionMax, String nombrePorDefecto, String icono, String subtitulo, String lore, String rutaAudio ) {
     public static final DescriptorTipoCuerpo DEFECTO = new DescriptorTipoCuerpo(
             Collections.emptyMap(),
             Collections.emptyMap(),

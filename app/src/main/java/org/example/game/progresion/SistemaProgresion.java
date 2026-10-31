@@ -1,13 +1,10 @@
 package org.example.game.progresion;
-
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Gestor del árbol de progresión tecnológica dividido en tres ramas independientes:
  * 1. Planetas y Cuerpos celestes (Luna, Porro, Escudo, Lava).
@@ -48,25 +45,19 @@ public class SistemaProgresion {
         };
     }
 
-    private static final double[] COSTOS_POR_NIVEL = {0.0, 100.0, 500.0, 1500.0, 3500.0, 8000.0};
-
     public boolean esNivelMaximo(RamaProgresion rama) {
         return getNivel(rama) >= getNivelMaximo(rama);
     }
 
     /**
-     * Calcula el costo en Ciencia del siguiente nivel de la rama especificada.
-     * Nivel 1: 100 CIE, Nivel 2: 500 CIE, Nivel 3: 1500 CIE, Nivel 4: 3500 CIE, Nivel 5: 8000 CIE.
+     * Calcula el costo en Ciencia del siguiente nivel de la rama especificada segun ConfiguracionEconomia.
      */
     public double getCostoSiguiente(RamaProgresion rama) {
         if (rama == null || esNivelMaximo(rama)) {
             return -1.0;
         }
         int nivelSiguiente = getNivel(rama) + 1;
-        if (nivelSiguiente < COSTOS_POR_NIVEL.length) {
-            return COSTOS_POR_NIVEL[nivelSiguiente];
-        }
-        return COSTOS_POR_NIVEL[COSTOS_POR_NIVEL.length - 1];
+        return org.example.game.simulacion.ConfiguracionEconomia.costoProgresionNivel(nivelSiguiente);
     }
 
     public boolean puedeInvestigar(RamaProgresion rama, InventarioJugador inventario) {
@@ -102,23 +93,7 @@ public class SistemaProgresion {
 
     public boolean estaDesbloqueado(TipoCuerpo tipo) {
         if (tipo == null) return false;
-        if (tipo == TipoCuerpo.ESTRELLA || tipo == TipoCuerpo.PLANETA_AGUA) {
-            return true; // Desbloqueados desde el inicio
-        }
-        int nivelPlanetas = getNivel(RamaProgresion.PLANETAS);
-        if (tipo == TipoCuerpo.LUNA) {
-            return nivelPlanetas >= 1;
-        }
-        if (tipo == TipoCuerpo.PLANETA_ROCOSO) {
-            return nivelPlanetas >= 2;
-        }
-        if (tipo == TipoCuerpo.SATELITE) {
-            return nivelPlanetas >= 3;
-        }
-        if (tipo == TipoCuerpo.PLANETA_LAVA) {
-            return nivelPlanetas >= 5;
-        }
-        return false;
+        return getNivel(RamaProgresion.PLANETAS) >= tipo.getNivelRequerido();
     }
 
     public boolean estaDesbloqueado(ElementoDesbloqueable elemento) {
@@ -166,7 +141,7 @@ public class SistemaProgresion {
             return -1.0;
         }
         int idx = nivelEscudo + 1;
-        return idx < COSTOS_POR_NIVEL.length ? COSTOS_POR_NIVEL[idx] : 500.0;
+        return org.example.game.simulacion.ConfiguracionEconomia.costoProgresionNivel(idx);
     }
 
     public boolean puedeMejorarNivelEscudo(InventarioJugador inventario) {
@@ -222,5 +197,20 @@ public class SistemaProgresion {
         nivelesPorRama.put(RamaProgresion.MASA, getNivelMaximo(RamaProgresion.MASA));
         nivelesPorRama.put(RamaProgresion.CANTIDAD_PLANETAS, getNivelMaximo(RamaProgresion.CANTIDAD_PLANETAS));
         nivelEscudo = ConfiguracionSimulacion.NIVEL_ESCUDO_MAX;
+    }
+
+    public void restaurarEstado(Map<RamaProgresion, Integer> niveles, int escudo) {
+        reiniciar();
+        if (niveles != null) {
+            for (RamaProgresion rama : RamaProgresion.values()) {
+                int valor = niveles.getOrDefault(rama, 0);
+                int acotado = Math.max(0, Math.min(getNivelMaximo(rama), valor));
+                nivelesPorRama.put(rama, acotado);
+            }
+        }
+        this.nivelEscudo = Math.max(0, Math.min(ConfiguracionSimulacion.NIVEL_ESCUDO_MAX, escudo));
+        if (getNivel(RamaProgresion.PLANETAS) >= 4) {
+            this.nivelEscudo = Math.max(this.nivelEscudo, 1);
+        }
     }
 }

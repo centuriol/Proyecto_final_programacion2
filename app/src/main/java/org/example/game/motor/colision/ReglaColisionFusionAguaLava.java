@@ -1,14 +1,22 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.cuerpo.Transformable;
 import org.example.game.motor.Vector2D;
-
 /**
  * Regla de reacción hidro-magmática (Easter egg) que fusiona Agua y Lava en Planeta Porro inerte.
  */
 public class ReglaColisionFusionAguaLava implements ReglaColision {
+
+    private final UtilidadColision utilidadColision;
+
+    public ReglaColisionFusionAguaLava() {
+        this(new UtilidadColision());
+    }
+
+    public ReglaColisionFusionAguaLava(UtilidadColision utilidadColision) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+    }
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
@@ -40,16 +48,16 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
         sobreviviente.setVelocidad(nuevaVel);
         sobreviviente.setMasa(masaTotal);
         sobreviviente.setNombre("Planeta Porro");
-        if (sobreviviente instanceof Transformable t) {
-            t.transformarA(TipoCuerpo.PLANETA_ROCOSO);
-            t.setTransformadoPorEvento(true);
-        }
+        sobreviviente.comoTransformable().ifPresent(trans -> {
+            trans.transformarA(TipoCuerpo.PLANETA_ROCOSO);
+            trans.setTransformadoPorEvento(true);
+        });
 
         if (sobreviviente.getCuerpoOrbitado() == null && absorbido.getCuerpoOrbitado() != null) {
             sobreviviente.setCuerpoOrbitado(absorbido.getCuerpoOrbitado());
         }
 
-        UtilidadColision.desactivarYEliminar(absorbido, ctx.aEliminar());
+        utilidadColision.desactivarYEliminar(absorbido, ctx.aEliminar());
         ctx.emitirMensaje("Reacción hidro-magmática: Colisión entre Agua y Lava formó un nuevo Planeta Porro inerte.");
     }
 }

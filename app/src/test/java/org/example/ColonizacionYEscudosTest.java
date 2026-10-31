@@ -1,5 +1,4 @@
 package org.example;
-
 import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.colonizacion.NaveColonizadora;
 import org.example.game.cuerpo.*;
@@ -11,11 +10,8 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class ColonizacionYEscudosTest {
 
@@ -125,7 +121,7 @@ class ColonizacionYEscudosTest {
         assertFalse(planeta.tieneEscudo());
         assertTrue(planeta.puedeRecibirEscudo());
 
-        boolean activado = ServicioEscudo.activar(simulacion, planeta);
+        boolean activado = simulacion.activarEscudo(planeta);
         assertTrue(activado);
         assertTrue(planeta.tieneEscudo());
         assertEquals(5, planeta.getGolpesEscudoRestantes());
@@ -151,7 +147,7 @@ class ColonizacionYEscudosTest {
 
         Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
-        ServicioEscudo.activar(simulacion, planeta);
+        simulacion.activarEscudo(planeta);
 
         double masaInicial = planeta.getMasa();
         int golpes = planeta.getGolpesEscudoRestantes();
@@ -174,7 +170,7 @@ class ColonizacionYEscudosTest {
 
         Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
-        ServicioEscudo.activar(simulacion, planeta);
+        simulacion.activarEscudo(planeta);
 
         Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
         simulacion.agregarCuerpo(sol);
@@ -192,15 +188,16 @@ class ColonizacionYEscudosTest {
         Planeta planetaGrande = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
         Planeta planetaColosal = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
 
-        double costoChico = ServicioEscudo.calcularCostoEscudo(planetaChico);
-        double costoNormal = ServicioEscudo.calcularCostoEscudo(planetaNormal);
-        double costoGrande = ServicioEscudo.calcularCostoEscudo(planetaGrande);
-        double costoColosal = ServicioEscudo.calcularCostoEscudo(planetaColosal);
+        ServicioEscudo servicioEscudo = new ServicioEscudo();
+        double costoChico = servicioEscudo.calcularCostoEscudo(planetaChico);
+        double costoNormal = servicioEscudo.calcularCostoEscudo(planetaNormal);
+        double costoGrande = servicioEscudo.calcularCostoEscudo(planetaGrande);
+        double costoColosal = servicioEscudo.calcularCostoEscudo(planetaColosal);
 
         assertTrue(costoChico < costoNormal);
-        assertEquals(50.0, costoNormal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA, costoNormal, 1e-6);
         assertTrue(costoGrande > costoNormal);
         assertTrue(costoColosal > costoGrande);
-        assertEquals(250.0, costoColosal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * 5.0, costoColosal, 1e-6);
     }
 }

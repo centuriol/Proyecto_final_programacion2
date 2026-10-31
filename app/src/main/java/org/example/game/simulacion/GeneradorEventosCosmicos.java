@@ -1,29 +1,26 @@
 package org.example.game.simulacion;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
-
 /**
- * Gestor de generación de eventos cósmicos periódicos (ej. lluvia de meteoritos y bólidos).
+ * Gestor de generacion de eventos cosmicos periodicos escalados segun el progreso del jugador.
  *
  * Principios SOLID:
- * - SRP: Responsable exclusivo de la frecuencia, conteo y generación de eventos cósmicos naturales.
- * - DIP: Emite los cuerpos y notificaciones a través de callbacks sin acoplarse directamente a la simulación.
+ * - SRP: Responsable exclusivo de la frecuencia, conteo y generacion de eventos cosmicos naturales.
+ * - DIP: Emite los cuerpos y notificaciones a traves de callbacks sin acoplarse directamente a la simulacion.
  */
 public class GeneradorEventosCosmicos {
 
     private int ticksHastaSiguiente;
-    private final java.util.Random random = new java.util.Random();
+    private final Random random = new Random();
 
     public GeneradorEventosCosmicos() {
-        // Tiempo de gracia inicial generoso para que el jugador pueda construir y desarrollar ciencia con calma
-        this.ticksHastaSiguiente = 3600;
+        this.ticksHastaSiguiente = ConfiguracionColisiones.TICKS_GRACIA_INICIAL_METEORITOS;
     }
 
     public GeneradorEventosCosmicos(int ticksIniciales) {
@@ -31,9 +28,9 @@ public class GeneradorEventosCosmicos {
     }
 
     private int calcularSiguienteIntervalo() {
-        // ~2400 ticks con ±30% de aleatoriedad (2400 * [0.7 .. 1.3] = 1680 .. 3120 ticks)
-        double variacion = 0.7 + (Math.random() * 0.6);
-        return (int) (2400 * variacion);
+        double variacion = ConfiguracionColisiones.VARIACION_MIN_INTERVALO_METEORITO
+                + (Math.random() * ConfiguracionColisiones.RANGO_VARIACION_INTERVALO_METEORITO);
+        return (int) (ConfiguracionColisiones.INTERVALO_BASE_EVENTO_METEORITO * variacion);
     }
 
     public void actualizarEventosCosmicos(
@@ -44,9 +41,28 @@ public class GeneradorEventosCosmicos {
             Consumer<MensajeEvento> emisorEventos,
             long tickActual
     ) {
+        actualizarEventosCosmicos(
+                cuerpos,
+                anchoMundo,
+                altoMundo,
+                agregadorCuerpo,
+                emisorEventos,
+                tickActual,
+                ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL
+        );
+    }
+
+    public void actualizarEventosCosmicos(
+            List<CuerpoCeleste> cuerpos,
+            double anchoMundo,
+            double altoMundo,
+            Consumer<CuerpoCeleste> agregadorCuerpo,
+            Consumer<MensajeEvento> emisorEventos,
+            long tickActual,
+            double factorProgreso
+    ) {
         if (cuerpos == null) return;
 
-        // Filtrar planetas válidos para ser objetivo
         List<CuerpoCeleste> planetas = new ArrayList<>();
         long meteoritosActivos = 0;
 
@@ -60,7 +76,6 @@ public class GeneradorEventosCosmicos {
             }
         }
 
-        // Sin planetas, no genera
         if (planetas.isEmpty()) {
             return;
         }
@@ -69,9 +84,9 @@ public class GeneradorEventosCosmicos {
         if (ticksHastaSiguiente <= 0) {
             ticksHastaSiguiente = calcularSiguienteIntervalo();
 
-            if (meteoritosActivos < 2) { // Máximo 2 simultáneos
+            if (meteoritosActivos < ConfiguracionColisiones.MAX_METEORITOS_EVENTO_ACTIVOS) {
                 CuerpoCeleste objetivo = planetas.get(random.nextInt(planetas.size()));
-                Meteorito m = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo);
+                Meteorito m = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo, factorProgreso);
 
                 if (agregadorCuerpo != null) {
                     agregadorCuerpo.accept(m);
@@ -89,5 +104,13 @@ public class GeneradorEventosCosmicos {
 
     public void resetear() {
         ticksHastaSiguiente = calcularSiguienteIntervalo();
+    }
+
+    public int getTicksHastaSiguiente() {
+        return ticksHastaSiguiente;
+    }
+
+    public void setTicksHastaSiguiente(int ticksHastaSiguiente) {
+        this.ticksHastaSiguiente = Math.max(1, ticksHastaSiguiente);
     }
 }
