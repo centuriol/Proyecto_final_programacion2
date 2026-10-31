@@ -1,4 +1,5 @@
 package org.example.game.motor;
+import org.example.game.cuerpo.Actualizable;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.MensajeEvento;
@@ -17,6 +18,15 @@ import java.util.function.Consumer;
  * - OCP: Nuevos tipos de interacción y comportamientos de cuerpos se manejan mediante polimorfismo.
  */
 public class MotorFisicaPermisiva extends MotorFisicaBase {
+
+    private static MotorFisicaPermisiva INSTANCIA_GLOBAL;
+
+    public static MotorFisicaPermisiva getInstanciaGlobal() {
+        if (INSTANCIA_GLOBAL == null) {
+            INSTANCIA_GLOBAL = new MotorFisicaPermisiva(10000.0);
+        }
+        return INSTANCIA_GLOBAL;
+    }
 
     private final double G;
     private final double dt;
@@ -49,6 +59,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         this.gestorAgujeroNegro = gestorAgujeroNegro != null ? gestorAgujeroNegro : new GestorAgujeroNegro();
         this.integradorMovimiento = integradorMovimiento != null ? integradorMovimiento : new IntegradorMovimiento(dt, 1200.0);
         this.detectorColisiones = detectorColisiones != null ? detectorColisiones : new DetectorColisiones(this.resolvedorColisiones);
+        INSTANCIA_GLOBAL = this;
     }
 
     public MotorFisicaPermisiva(double radioMundo, CalculadorGravedad calculadorGravedad,
@@ -84,7 +95,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
 
         // 1. Resetear fuerzas
         for (int i = 0; i < simuladosCache.size(); i++) {
-            simuladosCache.get(i).resetearFuerza();
+            simuladosCache.get(i).aplicarFuerza(null);
         }
 
         // 2. Calcular Gravedad N-Body con Softening Permisivo
@@ -121,8 +132,8 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     }
 
     private void actualizarEntidadesEspeciales(List<CuerpoCeleste> cuerpos) {
-        for (CuerpoCeleste c : cuerpos) {
-            c.comoActualizable().ifPresent(act -> act.actualizarEntidad(dt));
+        for (Actualizable act : actualizables.values()) {
+            act.actualizarEntidad(dt);
         }
     }
 
@@ -146,7 +157,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : todos) {
             if (c.getCuerpoOrbitado() != null && (aEliminar.contains(c.getCuerpoOrbitado()) || !todos.contains(c.getCuerpoOrbitado()))) {
-                if (c.esSatelite()) {
+                if (actualizables.containsKey(c)) {
                     satelitesAEliminar.add(c);
                     c.setSimulado(false);
                     c.setMasa(0);

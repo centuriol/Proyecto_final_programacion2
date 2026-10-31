@@ -66,8 +66,8 @@ class AgujeroNegroFisicaTest {
         cuerpos.add(p);
 
         assertDoesNotThrow(() -> motorFisica.avanzarPaso(cuerpos));
-        assertFalse(Double.isNaN(p.getPosicionX()));
-        assertFalse(Double.isNaN(p.getPosicionY()));
+        assertFalse(Double.isNaN(p.getPosicion().x()));
+        assertFalse(Double.isNaN(p.getPosicion().y()));
     }
 
     @Test
@@ -80,17 +80,17 @@ class AgujeroNegroFisicaTest {
 
         motorFisica.setAsistenciaOrbital(0.0);
 
-        double xInicialPesado = pesado.getPosicionX();
-        double xInicialLiviano = liviano.getPosicionX();
+        double xInicialPesado = pesado.getPosicion().x();
+        double xInicialLiviano = liviano.getPosicion().x();
 
         motorFisica.avanzarPaso(cuerpos);
 
-        double dispPesado = Math.abs(pesado.getPosicionX() - xInicialPesado);
-        double dispLiviano = Math.abs(liviano.getPosicionX() - xInicialLiviano);
+        double dispPesado = Math.abs(pesado.getPosicion().x() - xInicialPesado);
+        double dispLiviano = Math.abs(liviano.getPosicion().x() - xInicialLiviano);
 
         assertTrue(dispLiviano > dispPesado * 50);
-        assertTrue(pesado.getPosicionX() > xInicialPesado);
-        assertTrue(liviano.getPosicionX() < xInicialLiviano);
+        assertTrue(pesado.getPosicion().x() > xInicialPesado);
+        assertTrue(liviano.getPosicion().x() < xInicialLiviano);
     }
 
     @Test

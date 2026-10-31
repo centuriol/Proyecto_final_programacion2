@@ -125,7 +125,7 @@ public class RefactorOopModularidadTest {
     }
 
     @Test
-    @DisplayName("Polimorfismo sin instanceof: capacidades de CuerpoCeleste responden correctamente")
+    @DisplayName("Polimorfismo sin instanceof: capacidades registradas en subsistemas y max 25 metodos publicos")
     void testCapacidadesPolimorficasSinInstanceOf() {
         CuerpoCeleste planeta = new Planeta("Planeta1", 100, 0, 0);
         CuerpoCeleste meteorito = new Meteorito("Met1", 50, 10, 10, Vector2D.cero(), 100.0, false);
@@ -133,30 +133,26 @@ public class RefactorOopModularidadTest {
         CuerpoCeleste satelite = new Satelite("Sat1", 10, 5, 5);
         CuerpoCeleste estrella = new Estrella("Sol1", 5000, 0, 0);
 
-        assertTrue(planeta.esPlaneta());
-        assertFalse(planeta.esMeteorito());
-        assertTrue(planeta.comoPlaneta().isPresent());
-        assertTrue(planeta.comoCivilizable().isPresent());
-        assertTrue(planeta.comoDefensor().isPresent());
-        assertTrue(planeta.comoTransformable().isPresent());
-        assertTrue(planeta.comoColonizable().isPresent());
-        assertFalse(planeta.comoAgujeroNegro().isPresent());
+        long publicMethodsCount = java.util.Arrays.stream(CuerpoCeleste.class.getMethods())
+                .filter(m -> m.getDeclaringClass() == CuerpoCeleste.class && java.lang.reflect.Modifier.isPublic(m.getModifiers()))
+                .count();
+        assertTrue(publicMethodsCount <= 25, "CuerpoCeleste debe tener como maximo 25 metodos publicos, tiene: " + publicMethodsCount);
 
-        assertTrue(meteorito.esMeteorito());
-        assertTrue(meteorito.comoExpirable().isPresent());
-        assertTrue(meteorito.comoActualizable().isPresent());
-        assertFalse(meteorito.comoPlaneta().isPresent());
+        for (java.lang.reflect.Method m : CuerpoCeleste.class.getDeclaredMethods()) {
+            assertFalse(m.getName().startsWith("como"), "No debe existir metodo comoX() en CuerpoCeleste: " + m.getName());
+            if (m.getName().matches("^es[A-Z].*") && !m.getName().equals("esSimulado") && !m.getName().equals("esInteractuablePorUsuario")) {
+                fail("No debe existir consulta de tipo esX() en CuerpoCeleste: " + m.getName());
+            }
+        }
 
-        assertTrue(agujeroNegro.esAgujeroNegro());
-        assertTrue(agujeroNegro.comoAgujeroNegro().isPresent());
-        assertFalse(agujeroNegro.comoCivilizable().isPresent());
+        assertTrue(RegistroCapacidades.obtenerCivilizable(planeta).isPresent());
+        assertTrue(RegistroCapacidades.obtenerDefensor(planeta).isPresent());
+        assertTrue(RegistroCapacidades.obtenerColonizable(planeta).isPresent());
+        assertTrue(RegistroCapacidades.obtenerTransformable(planeta).isPresent());
 
-        assertTrue(satelite.esSatelite());
-        assertTrue(satelite.esCuerpoMenor());
-        assertTrue(satelite.comoActualizable().isPresent());
-
-        assertTrue(estrella.esEstrella());
-        assertTrue(estrella.esAtractorMasivo());
-        assertTrue(estrella.esAtractorOrbital());
+        assertFalse(RegistroCapacidades.obtenerCivilizable(meteorito).isPresent());
+        assertFalse(RegistroCapacidades.obtenerCivilizable(agujeroNegro).isPresent());
+        assertFalse(RegistroCapacidades.obtenerCivilizable(satelite).isPresent());
+        assertFalse(RegistroCapacidades.obtenerCivilizable(estrella).isPresent());
     }
 }

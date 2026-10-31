@@ -46,7 +46,7 @@ public class CalculadorGravedad {
             return;
         }
 
-        if (ci.esSatelite() && cj.esSatelite()) {
+        if (ci.getMasa() <= 10.0 && cj.getMasa() <= 10.0) {
             return;
         }
 
@@ -89,12 +89,12 @@ public class CalculadorGravedad {
         Vector2D dirHaciaMayor = mayor.getPosicion().restar(menor.getPosicion()).normalizar();
 
         double factorMasaMayor = 1.0;
-        double masaBaseMayor = mayor.getMasaBase();
+        double masaBaseMayor = mayor.getTipoCuerpo() != null ? mayor.getTipoCuerpo().masaBase : 1.0;
         if (masaBaseMayor > 0) {
             factorMasaMayor = Math.max(0.1, mayor.getMasa() / masaBaseMayor);
         }
 
-        double aMenor = mayor.esAtractorOrbital()
+        double aMenor = mayor.getMasa() >= 1e29
                 ? (0.5 + 3.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor)
                 : (0.35 + 2.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor);
 

@@ -13,8 +13,8 @@ public class CapaSeleccion {
 
     public void dibujar(GraphicsContext gc, CuerpoCeleste c, double anchoCanvas, double altoCanvas) {
         if (c == null) return;
-        double cx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
-        double cy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
+        double cx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
+        double cy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
         double r = c.getRadio() + 6.0;
 
         gc.setStroke(COLOR_ACENTO_CYAN);

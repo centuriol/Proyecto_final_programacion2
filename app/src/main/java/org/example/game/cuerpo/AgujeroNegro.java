@@ -9,12 +9,13 @@ public class AgujeroNegro extends CuerpoCeleste {
     public AgujeroNegro(String nombre, double masa, double x, double y, TipoCuerpo subTipo) {
         super(nombre, masa, x, y, subTipo);
         this.subTipo = subTipo;
+        RegistroCapacidades.registrarAgujeroNegro(this);
     }
 
     public void absorber(CuerpoCeleste victima) {
         if (victima == null) return;
         setMasa(getMasa() + victima.getMasa());
-        victima.comoCivilizable().ifPresent(civ -> {
+        RegistroCapacidades.obtenerCivilizable(victima).ifPresent(civ -> {
             if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                 civ.getCivilizacion().destruir();
             }
@@ -22,31 +23,6 @@ public class AgujeroNegro extends CuerpoCeleste {
         victima.setSimulado(false);
         victima.setMasa(0);
         System.out.println(getNombre() + " absorbió a " + victima.getNombre() + "!");
-    }
-
-    @Override
-    public java.util.Optional<AgujeroNegro> comoAgujeroNegro() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public boolean esAgujeroNegro() {
-        return true;
-    }
-
-    @Override
-    public boolean esAtractorMasivo() {
-        return true;
-    }
-
-    @Override
-    public boolean esAtractorOrbital() {
-        return true;
-    }
-
-    @Override
-    public boolean esMasivo() {
-        return true;
     }
 
     @Override

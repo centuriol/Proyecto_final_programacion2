@@ -36,7 +36,8 @@ public class IntegradorMovimiento {
             }
 
             Vector2D nuevaPos = c.getPosicion().sumar(nuevaVel.multiplicar(dt));
-            c.confirmarPaso(nuevaPos, nuevaVel);
+            c.setPosicion(nuevaPos);
+            c.setVelocidad(nuevaVel);
         }
     }
 

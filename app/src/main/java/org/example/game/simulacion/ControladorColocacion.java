@@ -45,10 +45,11 @@ public class ControladorColocacion {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica, cuerpos);
         if (cuerpoCercano != null) {
             boolean esMenorOrbital = (tipoColocacion == TipoCuerpo.LUNA || tipoColocacion == TipoCuerpo.SATELITE);
-            if (esMenorOrbital && cuerpoCercano.esPlaneta()) {
+            boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
+            if (esMenorOrbital && cercanoEsPlaneta) {
                 Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
                 double dist = Math.max(1.0, r.magnitud());
-                double masaBase = cuerpoCercano.getMasaBase();
+                double masaBase = cuerpoCercano.getTipoCuerpo() != null ? cuerpoCercano.getTipoCuerpo().masaBase : 1.0;
                 double factorMasa = (masaBase > 0)
                         ? Math.max(0.2, cuerpoCercano.getMasa() / masaBase)
                         : 1.0;
@@ -67,10 +68,9 @@ public class ControladorColocacion {
         double maxFuerza = 0;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (c.esCuerpoMenor() || c.esMeteorito()) {
+            if (!c.permiteReembolso() || c.getMasa() < 1e22) {
                 continue;
             }
-            if (!c.esMasivo() && c.getMasa() < 1e22) continue;
 
             double dist = pos.distanciaA(c.getPosicion());
             if (dist < 10.0) continue;

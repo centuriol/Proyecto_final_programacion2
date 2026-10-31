@@ -68,9 +68,9 @@ public class GeneradorEventosCosmicos {
 
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado()) {
-                if (c.esMeteorito()) {
+                if (!c.permiteReembolso()) {
                     meteoritosActivos++;
-                } else if (c.esPlaneta()) {
+                } else if (org.example.game.cuerpo.RegistroCapacidades.obtenerCivilizable(c).isPresent()) {
                     planetas.add(c);
                 }
             }

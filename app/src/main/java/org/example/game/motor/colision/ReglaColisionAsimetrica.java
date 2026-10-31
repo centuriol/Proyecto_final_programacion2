@@ -1,6 +1,7 @@
 package org.example.game.motor.colision;
 import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.RegistroCapacidades;
 import org.example.game.simulacion.ConfiguracionColisiones;
 /**
  * Regla de colisión asimétrica donde el cuerpo menor es destruido y el mayor absorbe una fracción de su masa.
@@ -31,7 +32,7 @@ public class ReglaColisionAsimetrica implements ReglaColision {
         mayor.setMasa(mayor.getMasa() + masaGanada);
         utilidadColision.generarEscombros(menor, ctx.aEliminar(), ctx.aAgregar());
 
-        mayor.comoCivilizable().ifPresent(civ -> {
+        RegistroCapacidades.obtenerCivilizable(mayor).ifPresent(civ -> {
             if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                 civ.getCivilizacion().recibirImpactoMeteorito();
             }

@@ -98,14 +98,14 @@ class LimitesCamaraEIndicadoresSolTest {
 
         capa.getBotonesIndicadores().get(0).fire();
 
-        assertEquals(640.0, camara.mundoAPantallaX(solOriente.getPosicionX(), 1280.0), 1e-6);
-        assertEquals(360.0, camara.mundoAPantallaY(solOriente.getPosicionY(), 720.0), 1e-6);
+        assertEquals(640.0, camara.mundoAPantallaX(solOriente.getPosicion().x(), 1280.0), 1e-6);
+        assertEquals(360.0, camara.mundoAPantallaY(solOriente.getPosicion().y(), 720.0), 1e-6);
         assertEquals(1, capa.getIndicadoresActivos().size(), "Sol Oriente ya esta centrado; solo queda Sol Occidente fuera");
         assertSame(solOccidente, capa.getIndicadoresActivos().get(0).sol());
 
         capa.getBotonesIndicadores().get(0).fire();
-        assertEquals(640.0, camara.mundoAPantallaX(solOccidente.getPosicionX(), 1280.0), 1e-6);
-        assertEquals(360.0, camara.mundoAPantallaY(solOccidente.getPosicionY(), 720.0), 1e-6);
+        assertEquals(640.0, camara.mundoAPantallaX(solOccidente.getPosicion().x(), 1280.0), 1e-6);
+        assertEquals(360.0, camara.mundoAPantallaY(solOccidente.getPosicion().y(), 720.0), 1e-6);
     }
 
     @Test

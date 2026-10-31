@@ -78,7 +78,8 @@ public class SolidAbstraccionesRefactorTest {
 
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
         CuerpoCeleste normal = new Planeta("Normal", 10.0, 0, 0);
-        CuerpoCeleste expirado = new CuerpoExpirableTest("Expirado", 10.0, 0, 0);
+        CuerpoExpirableTest expirado = new CuerpoExpirableTest("Expirado", 10.0, 0, 0);
+        motor.registrarExpirable(expirado, expirado);
 
         cuerpos.add(normal);
         cuerpos.add(expirado);
@@ -200,10 +201,6 @@ public class SolidAbstraccionesRefactorTest {
         @Override
         public boolean estaExpirado() {
             return true;
-        }
-        @Override
-        public java.util.Optional<Expirable> comoExpirable() {
-            return java.util.Optional.of(this);
         }
     }
 }

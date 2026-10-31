@@ -403,11 +403,11 @@ public class SimulacionSolar {
     public GestorColocacionCuerpos getGestorColocacion() { return gestorColocacion; }
 
     public boolean activarEscudo(Planeta planeta) {
-        return servicioEscudo.activar(this, planeta);
+        return servicioEscudo.activar(this, (org.example.game.cuerpo.Defensor) planeta);
     }
 
     public boolean activarEscudo(CuerpoCeleste cuerpo) {
-        return cuerpo != null && cuerpo.comoPlaneta().map(this::activarEscudo).orElse(false);
+        return servicioEscudo.obtenerDefensor(cuerpo).map(def -> servicioEscudo.activar(this, def)).orElse(false);
     }
 
     public boolean desmantelarCuerpo(CuerpoCeleste cuerpo) {

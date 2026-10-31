@@ -7,6 +7,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     private boolean transformadoPorEvento = false;
     private CivilizacionComponent civilizacion;
     private int golpesEscudo = 0;
+    private final double masaInicial;
 
     public Planeta(String nombre, double masa, double x, double y) {
         this(nombre, masa, x, y, TipoCuerpo.PLANETA_ROCOSO);
@@ -15,9 +16,19 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     public Planeta(String nombre, double masa, double x, double y, TipoCuerpo subTipo) {
         super(nombre, masa, x, y, subTipo);
         this.subTipo = subTipo;
+        this.masaInicial = masa;
         if (subTipo == TipoCuerpo.PLANETA_ROCOSO) {
             desarrollarCivilizacion();
         }
+        RegistroCapacidades.registrarPlaneta(this);
+    }
+
+    public double getMasaInicial() {
+        return masaInicial;
+    }
+
+    public double getMasaBase() {
+        return subTipo != null ? subTipo.masaBase : 1.0;
     }
 
     @Override
@@ -199,55 +210,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
         this.transformadoPorEvento = transformadoPorEvento;
     }
 
-    @Override
-    public java.util.Optional<Civilizable> comoCivilizable() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public java.util.Optional<Defensor> comoDefensor() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public java.util.Optional<Transformable> comoTransformable() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public java.util.Optional<Colonizable> comoColonizable() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public java.util.Optional<Planeta> comoPlaneta() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public boolean esPlaneta() {
-        return true;
-    }
-
-    @Override
-    public boolean esPlanetaAgua() {
-        return subTipo == TipoCuerpo.PLANETA_AGUA;
-    }
-
-    @Override
-    public boolean esPlanetaLava() {
-        return subTipo == TipoCuerpo.PLANETA_LAVA;
-    }
-
-    public boolean esPlanetaRocoso() {
-        return subTipo == TipoCuerpo.PLANETA_ROCOSO;
-    }
-
-    @Override
     public double getFactorCapacidadPoblacion() {
-        if (esPlanetaRocoso()) return 1.0;
-        if (esPlanetaAgua()) return 0.6;
-        if (esPlanetaLava()) return 0.3;
-        return 0.0;
+        return subTipo != null ? subTipo.getFactorCapacidadPoblacion() : 0.0;
     }
 }

@@ -1,6 +1,5 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.*;
 import org.example.game.simulacion.ConfiguracionColisiones;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +12,30 @@ public class DetectorColisiones {
 
     public DetectorColisiones(ResolvedorColisiones resolvedorColisiones) {
         this.resolvedorColisiones = resolvedorColisiones;
+    }
+
+    private boolean esSatelite(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return true; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
+    private boolean esMeteorito(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return true; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
     }
 
     public void detectarYResolver(List<CuerpoCeleste> simulados, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
@@ -49,11 +72,11 @@ public class DetectorColisiones {
                                                    Set<CuerpoCeleste> aEliminar,
                                                    List<CuerpoCeleste> aAgregar) {
         for (CuerpoCeleste satelite : simulados) {
-            if (satelite == null || aEliminar.contains(satelite) || !satelite.esSatelite()) {
+            if (satelite == null || aEliminar.contains(satelite) || !esSatelite(satelite)) {
                 continue;
             }
             for (CuerpoCeleste amenaza : simulados) {
-                if (amenaza == null || aEliminar.contains(amenaza) || !amenaza.esMeteorito()) {
+                if (amenaza == null || aEliminar.contains(amenaza) || !esMeteorito(amenaza)) {
                     continue;
                 }
                 if (estaEnContactoConEscudoActivo(amenaza, simulados, aEliminar)) {
@@ -76,7 +99,7 @@ public class DetectorColisiones {
                                                   Set<CuerpoCeleste> aEliminar) {
         for (CuerpoCeleste candidato : simulados) {
             if (candidato == null || aEliminar.contains(candidato)) continue;
-            if (candidato.comoDefensor().map(org.example.game.cuerpo.Defensor::tieneEscudo).orElse(false)) {
+            if (ServicioEscudo.getInstanciaPorDefecto().tieneEscudo(candidato)) {
                 double dist = amenaza.getPosicion().distanciaA(candidato.getPosicion());
                 if (dist < candidato.getRadio() + amenaza.getRadio()) {
                     return true;

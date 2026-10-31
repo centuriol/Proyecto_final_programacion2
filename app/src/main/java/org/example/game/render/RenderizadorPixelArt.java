@@ -36,6 +36,7 @@ public class RenderizadorPixelArt {
     private final CapaSeleccion capaSeleccion;
     private final CapaTrayectorias capaTrayectorias;
     private final CapaGhostPreview capaGhostPreview;
+    private final org.example.game.cuerpo.ServicioEscudo servicioEscudo = org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto();
 
     private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
     private java.util.function.Supplier<List<org.example.game.colonizacion.NaveColonizadora>> proveedorNaves;
@@ -182,13 +183,13 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarCuerpoPixelArt(GraphicsContext gc, CuerpoCeleste c, List<CuerpoCeleste> cuerpos, long tick) {
-        double x = Math.round(ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas));
-        double y = Math.round(ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas));
+        double x = Math.round(ConstantesFisicas.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas));
+        double y = Math.round(ConstantesFisicas.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas));
         TipoCuerpo tipo = c.getTipoCuerpo();
         double r = c.getRadio();
 
         double angulo = 0.0;
-        if (!c.esEstrella()) {
+        if (c.getMasa() < 1e29) {
             double velAngular = 57.2958 / Math.max(6.0, r);
             double faseInicial = (c.getNombre() != null) ? Math.abs(c.getNombre().hashCode() % 360) : 0;
             angulo = (faseInicial + tiempoAnimacionSegundos * velAngular) % 360.0;
@@ -215,7 +216,7 @@ public class RenderizadorPixelArt {
 
         gc.restore();
 
-        if (c.comoDefensor().map(org.example.game.cuerpo.Defensor::tieneEscudo).orElse(false)) {
+        if (servicioEscudo.tieneEscudo(c)) {
             dibujarCupulaEscudo(gc, x, y, r, tick);
         }
 

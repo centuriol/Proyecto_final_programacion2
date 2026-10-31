@@ -1,7 +1,6 @@
 package org.example.game.simulacion;
 
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
 
 import java.util.List;
 
@@ -16,9 +15,9 @@ public class EvaluadorCondicionDerrota {
         boolean hayPlanetaOLuna = false;
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado()) {
-                if (c.esAgujeroNegro()) {
+                if (c.getMasa() >= 1e31) {
                     hayAgujeroNegro = true;
-                } else if (c.esPlaneta() || c.esLuna()) {
+                } else if (c.permiteReembolso() && c.getMasa() >= 1e22 && c.getMasa() <= 1e28) {
                     hayPlanetaOLuna = true;
                 }
             }

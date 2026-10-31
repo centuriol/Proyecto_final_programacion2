@@ -104,7 +104,7 @@ class ArrastreCamaraYColocacionTest {
         CuerpoCeleste creado = simulacion.getSistemaSolar().getCuerpos().get(0);
         assertEquals("PlanetaLejano", creado.getNombre());
         // pantalla 600 -> zoom 0.5 -> 500 + 200 = 700, menos despX (-400) = 1100 JavaFX -> xFisica = 1100 - 500 = 600
-        assertEquals(600.0, creado.getPosicionX(), 1e-4);
+        assertEquals(600.0, creado.getPosicion().x(), 1e-4);
     }
 
     @Test

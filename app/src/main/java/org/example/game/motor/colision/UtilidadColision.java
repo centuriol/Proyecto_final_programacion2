@@ -40,7 +40,7 @@ public class UtilidadColision {
 
     public void destruirCivilizacionSiExiste(CuerpoCeleste objetivo) {
         if (objetivo != null) {
-            objetivo.comoCivilizable().ifPresent(civ -> {
+            org.example.game.civilizacion.SistemaCivilizaciones.getInstancia().obtenerCivilizable(objetivo).ifPresent(civ -> {
                 if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                     civ.getCivilizacion().destruir();
                 }
@@ -61,7 +61,7 @@ public class UtilidadColision {
     }
 
     public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
-        if (destruido.esMeteorito()) {
+        if (!destruido.permiteReembolso()) {
             desactivarYEliminar(destruido, aEliminar);
             return;
         }
@@ -85,7 +85,7 @@ public class UtilidadColision {
         double masaPorFragmento = Math.min(topeMasaFragmento, masaRepartible / numFragmentos);
         for (int i = 0; i < numFragmentos; i++) {
             Meteorito fragmento = CuerpoCelesteFactory.crearFragmentoEscombro(
-                    destruido.getPosicionX(), destruido.getPosicionY(),
+                    destruido.getPosicion().x(), destruido.getPosicion().y(),
                     destruido.getVelocidad(), masaPorFragmento
             );
             aAgregar.add(fragmento);
@@ -107,7 +107,7 @@ public class UtilidadColision {
         a.setVelocidad(a.getVelocidad().restar(impulso.dividir(a.getMasa())));
         b.setVelocidad(b.getVelocidad().sumar(impulso.dividir(b.getMasa())));
 
-        double overlap = (a.getRadioFisico() + b.getRadioFisico()) - a.getPosicion().distanciaA(b.getPosicion());
+        double overlap = (a.getRadio() + b.getRadio()) - a.getPosicion().distanciaA(b.getPosicion());
         if (overlap > 0) {
             Vector2D separacion = normal.multiplicar(overlap * 0.5);
             a.setPosicion(a.getPosicion().restar(separacion));

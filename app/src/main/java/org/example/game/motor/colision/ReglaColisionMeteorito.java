@@ -39,31 +39,67 @@ public class ReglaColisionMeteorito implements ReglaColision {
         }
     }
 
+    private boolean esSatelite(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return true; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
+    private boolean esMeteorito(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return true; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
+    private boolean esPlaneta(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return true; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        if (a.esSatelite() && b.esSatelite()) return true;
-        return a.esMeteorito() || b.esMeteorito();
+        if (esSatelite(a) && esSatelite(b)) return true;
+        return esMeteorito(a) || esMeteorito(b);
     }
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
-        if (a.esSatelite() && b.esSatelite()) {
+        if (esSatelite(a) && esSatelite(b)) {
             return;
         }
 
-        if (a.esMeteorito() && b.esMeteorito()) {
+        if (esMeteorito(a) && esMeteorito(b)) {
             utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
             utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.emitirMensaje("Destrucción mutua de meteoritos por impacto directo.");
             return;
         }
 
-        CuerpoCeleste meteorito = a.esMeteorito() ? a : b;
+        CuerpoCeleste meteorito = esMeteorito(a) ? a : b;
         CuerpoCeleste objetivo = (meteorito == a) ? b : a;
 
         utilidadColision.desactivarYEliminar(meteorito, ctx.aEliminar());
 
-        if (objetivo.esSatelite()) {
+        if (esSatelite(objetivo)) {
             ctx.emitirExplosion(meteorito.getPosicion(), meteorito.getRadio() * 2.0);
             ctx.emitirEvento(
                     "El satélite " + objetivo.getNombre() + " interceptó y detuvo a " + meteorito.getNombre() + ".",
@@ -73,7 +109,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
             return;
         }
 
-        if (objetivo.esPlaneta()) {
+        if (esPlaneta(objetivo)) {
             aplicarImpactoAPlaneta(meteorito, objetivo, ctx);
             return;
         }
@@ -84,7 +120,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
             objetivo.setVelocidad(nuevaVelocidad);
         }
 
-        objetivo.comoCivilizable().ifPresent(civ -> {
+        RegistroCapacidades.obtenerCivilizable(objetivo).ifPresent(civ -> {
             if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                 civ.getCivilizacion().recibirImpactoMeteorito();
             }
@@ -94,7 +130,14 @@ public class ReglaColisionMeteorito implements ReglaColision {
     }
 
     private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
-        double masaInicial = planeta.getMasaInicial();
+        double masaInicial = planeta.aceptar(new VisitanteCuerpo<Double>() {
+            @Override public Double visitarEstrella(Estrella estrella) { return estrella.getMasa(); }
+            @Override public Double visitarPlaneta(Planeta p) { return p.getMasaInicial(); }
+            @Override public Double visitarLuna(Luna luna) { return luna.getMasa(); }
+            @Override public Double visitarSatelite(Satelite satelite) { return satelite.getMasa(); }
+            @Override public Double visitarMeteorito(Meteorito met) { return met.getMasa(); }
+            @Override public Double visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return agujeroNegro.getMasa(); }
+        });
         double progresoEfectivo = meteorito.aceptar(new VisitanteCuerpo<>() {
             @Override public Double visitarEstrella(Estrella estrella) { return proveedorProgreso.getAsDouble(); }
             @Override public Double visitarPlaneta(Planeta planeta) { return proveedorProgreso.getAsDouble(); }
@@ -110,7 +153,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
         double nuevaMasa = Math.max(0.0, planeta.getMasa() - danoMasa);
         planeta.setMasa(nuevaMasa);
 
-        planeta.comoCivilizable().ifPresent(civ -> {
+        RegistroCapacidades.obtenerCivilizable(planeta).ifPresent(civ -> {
             if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                 civ.getCivilizacion().recalcularPoblacionMaxima();
                 civ.getCivilizacion().recibirImpactoMeteorito();

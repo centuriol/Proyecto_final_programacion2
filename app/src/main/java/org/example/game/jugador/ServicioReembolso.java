@@ -26,7 +26,7 @@ public class ServicioReembolso {
         if (cuerpo == null || !cuerpo.permiteReembolso() || cuerpo.getTipoCuerpo() == null) {
             return Collections.emptyMap();
         }
-        double masaBase = cuerpo.getMasaBase();
+        double masaBase = cuerpo.getTipoCuerpo().masaBase;
         double factorMasa = (masaBase > 0)
                 ? Math.max(0.1, cuerpo.getMasa() / masaBase)
                 : 1.0;

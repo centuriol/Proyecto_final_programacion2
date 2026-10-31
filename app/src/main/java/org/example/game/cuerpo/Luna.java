@@ -1,4 +1,5 @@
 package org.example.game.cuerpo;
+
 /**
  * Luna craterizada que puede orbitar planetas o estrellas.
  * SRP: Representa las propiedades y comportamiento de un satélite natural.
@@ -24,16 +25,6 @@ public class Luna extends CuerpoCeleste {
         double factor = getMasa() / TipoCuerpo.LUNA.masaBase;
         if (factor <= 0) return 2.0;
         return Math.max(2.0, 9.0 * Math.cbrt(factor));
-    }
-
-    @Override
-    public boolean esLuna() {
-        return true;
-    }
-
-    @Override
-    public boolean esCuerpoMenor() {
-        return true;
     }
 
     @Override

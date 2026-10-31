@@ -131,8 +131,8 @@ public class CuerpoCelesteFactory {
     }
 
     public static Planeta crearPlanetaEnOrbita(CuerpoCeleste central, double distancia, double factorMasa, TipoCuerpo tipo) {
-        double x = central.getPosicionX() + distancia;
-        double y = central.getPosicionY();
+        double x = central.getPosicion().x() + distancia;
+        double y = central.getPosicion().y();
         double vOrbital = CalculadorOrbital.calcularRapidezOrbital(central.getMasa(), distancia);
         Vector2D vel = new Vector2D(0, -vOrbital);
         TipoCuerpo tipoPlaneta = (tipo != null && tipo.esPlaneta()) ? tipo : TipoCuerpo.PLANETA_ROCOSO;

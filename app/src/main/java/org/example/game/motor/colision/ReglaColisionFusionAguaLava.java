@@ -1,5 +1,6 @@
 package org.example.game.motor.colision;
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.RegistroCapacidades;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.cuerpo.Transformable;
 import org.example.game.motor.Vector2D;
@@ -20,8 +21,8 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        return (a.esPlanetaAgua() && b.esPlanetaLava())
-                || (a.esPlanetaLava() && b.esPlanetaAgua());
+        return (a.getTipoCuerpo() == TipoCuerpo.PLANETA_AGUA && b.getTipoCuerpo() == TipoCuerpo.PLANETA_LAVA)
+                || (a.getTipoCuerpo() == TipoCuerpo.PLANETA_LAVA && b.getTipoCuerpo() == TipoCuerpo.PLANETA_AGUA);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
         sobreviviente.setVelocidad(nuevaVel);
         sobreviviente.setMasa(masaTotal);
         sobreviviente.setNombre("Planeta Porro");
-        sobreviviente.comoTransformable().ifPresent(trans -> {
+        RegistroCapacidades.obtenerTransformable(sobreviviente).ifPresent(trans -> {
             trans.transformarA(TipoCuerpo.PLANETA_ROCOSO);
             trans.setTransformadoPorEvento(true);
         });

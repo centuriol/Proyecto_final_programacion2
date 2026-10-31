@@ -66,7 +66,7 @@ public class CapaIndicadoresSol extends Pane {
         if (sol == null) {
             return;
         }
-        camara.enfocarPuntoFisico(sol.getPosicionX(), sol.getPosicionY());
+        camara.enfocarPuntoFisico(sol.getPosicion().x(), sol.getPosicion().y());
         if (ultimoAncho > 0.0 && ultimoAlto > 0.0) {
             actualizar(ultimosCuerpos, ultimoAncho, ultimoAlto);
         }

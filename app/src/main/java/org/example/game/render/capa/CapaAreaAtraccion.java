@@ -24,11 +24,11 @@ public class CapaAreaAtraccion {
             double rAtraccion = c.getRadioAtraccion();
             if (rAtraccion <= 0) continue;
 
-            double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
-            double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
+            double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
+            double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
 
-            Color colorArea = c.esEstrella() ? COLOR_AREA_ESTRELLA
-                    : c.esLuna() ? COLOR_AREA_LUNA : COLOR_AREA_PLANETA;
+            Color colorArea = (c.getMasa() >= 1e29) ? COLOR_AREA_ESTRELLA
+                    : (c.getMasa() <= 1e23) ? COLOR_AREA_LUNA : COLOR_AREA_PLANETA;
 
             gc.setStroke(colorArea);
             gc.setLineWidth(1.0);

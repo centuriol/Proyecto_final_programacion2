@@ -1,4 +1,5 @@
 package org.example.game.cuerpo;
+
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.AsistenteOrbital;
 import org.example.game.motor.Vector2D;
@@ -6,6 +7,11 @@ import org.example.game.progresion.ElementoDesbloqueable;
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Servicio de dominio para la activación y gestión de escudos planetarios y satélites orbitales.
  *
@@ -17,31 +23,74 @@ public class ServicioEscudo {
 
     private static final ServicioEscudo INSTANCIA_POR_DEFECTO = new ServicioEscudo();
 
+    private final Map<CuerpoCeleste, Defensor> defensores = new ConcurrentHashMap<>();
+    private final Map<Defensor, CuerpoCeleste> cuerposPorDefensor = new ConcurrentHashMap<>();
+    private final Map<CuerpoCeleste, Satelite> satelitesEscudo = new ConcurrentHashMap<>();
+
     public ServicioEscudo() {}
 
     public static ServicioEscudo getInstanciaPorDefecto() {
         return INSTANCIA_POR_DEFECTO;
     }
 
+    public void registrar(CuerpoCeleste cuerpo, Defensor defensor) {
+        if (cuerpo != null && defensor != null) {
+            defensores.put(cuerpo, defensor);
+            cuerposPorDefensor.put(defensor, cuerpo);
+        }
+    }
+
+    public void desregistrar(CuerpoCeleste cuerpo) {
+        if (cuerpo != null) {
+            Defensor def = defensores.remove(cuerpo);
+            if (def != null) {
+                cuerposPorDefensor.remove(def);
+            }
+            satelitesEscudo.remove(cuerpo);
+        }
+    }
+
+    public Optional<Defensor> obtenerDefensor(CuerpoCeleste cuerpo) {
+        if (cuerpo == null) return Optional.empty();
+        return Optional.ofNullable(defensores.get(cuerpo));
+    }
+
+    public boolean tieneEscudo(CuerpoCeleste cuerpo) {
+        if (cuerpo == null) return false;
+        Defensor def = defensores.get(cuerpo);
+        return def != null && def.tieneEscudo();
+    }
+
+    public void limpiar() {
+        defensores.clear();
+        satelitesEscudo.clear();
+    }
+
     /**
      * Calcula el costo de energía para activar el escudo, escalando con la masa del planeta.
      */
-    public double calcularCostoEscudo(Planeta planeta) {
-        if (planeta == null) return ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
+    public double calcularCostoEscudo(Defensor defensor) {
+        if (defensor == null) return ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
         double factorMasa = 1.0;
-        double masaBase = planeta.getMasaBase();
+        double masaBase = defensor.getMasaBase();
         if (masaBase > 0) {
-            factorMasa = Math.max(0.3, planeta.getMasa() / masaBase);
+            factorMasa = Math.max(0.3, defensor.getMasa() / masaBase);
         }
         return Math.round(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * factorMasa);
     }
 
+    public double calcularCostoEscudo(Planeta planeta) {
+        return calcularCostoEscudo((Defensor) planeta);
+    }
+
+    public boolean activar(SimulacionSolar simulacion, Planeta planeta) {
+        return activar(simulacion, (Defensor) planeta);
+    }
+
     /**
      * Activa el escudo sobre el planeta indicado si está desbloqueado y hay energía suficiente.
-     * Cobra energía (escalada por masa), aplica golpesEscudo = progresion.getGolpesEscudo(), y crea un único Satélite
-     * orbitando el planeta si aún no posee uno.
      */
-    public boolean activar(SimulacionSolar simulacion, Planeta planeta) {
+    public boolean activar(SimulacionSolar simulacion, Defensor planeta) {
         if (simulacion == null || planeta == null || !planeta.puedeRecibirEscudo()) {
             return false;
         }
@@ -68,22 +117,33 @@ public class ServicioEscudo {
 
         // Verificar si ya tiene un satélite orbitándolo
         boolean yaTieneSatelite = false;
-        for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
-            if (c.esSatelite() && c.estaOrbitando(planeta)) {
-                yaTieneSatelite = true;
-                break;
+        CuerpoCeleste cuerpoPlaneta = cuerposPorDefensor.get(planeta);
+        if (cuerpoPlaneta == null && planeta instanceof CuerpoCeleste) {
+            cuerpoPlaneta = (CuerpoCeleste) planeta;
+        }
+
+        Satelite satExistente = cuerpoPlaneta != null ? satelitesEscudo.get(cuerpoPlaneta) : null;
+        if (satExistente != null && simulacion.getSistemaSolar().getCuerpos().contains(satExistente)) {
+            yaTieneSatelite = true;
+        } else if (cuerpoPlaneta != null) {
+            for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
+                if (c.estaOrbitando(cuerpoPlaneta) && c.getMasa() <= 10000.0) {
+                    yaTieneSatelite = true;
+                    break;
+                }
             }
         }
 
-        if (!yaTieneSatelite) {
+        if (!yaTieneSatelite && cuerpoPlaneta != null) {
             double radioOrbita = planeta.getRadio() + 25.0;
             Vector2D posSatelite = planeta.getPosicion().sumar(new Vector2D(radioOrbita, 0));
             Satelite sat = CuerpoCelesteFactory.crearSatelite(posSatelite.x(), posSatelite.y(), 1.0, Vector2D.cero());
-            sat.setCuerpoOrbitado(planeta);
+            sat.setCuerpoOrbitado(cuerpoPlaneta);
             sat.setRadioOrbita(radioOrbita);
+            satelitesEscudo.put(cuerpoPlaneta, sat);
 
             AsistenteOrbital asistente = new AsistenteOrbital();
-            asistente.inicializarVelocidadOrbital(sat, planeta, radioOrbita);
+            asistente.inicializarVelocidadOrbital(sat, cuerpoPlaneta, radioOrbita);
 
             simulacion.agregarCuerpo(sat);
         }

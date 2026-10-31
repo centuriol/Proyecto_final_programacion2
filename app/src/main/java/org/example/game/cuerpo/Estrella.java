@@ -1,7 +1,13 @@
 package org.example.game.cuerpo;
+
 public class Estrella extends CuerpoCeleste {
     public Estrella(String nombre, double masa, double x, double y) {
         super(nombre, masa, x, y, TipoCuerpo.ESTRELLA);
+        RegistroCapacidades.registrarEstrella(this);
+    }
+
+    public double getMasaBase() {
+        return TipoCuerpo.ESTRELLA.masaBase;
     }
 
     @Override
@@ -19,26 +25,6 @@ public class Estrella extends CuerpoCeleste {
         double factor = getMasa() / TipoCuerpo.ESTRELLA.masaBase;
         if (factor <= 0) return 5.0;
         return Math.max(5.0, 35.0 * Math.cbrt(factor));
-    }
-
-    @Override
-    public boolean esEstrella() {
-        return true;
-    }
-
-    @Override
-    public boolean esAtractorMasivo() {
-        return true;
-    }
-
-    @Override
-    public boolean esAtractorOrbital() {
-        return true;
-    }
-
-    @Override
-    public boolean esMasivo() {
-        return true;
     }
 
     @Override

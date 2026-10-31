@@ -38,13 +38,13 @@ public class GestorColocacionCuerpos {
 
             if (spawnedOpt.isPresent() && cuerpoCercano != null) {
                 CuerpoCeleste recienCreado = spawnedOpt.get();
-                boolean esMenor = recienCreado.esCuerpoMenor();
-                boolean cercanoEsPlaneta = cuerpoCercano.esPlaneta();
-                boolean recienEsPlaneta = recienCreado.esPlaneta();
-                boolean cercanoEsMasivo = cuerpoCercano.esAtractorMasivo();
+                boolean recienEsMenor = recienCreado.getMasa() < 1e23;
+                boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
+                boolean recienEsPlaneta = recienCreado.getMasa() <= 1e28 && recienCreado.getMasa() >= 1e22;
+                boolean cercanoEsMasivo = cuerpoCercano.getMasa() >= 1e29;
 
                 double dist = posPreview.distanciaA(cuerpoCercano.getPosicion());
-                if ((esMenor && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
+                if ((recienEsMenor && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
                     recienCreado.setCuerpoOrbitado(cuerpoCercano);
                     recienCreado.setRadioOrbita(dist);
                 }

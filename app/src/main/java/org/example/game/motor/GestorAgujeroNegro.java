@@ -19,6 +19,19 @@ import java.util.function.Consumer;
 public class GestorAgujeroNegro {
 
     public static final double FACTOR_RADIO_INFLUENCIA = 4.0;
+    private static final Set<AgujeroNegro> agujerosRegistrados = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static void registrar(AgujeroNegro bh) {
+        if (bh != null) agujerosRegistrados.add(bh);
+    }
+
+    public static void desregistrar(CuerpoCeleste c) {
+        if (c != null) agujerosRegistrados.remove(c);
+    }
+
+    public static boolean esAgujeroNegro(CuerpoCeleste c) {
+        return c != null && agujerosRegistrados.contains(c);
+    }
 
     public void procesar(List<CuerpoCeleste> cuerpos, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
         if (cuerpos == null || cuerpos.isEmpty()) {
@@ -41,16 +54,16 @@ public class GestorAgujeroNegro {
 
     private List<AgujeroNegro> filtrarAgujerosNegros(List<CuerpoCeleste> cuerpos) {
         List<AgujeroNegro> agujeros = new ArrayList<>();
-        for (CuerpoCeleste c : cuerpos) {
-            if (c != null && c.esSimulado()) {
-                c.comoAgujeroNegro().ifPresent(agujeros::add);
+        for (AgujeroNegro bh : agujerosRegistrados) {
+            if (bh.esSimulado() && cuerpos.contains(bh)) {
+                agujeros.add(bh);
             }
         }
         return agujeros;
     }
 
     private boolean esObjetivoValido(AgujeroNegro bh, CuerpoCeleste c) {
-        return c != null && c != bh && c.esSimulado() && !c.esAgujeroNegro();
+        return c != null && c != bh && c.esSimulado() && !esAgujeroNegro(c);
     }
 
     private void procesarInteraccion(AgujeroNegro bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
@@ -81,12 +94,12 @@ public class GestorAgujeroNegro {
     }
 
     private static double calcularProximidadNormalizada(CuerpoCeleste c, List<CuerpoCeleste> todos) {
-        if (c == null || todos == null || c.esAgujeroNegro()) {
+        if (c == null || todos == null || esAgujeroNegro(c)) {
             return 1.0;
         }
         double minT = 1.0;
         for (CuerpoCeleste otro : todos) {
-            if (otro != null && otro.esSimulado() && otro.esAgujeroNegro()) {
+            if (otro != null && otro.esSimulado() && esAgujeroNegro(otro)) {
                 double rHorizonte = otro.getRadio();
                 double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
                 double dist = otro.getPosicion().distanciaA(c.getPosicion());

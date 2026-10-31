@@ -21,6 +21,7 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
         this.tiempoVidaRestante = ticksVida;
         this.lanzadoPorJugador = lanzadoPorJugador;
         this.danoImpacto = calcularDanoImpacto(getMasa());
+        RegistroCapacidades.registrarMeteorito(this);
     }
 
     public Meteorito(String nombre, double masa, double x, double y,
@@ -141,21 +142,6 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
 
     private static double calcularDanoImpacto(double masa) {
         return Math.sqrt(Math.max(0.0, masa)) * 10.0;
-    }
-
-    @Override
-    public java.util.Optional<Actualizable> comoActualizable() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public java.util.Optional<Expirable> comoExpirable() {
-        return java.util.Optional.of(this);
-    }
-
-    @Override
-    public boolean esMeteorito() {
-        return true;
     }
 
     @Override

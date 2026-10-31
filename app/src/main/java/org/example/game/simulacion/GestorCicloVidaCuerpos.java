@@ -40,7 +40,7 @@ public class GestorCicloVidaCuerpos {
     public int getCantidadPlanetasActuales() {
         int count = 0;
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
-            if (c != null && c.esSimulado() && c.esPlaneta()) {
+            if (c != null && c.esSimulado() && org.example.game.cuerpo.RegistroCapacidades.obtenerCivilizable(c).isPresent()) {
                 count++;
             }
         }
@@ -96,17 +96,13 @@ public class GestorCicloVidaCuerpos {
         if (cuerpo == null) return;
         cuerpo.setSimulado(false);
         cuerpo.setMasa(0);
-        cuerpo.comoCivilizable().ifPresent(civ -> {
-            if (civ.getCivilizacion() != null) {
-                civ.getCivilizacion().destruir();
-            }
-        });
+        org.example.game.cuerpo.RegistroCapacidades.desregistrar(cuerpo);
         sistemaSolar.getCuerpos().remove(cuerpo);
 
         List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
             if (c.getCuerpoOrbitado() == cuerpo) {
-                if (c.esSatelite()) {
+                if (c.getMasa() <= 10000.0) {
                     satelitesAEliminar.add(c);
                 }
                 c.setCuerpoOrbitado(null);
@@ -121,6 +117,7 @@ public class GestorCicloVidaCuerpos {
 
     public void limpiarCuerpos() {
         sistemaSolar.getCuerpos().clear();
+        org.example.game.cuerpo.RegistroCapacidades.limpiar();
         busEventos.notificarCambioEstado();
     }
 }

@@ -23,7 +23,7 @@ public class GestorEconomia {
             if (tipo == null) continue;
 
             // Planetas o cuerpos transformados por evento no generan recursos
-            if (c.comoTransformable().map(org.example.game.cuerpo.Transformable::isTransformadoPorEvento).orElse(false)) continue;
+            if (org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(c).map(org.example.game.cuerpo.Transformable::isTransformadoPorEvento).orElse(false)) continue;
 
             double factorMasa = 1.0;
             if (tipo.masaBase > 0) {
@@ -33,7 +33,7 @@ public class GestorEconomia {
             Map<TipoRecurso, Double> produccionEscalada = InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
             if (produccionEscalada.isEmpty()) continue;
 
-            double factorCiv = c.comoCivilizable()
+            double factorCiv = org.example.game.cuerpo.RegistroCapacidades.obtenerCivilizable(c)
                     .filter(civ -> civ.tieneCivilizacion() && civ.getCivilizacion() != null)
                     .map(civ -> civ.getCivilizacion().calcularMultiplicadorProduccion())
                     .orElse(1.0);

@@ -58,7 +58,7 @@ public class AsistenteOrbital {
     }
 
     public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
-        if (orbitando.esLuna() && anfitrion.esPlaneta()) {
+        if (orbitando.getMasa() < 1e24 && anfitrion.getMasa() >= 1e24 && anfitrion.getMasa() < 1e29) {
             return Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
         }
         return anfitrion.getRadio() + orbitando.getRadio() + 5.0;
@@ -88,7 +88,7 @@ public class AsistenteOrbital {
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         double limiteEscape;
-        boolean esMenorAlrededorDePlaneta = orbitando.esCuerpoMenor() && anfitrion.esPlaneta();
+        boolean esMenorAlrededorDePlaneta = orbitando.getMasa() < 1e23 && anfitrion.getMasa() <= 1e28 && anfitrion.getMasa() >= 1e22;
         if (esMenorAlrededorDePlaneta) {
             limiteEscape = Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0);
         } else {
@@ -144,7 +144,7 @@ public class AsistenteOrbital {
         if (asistenciaOrbital <= 0) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (c.esMasivo() && c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
+            if (c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
                 continue;
             }
             if (c.estaOrbitando()) {
@@ -187,10 +187,10 @@ public class AsistenteOrbital {
 
     public double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
         double d = Math.max(10.0, rOrb);
-        boolean esCuerpoMenorOrbital = orbitando.esCuerpoMenor() && anfitrion.esPlaneta();
+        boolean esCuerpoMenorOrbital = orbitando.getMasa() < 1e23 && anfitrion.getMasa() <= 1e28 && anfitrion.getMasa() >= 1e22;
         if (esCuerpoMenorOrbital) {
-            double factorMasa = (anfitrion.getMasaBase() > 0)
-                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getMasaBase())
+            double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
+                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)
                     : 1.0;
             return Math.sqrt(75.0 * factorMasa / d);
         }
@@ -203,7 +203,7 @@ public class AsistenteOrbital {
 
         for (CuerpoCeleste otro : todos) {
             if (otro == cuerpo || !otro.esSimulado()) continue;
-            if (!otro.esMasivo() && otro.getMasa() < TipoCuerpo.ESTRELLA.masaBase * 0.1) continue;
+            if (otro.getMasa() < TipoCuerpo.ESTRELLA.masaBase * 0.1) continue;
 
             double dist = cuerpo.getPosicion().distanciaA(otro.getPosicion());
             if (dist < 1.0) continue;

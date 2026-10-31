@@ -21,13 +21,13 @@ class OrbitasYDinamicaTest {
         Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x(), pos.y(), 1.0, vel);
         cuerpos.add(planeta);
 
-        Vector2D posInicial = new Vector2D(planeta.getPosicionX(), planeta.getPosicionY());
+        Vector2D posInicial = planeta.getPosicion();
 
         for (int i = 0; i < 20; i++) {
             motorFisica.avanzarPaso(cuerpos);
         }
 
-        Vector2D posFinal = new Vector2D(planeta.getPosicionX(), planeta.getPosicionY());
+        Vector2D posFinal = planeta.getPosicion();
         assertNotEquals(posInicial.y(), posFinal.y());
         assertTrue(cuerpos.contains(planeta));
     }

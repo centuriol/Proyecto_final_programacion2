@@ -82,15 +82,6 @@ public class CoordinadorPasoSimulacion {
 
     public void actualizarCivilizaciones(Consumer<MensajeEvento> emisorEventos) {
         List<CuerpoCeleste> cuerpos = new ArrayList<>(sistemaSolar.getCuerpos());
-        for (CuerpoCeleste c : cuerpos) {
-            c.comoCivilizable().ifPresent(civ -> {
-                if (civ.tieneCivilizacion()) {
-                    if (civ.getCivilizacion() != null && civ.getCivilizacion().getEmisorEventos() == null) {
-                        civ.getCivilizacion().setEmisorEventos(emisorEventos);
-                    }
-                    civ.actualizarCivilizacion(cuerpos);
-                }
-            });
-        }
+        org.example.game.civilizacion.SistemaCivilizaciones.getInstancia().actualizarCivilizaciones(cuerpos, emisorEventos);
     }
 }

@@ -1,9 +1,15 @@
 package org.example.game.motor;
+
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.Transformable;
 import org.example.game.simulacion.ConfiguracionSimulacion;
+
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+
 /**
  * Sistema de transformacion gradual de cuerpos celestes basado en proximidad a estrellas.
  *
@@ -19,6 +25,12 @@ public class TransformadorCuerpos {
     public enum EstadoTransformacion {
         ESPERANDO,
         MIGRANDO
+    }
+
+    private static final TransformadorCuerpos INSTANCIA_GLOBAL = new TransformadorCuerpos();
+
+    public static TransformadorCuerpos getInstanciaGlobal() {
+        return INSTANCIA_GLOBAL;
     }
 
     /**
@@ -58,11 +70,6 @@ public class TransformadorCuerpos {
         public Vector2D getPosDestinoMigracion() { return posDestinoMigracion; }
     }
 
-    /**
-     * Regla individual de transformacion: si un planeta del tipo origen
-     * permanece dentro del radio de activacion el tiempo suficiente,
-     * se transformara al tipo destino y migrara a orbita libre.
-     */
     public record ReglaTransformacion(
             TipoCuerpo tipoOrigen,
             TipoCuerpo tipoDestino,
@@ -73,6 +80,8 @@ public class TransformadorCuerpos {
 
     private final List<ReglaTransformacion> reglas = new ArrayList<>();
     private final Map<CuerpoCeleste, ProcesoTransformacion> procesosActivos = new HashMap<>();
+    private final Map<CuerpoCeleste, Transformable> transformables = new ConcurrentHashMap<>();
+    private final List<CuerpoCeleste> estrellasRegistradas = new CopyOnWriteArrayList<>();
     private final BuscadorOrbitaLibre buscadorOrbitaLibre;
     private Consumer<String> listenerMensaje;
 
@@ -101,6 +110,37 @@ public class TransformadorCuerpos {
         this(new BuscadorOrbitaLibre());
     }
 
+    public void registrarTransformable(CuerpoCeleste cuerpo, Transformable transformable) {
+        if (cuerpo != null && transformable != null) {
+            transformables.put(cuerpo, transformable);
+        }
+    }
+
+    public void registrarEstrella(CuerpoCeleste estrella) {
+        if (estrella != null && !estrellasRegistradas.contains(estrella)) {
+            estrellasRegistradas.add(estrella);
+        }
+    }
+
+    public void desregistrar(CuerpoCeleste cuerpo) {
+        if (cuerpo != null) {
+            transformables.remove(cuerpo);
+            estrellasRegistradas.remove(cuerpo);
+            procesosActivos.remove(cuerpo);
+        }
+    }
+
+    public Optional<Transformable> obtenerTransformable(CuerpoCeleste cuerpo) {
+        if (cuerpo == null) return Optional.empty();
+        return Optional.ofNullable(transformables.get(cuerpo));
+    }
+
+    public void limpiar() {
+        procesosActivos.clear();
+        transformables.clear();
+        estrellasRegistradas.clear();
+    }
+
     public void agregarRegla(ReglaTransformacion regla) {
         if (regla != null) {
             reglas.add(regla);
@@ -111,14 +151,6 @@ public class TransformadorCuerpos {
         return Collections.unmodifiableList(reglas);
     }
 
-    /**
-     * Procesa un paso de simulacion para todos los cuerpos:
-     * 1. Limpia y cancela procesos donde los cuerpos fueron eliminados, destruidos o absorbidos.
-     * 2. Actualiza tiempos de espera y migraciones graduales.
-     * 3. Registra nuevos planetas que entran al radio de activacion.
-     *
-     * @param cuerpos Lista activa de cuerpos celestes en la simulacion.
-     */
     public void procesarTransformaciones(List<CuerpoCeleste> cuerpos) {
         if (cuerpos == null || cuerpos.isEmpty()) {
             procesosActivos.clear();
@@ -142,14 +174,18 @@ public class TransformadorCuerpos {
         // 3. Buscar nuevos planetas candidatos que entren al radio de activacion
         List<CuerpoCeleste> estrellas = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
-            if (c.esEstrella() && c.esSimulado()) {
+            if (c != null && c.esSimulado() && (estrellasRegistradas.contains(c) || c.getMasa() >= 1e29)) {
                 estrellas.add(c);
             }
         }
         if (estrellas.isEmpty()) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (!c.esSimulado() || !c.comoTransformable().map(org.example.game.cuerpo.Transformable::esTransformable).orElse(false)) continue;
+            Transformable t = transformables.get(c);
+            if (t == null) {
+                t = org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(c).orElse(null);
+            }
+            if (t == null || !c.esSimulado() || !t.esTransformable()) continue;
 
             // Un cuerpo no puede tener dos procesos a la vez
             if (procesosActivos.containsKey(c)) continue;
@@ -185,7 +221,6 @@ public class TransformadorCuerpos {
         double radioMinimo = estrella.getRadio() + cuerpo.getRadio() + 5.0;
 
         if (proceso.estado == EstadoTransformacion.ESPERANDO) {
-            // Si sale del radio o esta en contacto destructivo, cancelar de inmediato sin estado colgado
             if (dist > proceso.radioActivacion || dist <= radioMinimo) {
                 procesosActivos.remove(cuerpo);
                 return;
@@ -193,12 +228,9 @@ public class TransformadorCuerpos {
 
             proceso.ticksEspera++;
             if (proceso.ticksEspera >= ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG) {
-                // Se cumplio el tiempo de espera.
-                // Buscar destino libre en la orbita estable (o la mas cercana disponible)
                 Vector2D posLibre = encontrarPosicionOrbitalLibre(cuerpo, estrella, proceso.radioActivacion, cuerpos);
 
                 if (posLibre == null) {
-                    // Destino ocupado y no hay orbita libre disponible: abortar migracion sin solapar
                     procesosActivos.remove(cuerpo);
                     if (listenerMensaje != null) {
                         listenerMensaje.accept("Migracion abortada para " + cuerpo.getNombre() + ": no hay orbita libre disponible.");
@@ -206,11 +238,15 @@ public class TransformadorCuerpos {
                     return;
                 }
 
-                // Aplicar transformacion estetica y fisica al cumplirse el tiempo (Tarea 2)
-                cuerpo.comoTransformable().ifPresent(t -> t.transformarA(proceso.tipoDestino));
+                Transformable t = transformables.get(cuerpo);
+                if (t == null) {
+                    t = org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(cuerpo).orElse(null);
+                }
+                if (t != null) {
+                    t.transformarA(proceso.tipoDestino);
+                }
                 cuerpo.setNombre(proceso.nombreResultante);
 
-                // Iniciar migracion gradual
                 proceso.estado = EstadoTransformacion.MIGRANDO;
                 proceso.posInicialMigracion = cuerpo.getPosicion();
                 proceso.posDestinoMigracion = posLibre;
@@ -225,18 +261,15 @@ public class TransformadorCuerpos {
             proceso.ticksMigracion++;
             double factorProgreso = Math.min(1.0, (double) proceso.ticksMigracion / ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA);
 
-            // Interpolacion suave (smoothstep para entrada y salida sin tirones)
             double tSuave = factorProgreso * factorProgreso * (3.0 - 2.0 * factorProgreso);
             Vector2D posActual = proceso.posInicialMigracion.interpolar(proceso.posDestinoMigracion, tSuave);
             cuerpo.setPosicion(posActual);
 
             if (factorProgreso >= 1.0) {
-                // Migracion finalizada: posicionar en destino y fijar orbita estable
                 cuerpo.setPosicion(proceso.posDestinoMigracion);
                 cuerpo.setCuerpoOrbitado(estrella);
                 cuerpo.setRadioOrbita(proceso.radioOrbitaDestino);
 
-                // Calibrar velocidad tangencial circular exacta
                 Vector2D velOrb = CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, cuerpo.getPosicion(), false);
                 cuerpo.setVelocidad(velOrb);
 
@@ -245,12 +278,6 @@ public class TransformadorCuerpos {
         }
     }
 
-    /**
-     * Encuentra una posicion libre en la orbita para reubicar el planeta sin solapamientos.
-     * Si el angulo natural esta ocupado, prueba otros angulos en la misma orbita.
-     * Si toda la orbita esta ocupada, busca en radios adyacentes incrementales.
-     * Si no existe ninguna posicion libre, retorna null.
-     */
     public Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
         return buscadorOrbitaLibre.buscarPosicionLibre(cuerpo, estrella, radioActivacion, cuerpos);
     }

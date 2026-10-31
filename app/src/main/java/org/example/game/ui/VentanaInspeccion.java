@@ -92,7 +92,7 @@ public class VentanaInspeccion {
         lblVel.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lblVel.setTextFill(Color.web("#d1d5db"));
 
-        Label lblPos = new Label(String.format("• Posición: (%.1f, %.1f)", cuerpo.getPosicionX(), cuerpo.getPosicionY()));
+        Label lblPos = new Label(String.format("• Posición: (%.1f, %.1f)", cuerpo.getPosicion().x(), cuerpo.getPosicion().y()));
         lblPos.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lblPos.setTextFill(Color.web("#d1d5db"));
 
@@ -101,12 +101,12 @@ public class VentanaInspeccion {
     }
 
     private void agregarDetallesOpcionales(VBox datosFisicos, Stage stage) {
-        cuerpo.comoCivilizable().ifPresent(civ -> {
+        org.example.game.civilizacion.SistemaCivilizaciones.getInstancia().obtenerCivilizable(cuerpo).ifPresent(civ -> {
             if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
                 datosFisicos.getChildren().add(construirTarjetaCivilizacion(civ.getCivilizacion()));
             }
         });
-        cuerpo.comoDefensor().ifPresent(def -> {
+        org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto().obtenerDefensor(cuerpo).ifPresent(def -> {
             if (def.puedeRecibirEscudo()) {
                 datosFisicos.getChildren().add(construirTarjetaEscudo(def, stage));
             }
@@ -177,7 +177,7 @@ public class VentanaInspeccion {
         prodBox.getChildren().add(lblProdTitulo);
 
         double factorMasa = tipo.masaBase > 0 ? Math.max(0.1, cuerpo.getMasa() / tipo.masaBase) : 1.0;
-        boolean transformado = cuerpo.comoTransformable()
+        boolean transformado = RegistroCapacidades.obtenerTransformable(cuerpo)
                 .map(Transformable::isTransformadoPorEvento)
                 .orElse(false);
         Map<TipoRecurso, Double> prod = transformado

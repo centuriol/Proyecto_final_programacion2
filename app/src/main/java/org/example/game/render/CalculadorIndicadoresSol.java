@@ -41,8 +41,8 @@ public class CalculadorIndicadoresSol {
         List<IndicadorSolBorde> resultado = new ArrayList<>();
         for (CuerpoCeleste cuerpo : cuerpos) {
             if (esSolActivo(cuerpo)) {
-                double sx = camara.mundoAPantallaX(cuerpo.getPosicionX(), anchoVista);
-                double sy = camara.mundoAPantallaY(cuerpo.getPosicionY(), altoVista);
+                double sx = camara.mundoAPantallaX(cuerpo.getPosicion().x(), anchoVista);
+                double sy = camara.mundoAPantallaY(cuerpo.getPosicion().y(), altoVista);
                 if (estaFueraDePantalla(sx, sy, anchoVista, altoVista)) {
                     resultado.add(proyectarSobreBorde(cuerpo, new Vector2D(sx, sy), vista));
                 }
@@ -80,7 +80,8 @@ public class CalculadorIndicadoresSol {
     private static boolean esSolActivo(CuerpoCeleste cuerpo) {
         return cuerpo != null
                 && cuerpo.esSimulado()
-                && cuerpo.esEstrella();
+                && cuerpo.getMasa() >= 1e29
+                && cuerpo.getMasa() < 1e31;
     }
 
     private static double acotar(double valor, double min, double max) {

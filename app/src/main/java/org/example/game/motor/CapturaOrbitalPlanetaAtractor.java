@@ -8,12 +8,12 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsPlaneta = ci.esPlaneta();
-        boolean cjEsPlaneta = cj.esPlaneta();
+        boolean ciEsPlaneta = ci.getMasa() >= 1e22 && ci.getMasa() <= 1e28;
+        boolean cjEsPlaneta = cj.getMasa() >= 1e22 && cj.getMasa() <= 1e28;
         CuerpoCeleste planeta = ciEsPlaneta ? ci : (cjEsPlaneta ? cj : null);
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
 
-        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.esAtractorOrbital());
+        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getMasa() >= 1e29);
 
         if (esPlanetaYEstrella) {
             double radioCapturaPlaneta = estrella.getRadioAtraccion() * 7.0;
@@ -25,7 +25,7 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
 
     @Override
     public CuerpoCeleste[] ejecutarCaptura(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje, AsistenteOrbital asistente) {
-        boolean ciEsPlaneta = ci.esPlaneta();
+        boolean ciEsPlaneta = ci.getMasa() <= 1e28;
         CuerpoCeleste planeta = ciEsPlaneta ? ci : cj;
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
 

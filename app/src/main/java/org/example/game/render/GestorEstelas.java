@@ -31,7 +31,7 @@ public class GestorEstelas {
 
         for (CuerpoCeleste c : cuerpos) {
             Deque<Vector2D> cola = estelas.computeIfAbsent(c, k -> new ArrayDeque<>());
-            cola.addLast(new Vector2D(c.getPosicionX(), c.getPosicionY()));
+            cola.addLast(c.getPosicion());
             if (cola.size() > MAX_PUNTOS_ESTELA) {
                 cola.removeFirst();
             }
