@@ -17,7 +17,7 @@ public class Luna extends CuerpoCeleste {
 
     @Override
     public String describir() {
-        return "Luna " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
+        return "Luna " + getNombre() + " (masa: " + FormateadorMasa.formatearMasa(getMasa()) + ")";
     }
 
     @Override

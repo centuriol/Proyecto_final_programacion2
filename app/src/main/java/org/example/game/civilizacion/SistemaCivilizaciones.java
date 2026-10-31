@@ -63,7 +63,7 @@ public class SistemaCivilizaciones {
     public void actualizarCivilizaciones(List<CuerpoCeleste> cuerpos, Consumer<MensajeEvento> emisorEventos) {
         for (Civilizable civ : civilizables) {
             if (civ.tieneCivilizacion()) {
-                if (civ.getCivilizacion() != null && civ.getCivilizacion().getEmisorEventos() == null) {
+                if (civ.getCivilizacion() != null) {
                     civ.getCivilizacion().setEmisorEventos(emisorEventos);
                 }
                 civ.actualizarCivilizacion(cuerpos);

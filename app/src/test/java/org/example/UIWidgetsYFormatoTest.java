@@ -21,7 +21,7 @@ class UIWidgetsYFormatoTest {
         SimulacionSolar simulacion = new SimulacionSolar(1920, 1080);
         List<MensajeEvento> recibidos = new ArrayList<>();
 
-        simulacion.agregarListenerEvento(recibidos::add);
+        simulacion.getBusEventos().agregarListenerEvento(recibidos::add);
 
         simulacion.notificarEvento("Prueba de alerta", MensajeEvento.TipoMensaje.ADVERTENCIA);
         assertEquals(1, recibidos.size());
@@ -31,7 +31,7 @@ class UIWidgetsYFormatoTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().getRecursoObj(TipoRecurso.ENERGIA).setCantidad(0);
         simulacion.getInventario().getRecursoObj(TipoRecurso.MINERALES).setCantidad(0);
-        boolean spawneado = simulacion.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero()).isPresent();
+        boolean spawneado = simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero()).isPresent();
         assertFalse(spawneado);
         assertTrue(recibidos.size() >= 2);
         assertTrue(recibidos.get(recibidos.size() - 1).mensaje().contains("Recursos insuficientes"));
@@ -92,16 +92,16 @@ class UIWidgetsYFormatoTest {
 
     @Test
     void testFormatoMasaMTEnLugarDeNotacionCientifica1e() {
-        String masaTierra = TipoCuerpo.formatearMasa(TipoCuerpo.PLANETA_ROCOSO.masaBase);
+        String masaTierra = org.example.game.cuerpo.FormateadorMasa.formatearMasa(TipoCuerpo.PLANETA_ROCOSO.masaBase);
         assertTrue(masaTierra.contains("MT"));
         assertFalse(masaTierra.contains("1e"));
         assertTrue(masaTierra.startsWith("5.97"));
 
-        String masaSol = TipoCuerpo.formatearMasa(TipoCuerpo.ESTRELLA.masaBase);
+        String masaSol = org.example.game.cuerpo.FormateadorMasa.formatearMasa(TipoCuerpo.ESTRELLA.masaBase);
         assertTrue(masaSol.contains("MT"));
         assertTrue(masaSol.contains("1.99M MT"));
 
-        String masaLuna = TipoCuerpo.formatearMasa(TipoCuerpo.LUNA.masaBase);
+        String masaLuna = org.example.game.cuerpo.FormateadorMasa.formatearMasa(TipoCuerpo.LUNA.masaBase);
         assertTrue(masaLuna.contains("MT"));
         assertFalse(masaLuna.contains("1e"));
 
@@ -132,29 +132,29 @@ class UIWidgetsYFormatoTest {
         assertEquals("4x", widget.getBtn4x().getText());
 
         widget.getBtn2x().fire();
-        assertEquals(2.0, sim.getVelocidadSimulacion(), 1e-6);
-        assertFalse(sim.isEnPausa());
+        assertEquals(2.0, sim.getReloj().getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.getReloj().isEnPausa());
 
         widget.getBtn3x().fire();
-        assertEquals(3.0, sim.getVelocidadSimulacion(), 1e-6);
-        assertFalse(sim.isEnPausa());
+        assertEquals(3.0, sim.getReloj().getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.getReloj().isEnPausa());
 
         widget.getBtn4x().fire();
-        assertEquals(4.0, sim.getVelocidadSimulacion(), 1e-6);
-        assertFalse(sim.isEnPausa());
+        assertEquals(4.0, sim.getReloj().getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.getReloj().isEnPausa());
 
         widget.getBtnPause().fire();
-        assertTrue(sim.isEnPausa());
+        assertTrue(sim.getReloj().isEnPausa());
         assertEquals(">", widget.getBtnPause().getText());
 
         widget.getBtnPause().fire();
-        assertFalse(sim.isEnPausa());
+        assertFalse(sim.getReloj().isEnPausa());
         assertEquals("||", widget.getBtnPause().getText());
 
         widget.getBtnPause().fire();
-        assertTrue(sim.isEnPausa());
+        assertTrue(sim.getReloj().isEnPausa());
         widget.getBtn1x().fire();
-        assertFalse(sim.isEnPausa());
-        assertEquals(1.0, sim.getVelocidadSimulacion(), 1e-6);
+        assertFalse(sim.getReloj().isEnPausa());
+        assertEquals(1.0, sim.getReloj().getVelocidadSimulacion(), 1e-6);
     }
 }

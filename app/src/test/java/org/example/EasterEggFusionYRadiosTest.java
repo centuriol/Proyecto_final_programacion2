@@ -84,11 +84,11 @@ class EasterEggFusionYRadiosTest {
         economia.actualizarEconomia(List.of(sobreviviente), inv);
         assertEquals(minAntes, inv.getRecurso(TipoRecurso.MINERALES), 1e-6);
 
-        assertTrue(simulacion.calcularReembolso(sobreviviente).isEmpty());
+        assertTrue(simulacion.getServicioReembolso().calcularReembolso(sobreviviente).isEmpty());
         simulacion.limpiarCuerpos();
         simulacion.agregarCuerpo(sobreviviente);
         double mineralesAntes = simulacion.getInventario().getRecurso(TipoRecurso.MINERALES);
-        boolean desmantelado = simulacion.desmantelarCuerpo(sobreviviente);
+        boolean desmantelado = simulacion.getServicioReembolso().desmantelarCuerpo(simulacion, sobreviviente);
         assertTrue(desmantelado);
         assertEquals(mineralesAntes, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
     }

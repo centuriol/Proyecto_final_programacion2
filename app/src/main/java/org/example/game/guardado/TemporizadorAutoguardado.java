@@ -50,7 +50,7 @@ public class TemporizadorAutoguardado {
         if (!activo || !Double.isFinite(deltaSegundos) || deltaSegundos <= 0.0) {
             return false;
         }
-        if (simulacion.isEnPausa() || simulacion.estaPerdida()) {
+        if (simulacion.getReloj().isEnPausa() || simulacion.estaPerdida()) {
             return false;
         }
         tiempoAcumuladoSegundos += deltaSegundos;

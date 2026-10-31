@@ -58,12 +58,21 @@ public class GestorCicloVidaCuerpos {
         return count;
     }
 
+    public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return spawnCuerpo(tipo, null, x, y, factorMasa, velocidadInicial);
+    }
+
+    public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
+        return spawnCuerpo(tipo, nombrePersonalizado, x, y, factorMasa, velocidadInicial,
+                (msg, tipoMsg) -> { if (busEventos != null) busEventos.notificarEvento(msg, tipoMsg, 0L); }, () -> {});
+    }
+
     public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado,
                                                double x, double y, double factorMasa,
                                                Vector2D velocidadInicial,
                                                java.util.function.BiConsumer<String, MensajeEvento.TipoMensaje> notificador,
                                                Runnable alCompletarColocacion) {
-        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
+        double factorEfectivo = (tipo != null) ? tipo.ajustarFactorMasaEfectivo(factorMasa) : factorMasa;
         if (!validarRequisitosColocacion(tipo, factorEfectivo, notificador)) {
             return Optional.empty();
         }

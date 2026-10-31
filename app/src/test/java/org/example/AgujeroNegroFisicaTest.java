@@ -73,7 +73,7 @@ class AgujeroNegroFisicaTest {
     @Test
     void testGravedadProporcionalAMasa() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta pesado = new CuerpoCelesteFactory().crearPlanetaGaseoso(-100, 0, 1.0, Vector2D.cero());
+        Planeta pesado = new CuerpoCelesteFactory().crearPlaneta(TipoCuerpo.PLANETA_GASEOSO, -100, 0, 1.0, Vector2D.cero());
         Planeta liviano = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 0, 1.0, Vector2D.cero());
         cuerpos.add(pesado);
         cuerpos.add(liviano);
@@ -119,7 +119,7 @@ class AgujeroNegroFisicaTest {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
         Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         Vector2D posTierra = new Vector2D(160, 0);
-        Vector2D velTierra = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(sol, posTierra, false);
+        Vector2D velTierra = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, posTierra, false);
         Planeta tierra = new CuerpoCelesteFactory().crearPlanetaRocoso(posTierra.x(), posTierra.y(), 1.0, velTierra);
         cuerpos.add(sol);
         cuerpos.add(tierra);

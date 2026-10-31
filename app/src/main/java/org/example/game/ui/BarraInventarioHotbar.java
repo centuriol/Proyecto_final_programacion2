@@ -59,7 +59,7 @@ public class BarraInventarioHotbar extends HBox {
         }
 
         actualizarBloqueos();
-        this.simulacion.agregarListenerUI(this::actualizarBloqueos);
+        this.simulacion.getBusEventos().agregarListenerUI(this::actualizarBloqueos);
     }
 
     public void setAccionAbrirArbol(Runnable accionAbrirArbol) {

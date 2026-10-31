@@ -25,17 +25,17 @@ public class Fase2BugsTest {
     @DisplayName("Bug 1: SimulacionSolar.step() avanza exactamente 1 tick y permanece pausado")
     void testSimulacionStepPermanecePausado() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
-        sim.pause();
-        assertTrue(sim.isEnPausa());
-        long tickInicial = sim.getTickActual();
+        sim.getReloj().pause();
+        assertTrue(sim.getReloj().isEnPausa());
+        long tickInicial = sim.getReloj().getTickActual();
 
         sim.step();
-        assertEquals(tickInicial + 1, sim.getTickActual(), "Debe haber avanzado exactamente 1 tick");
-        assertTrue(sim.isEnPausa(), "Debe permanecer pausado tras llamar a step()");
+        assertEquals(tickInicial + 1, sim.getReloj().getTickActual(), "Debe haber avanzado exactamente 1 tick");
+        assertTrue(sim.getReloj().isEnPausa(), "Debe permanecer pausado tras llamar a step()");
 
         // Un llamado a avanzarTick sin step no debe avanzar mientras esté pausado
         sim.avanzarTick();
-        assertEquals(tickInicial + 1, sim.getTickActual(), "No debe seguir avanzando si no se despausó");
+        assertEquals(tickInicial + 1, sim.getReloj().getTickActual(), "No debe seguir avanzando si no se despausó");
     }
 
     @Test
@@ -90,14 +90,14 @@ public class Fase2BugsTest {
         sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 1000);
         sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 1000);
 
-        Optional<CuerpoCeleste> opt = sim.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
+        Optional<CuerpoCeleste> opt = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
         assertTrue(opt.isPresent(), "spawnCuerpo debe retornar Optional con el cuerpo creado");
         assertTrue(opt.get().getNombre().startsWith("Planeta-"));
 
         // Colocación asistida
-        sim.entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaOrbital");
-        sim.actualizarPosicionPreview(150, 100);
-        sim.confirmarColocacionAutoOrbita();
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaOrbital");
+        sim.getGestorColocacion().actualizarPosicionPreview(150, 100);
+        sim.getGestorColocacion().confirmarColocacionAutoOrbita(sim);
 
         CuerpoCeleste luna = sim.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> "LunaOrbital".equals(c.getNombre()))
@@ -139,7 +139,7 @@ public class Fase2BugsTest {
         sim.agregarCuerpo(planeta);
 
         double minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
-        boolean desmantelado = sim.desmantelarCuerpo(planeta);
+        boolean desmantelado = sim.getServicioReembolso().desmantelarCuerpo(sim, planeta);
 
         assertTrue(desmantelado);
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(planeta));

@@ -74,12 +74,12 @@ class MenuPausaYDisposicionUITest {
     void testEscapeAbreMenuPausaConCuatroOpcionesYContinuarReanuda() {
         PantallaMenuPausa menuPausa = app.getPantallaMenuPausa();
         assertFalse(menuPausa.isVisible());
-        assertFalse(app.getSimulacion().isEnPausa());
+        assertFalse(app.getSimulacion().getReloj().isEnPausa());
 
         enviarTecla(KeyCode.ESCAPE);
 
         assertTrue(menuPausa.isVisible(), "Presionar Esc debe abrir el menu de pausa");
-        assertTrue(app.getSimulacion().isEnPausa(), "El menu de pausa debe pausar la simulacion");
+        assertTrue(app.getSimulacion().getReloj().isEnPausa(), "El menu de pausa debe pausar la simulacion");
         assertEquals("Continuar", menuPausa.getBtnContinuar().getText());
         assertEquals("Guardar", menuPausa.getBtnGuardar().getText());
         assertEquals("Cargar", menuPausa.getBtnCargar().getText());
@@ -87,20 +87,20 @@ class MenuPausaYDisposicionUITest {
 
         menuPausa.getBtnContinuar().fire();
         assertFalse(menuPausa.isVisible());
-        assertFalse(app.getSimulacion().isEnPausa());
+        assertFalse(app.getSimulacion().getReloj().isEnPausa());
 
         enviarTecla(KeyCode.ESCAPE);
         assertTrue(menuPausa.isVisible());
         enviarTecla(KeyCode.ESCAPE);
         assertFalse(menuPausa.isVisible(), "Presionar Esc nuevamente debe reanudar la partida");
-        assertFalse(app.getSimulacion().isEnPausa());
+        assertFalse(app.getSimulacion().getReloj().isEnPausa());
     }
 
     @Test
     void testGuardarCargarYSalirAlMenuPrincipalDesdeMenuPausa() {
-        app.getSimulacion().cargarPresetEstrellaBinaria();
+        app.getSimulacion().getPresetsSistema().cargarPresetEstrellaBinaria(app.getSimulacion());
         app.getSimulacion().avanzarTicks(12);
-        long tickGuardado = app.getSimulacion().getTickActual();
+        long tickGuardado = app.getSimulacion().getReloj().getTickActual();
 
         enviarTecla(KeyCode.ESCAPE);
         PantallaMenuPausa menuPausa = app.getPantallaMenuPausa();
@@ -116,8 +116,8 @@ class MenuPausaYDisposicionUITest {
         menuPausa.getBtnCargar().fire();
         assertFalse(menuPausa.isVisible(), "Al cargar partida desde pausa se vuelve al simulador activo");
         assertEquals(3, app.getSimulacion().getSistemaSolar().getCuerpos().size());
-        assertEquals(tickGuardado, app.getSimulacion().getTickActual());
-        assertFalse(app.getSimulacion().isEnPausa());
+        assertEquals(tickGuardado, app.getSimulacion().getReloj().getTickActual());
+        assertFalse(app.getSimulacion().getReloj().isEnPausa());
 
         enviarTecla(KeyCode.ESCAPE);
         menuPausa.getBtnSalirMenu().fire();
@@ -134,7 +134,7 @@ class MenuPausaYDisposicionUITest {
         assertFalse(app.getPantallaArbol().isVisible(), "Esc dentro del arbol debe cerrarlo y volver al simulador");
         assertFalse(app.getPantallaMenuPausa().isVisible(), "Esc al cerrar el arbol no debe abrir la pausa en el mismo pulso");
 
-        app.getSimulacion().cargarPresetSistemaBasico();
+        app.getSimulacion().getPresetsSistema().cargarPresetSistemaBasico(app.getSimulacion());
         int cantidadGuardada = app.getSimulacion().getSistemaSolar().getCuerpos().size();
         assertTrue(cantidadGuardada > 0);
 

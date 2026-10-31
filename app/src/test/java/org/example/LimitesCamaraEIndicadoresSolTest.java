@@ -41,7 +41,7 @@ class LimitesCamaraEIndicadoresSolTest {
         CalculadorIndicadoresSol calculador = new CalculadorIndicadoresSol();
 
         Estrella solCentral = new Estrella("Sol Central", TipoCuerpo.ESTRELLA.masaBase, 0.0, 0.0);
-        Planeta planetaLejano = new Planeta("Planeta Lejano", TipoCuerpo.PLANETA_ROCOSO.masaBase, 4500.0, 0.0);
+        Planeta planetaLejano = new Planeta("Planeta Lejano", TipoCuerpo.PLANETA_ROCOSO.masaBase, 4500.0, 0.0, TipoCuerpo.PLANETA_ROCOSO);
 
         List<IndicadorSolBorde> indicadores = calculador.calcularIndicadores(
                 List.of(solCentral, planetaLejano),

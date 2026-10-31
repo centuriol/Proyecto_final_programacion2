@@ -29,12 +29,12 @@ public class PredictorPreviewMouse {
 
     public void actualizarPrediccion(SimulacionSolar simulacion) {
         if (simulacion == null) return;
-        Vector2D pos = simulacion.getPosicionPreview();
+        Vector2D pos = simulacion.getGestorColocacion().getPosicionPreview();
         if (pos == null) return;
 
-        Vector2D velOrbital = simulacion.calcularVelocidadOrbitalAsistida(pos);
-        TipoCuerpo tipo = simulacion.getTipoColocacion();
-        double masa = tipo != null ? tipo.masaBase * simulacion.getFactorMasaColocacion() : 1e24;
+        Vector2D velOrbital = simulacion.getGestorColocacion().calcularVelocidadOrbitalAsistida(pos, simulacion.getSistemaSolar().getCuerpos());
+        TipoCuerpo tipo = simulacion.getGestorColocacion().getTipoColocacion();
+        double masa = tipo != null ? tipo.masaBase * simulacion.getGestorColocacion().getFactorMasaColocacion() : 1e24;
 
         trayectoriaPreview = simulacion.getPredictor().predecirTrayectoria(
                 pos, velOrbital, masa,

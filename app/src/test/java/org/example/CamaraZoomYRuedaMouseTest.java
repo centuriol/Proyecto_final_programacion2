@@ -74,7 +74,7 @@ class CamaraZoomYRuedaMouseTest {
     void testControladorMouseRuedaNormalAcercaYAlejaConLimites() {
         SimulacionSolar sim = new SimulacionSolar(1000, 800);
         sim.getProgresion().desbloquearTodo();
-        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaZoom");
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaZoom");
 
         ControladorMouse mouse = new ControladorMouse(sim, null, 1000, 800);
         Canvas canvas = new Canvas(1000, 800);
@@ -85,7 +85,7 @@ class CamaraZoomYRuedaMouseTest {
             mouse.manejarScroll(crearScroll(700, 400, 40.0));
         }
         assertEquals(1.5, mouse.getCamaraZoom().getNivelZoom(), 1e-6);
-        assertNotNull(sim.getPosicionPreview());
+        assertNotNull(sim.getGestorColocacion().getPosicionPreview());
 
         for (int i = 0; i < 30; i++) {
             mouse.manejarScroll(crearScroll(700, 400, -40.0));

@@ -29,7 +29,7 @@ public class PanelNotificaciones extends VBox {
         setMaxWidth(380);
         setMouseTransparent(true);
 
-        simulacion.agregarListenerEvento(this::mostrarEvento);
+        simulacion.getBusEventos().agregarListenerEvento(this::mostrarEvento);
     }
 
     public void mostrarEvento(MensajeEvento evento) {

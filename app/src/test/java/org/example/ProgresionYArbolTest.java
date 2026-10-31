@@ -87,20 +87,20 @@ class ProgresionYArbolTest {
 
         assertEquals(3, simulacion.getProgresion().getLimitePlanetas());
 
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 0, 0.3, Vector2D.cero()).isPresent());
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, 0.3, Vector2D.cero()).isPresent());
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 300, 0, 0.3, Vector2D.cero()).isPresent());
-        assertEquals(3, simulacion.getCantidadPlanetasActuales());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 0, 0.3, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, 0.3, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 300, 0, 0.3, Vector2D.cero()).isPresent());
+        assertEquals(3, simulacion.getGestorCicloVida().getCantidadPlanetasActuales());
 
-        assertFalse(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
-        assertEquals(3, simulacion.getCantidadPlanetasActuales());
+        assertFalse(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
+        assertEquals(3, simulacion.getGestorCicloVida().getCantidadPlanetasActuales());
 
         simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA);
         assertTrue(simulacion.getProgresion().investigar(RamaProgresion.CANTIDAD_PLANETAS, simulacion.getInventario()));
         assertEquals(4, simulacion.getProgresion().getLimitePlanetas());
 
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
-        assertEquals(4, simulacion.getCantidadPlanetasActuales());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
+        assertEquals(4, simulacion.getGestorCicloVida().getCantidadPlanetasActuales());
     }
 
     @Test
@@ -108,8 +108,8 @@ class ProgresionYArbolTest {
         simulacion.getInventario().agregarRecurso(TipoRecurso.MINERALES, 5000);
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 5000);
 
-        assertFalse(simulacion.spawnCuerpo(TipoCuerpo.LUNA, 100, 100, 0.3, Vector2D.cero()).isPresent());
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 100, 0.3, Vector2D.cero()).isPresent());
+        assertFalse(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.LUNA, 100, 100, 0.3, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 100, 100, 0.3, Vector2D.cero()).isPresent());
     }
 
     @Test
@@ -172,7 +172,7 @@ class ProgresionYArbolTest {
 
         inv.agregarRecurso(TipoRecurso.MINERALES, 1000);
         inv.agregarRecurso(TipoRecurso.ENERGIA, 1000);
-        assertTrue(simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "SondaAlpha", 100, 100, 5.0, Vector2D.cero()).isPresent());
+        assertTrue(simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.SATELITE, "SondaAlpha", 100, 100, 5.0, Vector2D.cero()).isPresent());
         CuerpoCeleste satSpawneado = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE)
                 .findFirst().orElse(null);

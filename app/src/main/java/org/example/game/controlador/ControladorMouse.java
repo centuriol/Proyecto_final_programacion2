@@ -7,6 +7,7 @@ import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Planeta;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.CamaraZoom;
+import org.example.game.simulacion.ControladorColocacion;
 import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
@@ -137,7 +138,7 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
         if (e.getButton() == MouseButton.PRIMARY) {
             seleccionarCuerpoBajoCursor(worldX, worldY);
             if (cuerpoSeleccionado != null) {
-                simulacion.getGestorColonizacion().lanzar(planetaOrigenColonizacion, cuerpoSeleccionado, simulacion.getInventario(), simulacion::notificarEvento, simulacion.getTickActual());
+                simulacion.getGestorColonizacion().lanzar(planetaOrigenColonizacion, cuerpoSeleccionado, simulacion.getInventario(), simulacion.getBusEventos()::notificarEvento, simulacion.getReloj().getTickActual());
                 cancelarModoColonizacion();
             }
         } else if (e.getButton() == MouseButton.SECONDARY) {
@@ -147,10 +148,10 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     private void procesarClickIzquierdo(double screenX, double screenY, double worldX, double worldY) {
-        if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
+        if (simulacion.getGestorColocacion().getModoColocacion() == ControladorColocacion.ModoColocacion.COLOCANDO) {
             controlArrastre.cancelar();
-            simulacion.actualizarPosicionPreview(worldX, worldY);
-            simulacion.confirmarColocacionAutoOrbita();
+            simulacion.getGestorColocacion().actualizarPosicionPreview(worldX, worldY, anchoMundo, altoMundo);
+            simulacion.getGestorColocacion().confirmarColocacionAutoOrbita(simulacion);
             limpiarSeleccion();
             if (hotbar != null) {
                 hotbar.deseleccionar();
@@ -162,8 +163,8 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     private void procesarClickDerecho(double worldX, double worldY) {
-        if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-            simulacion.salirModoColocacion();
+        if (simulacion.getGestorColocacion().getModoColocacion() == ControladorColocacion.ModoColocacion.COLOCANDO) {
+            simulacion.getGestorColocacion().salirModoColocacion();
             if (hotbar != null) {
                 hotbar.deseleccionar();
             }
@@ -175,7 +176,7 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
 
     public void manejarMouseArrastrado(MouseEvent e) {
         if (e == null) return;
-        if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO || isModoColonizacion()) {
+        if (simulacion.getGestorColocacion().getModoColocacion() == ControladorColocacion.ModoColocacion.COLOCANDO || isModoColonizacion()) {
             controlArrastre.cancelar();
             actualizarPreviewColocacion(transformarX(e.getX()), transformarY(e.getY()));
             return;
@@ -186,8 +187,8 @@ public class ControladorMouse implements ProveedorEstadoInteraccion {
     }
 
     private void actualizarPreviewColocacion(double x, double y) {
-        if (simulacion.getModoColocacion() == SimulacionSolar.ModoColocacion.COLOCANDO) {
-            simulacion.actualizarPosicionPreview(x, y);
+        if (simulacion.getGestorColocacion().getModoColocacion() == ControladorColocacion.ModoColocacion.COLOCANDO) {
+            simulacion.getGestorColocacion().actualizarPosicionPreview(x, y, anchoMundo, altoMundo);
             predictorPreview.actualizarConThrottle(x, y, simulacion);
         }
     }

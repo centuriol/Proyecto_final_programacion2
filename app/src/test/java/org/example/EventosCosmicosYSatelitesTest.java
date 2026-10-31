@@ -87,10 +87,10 @@ class EventosCosmicosYSatelitesTest {
         Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
 
-        simulacion.entrarModoColocacion(TipoCuerpo.SATELITE, 1.0, "Sonda-1");
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.SATELITE, 1.0, "Sonda-1");
         org.example.game.motor.ConversorCoordenadas conversor = new org.example.game.motor.TransformadorCoordenadas();
-        simulacion.actualizarPosicionPreview(conversor.fisicaAXJavaFX(35, 1920), conversor.fisicaAYJavaFX(0, 1080));
-        simulacion.confirmarColocacionAutoOrbita();
+        simulacion.getGestorColocacion().actualizarPosicionPreview(conversor.fisicaAXJavaFX(35, 1920), conversor.fisicaAYJavaFX(0, 1080));
+        simulacion.getGestorColocacion().confirmarColocacionAutoOrbita(simulacion);
 
         CuerpoCeleste sat = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE)
@@ -103,7 +103,7 @@ class EventosCosmicosYSatelitesTest {
 
     @Test
     void testLunaOrbitaMasLejosQueSatelites() {
-        simulacion.cargarPresetSistemaBasico();
+        simulacion.getPresetsSistema().cargarPresetSistemaBasico(simulacion);
 
         CuerpoCeleste tierra = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c instanceof Planeta).findFirst().orElse(null);
@@ -126,9 +126,9 @@ class EventosCosmicosYSatelitesTest {
         Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
 
-        simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "Sat-1", 30, 0, 1.0, new Vector2D(0, 1.58));
-        simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "Sat-2", -30, 0, 1.0, new Vector2D(0, -1.58));
-        simulacion.spawnCuerpo(TipoCuerpo.SATELITE, "Sat-3", 0, 35, 1.0, new Vector2D(-1.46, 0));
+        simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.SATELITE, "Sat-1", 30, 0, 1.0, new Vector2D(0, 1.58));
+        simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.SATELITE, "Sat-2", -30, 0, 1.0, new Vector2D(0, -1.58));
+        simulacion.getGestorCicloVida().spawnCuerpo(TipoCuerpo.SATELITE, "Sat-3", 0, 35, 1.0, new Vector2D(-1.46, 0));
 
         long countSats = simulacion.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE).count();

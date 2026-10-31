@@ -29,7 +29,7 @@ public class ComandoCancelar implements Comando {
             accionExtra.run();
         }
         if (simulacion != null) {
-            simulacion.salirModoColocacion();
+            simulacion.getGestorColocacion().salirModoColocacion();
         }
         if (hotbar != null) {
             hotbar.deseleccionar();

@@ -126,7 +126,7 @@ public class SeccionInfoCuerpo implements ProveedorInfoCuerpo {
         grid.setVgap(4);
 
         agregarFilaPropiedad(grid, 0, "Categoría:", tipo.categoria.name(), "#5be3ff");
-        agregarFilaPropiedad(grid, 1, "Masa Base:", TipoCuerpo.formatearMasa(tipo.masaBase), "#e8e4d8");
+        agregarFilaPropiedad(grid, 1, "Masa Base:", org.example.game.cuerpo.FormateadorMasa.formatearMasa(tipo.masaBase), "#e8e4d8");
         agregarFilaPropiedad(grid, 2, "Radio Físico:", String.format(java.util.Locale.US, "%,.0f km", tipo.radioFisicoBase / 1000.0), "#e8e4d8");
         agregarFilaPropiedad(grid, 3, "Temperatura:", String.format(java.util.Locale.US, "%.0f K (%.1f °C)", tipo.temperaturaBase, tipo.temperaturaBase - 273.15), "#e8e4d8");
 

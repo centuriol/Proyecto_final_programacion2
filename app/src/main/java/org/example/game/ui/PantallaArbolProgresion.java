@@ -109,7 +109,7 @@ public class PantallaArbolProgresion extends StackPane {
         // Componentes especializados (SRP)
         this.inspectorPanel = new InspectorTecnologiaArbol(simulacion, () -> {
             refrescar();
-            simulacion.notificarListenersUI();
+            simulacion.getBusEventos().notificarListenersUI();
         });
 
         this.lienzoArbol = new LienzoArbolOrbital(
@@ -117,7 +117,7 @@ public class PantallaArbolProgresion extends StackPane {
                 inspectorPanel::seleccionar,
                 () -> {
                     refrescar();
-                    simulacion.notificarListenersUI();
+                    simulacion.getBusEventos().notificarListenersUI();
                 }
         );
 
@@ -163,7 +163,7 @@ public class PantallaArbolProgresion extends StackPane {
                     inspectorPanel.actualizar();
                 }
             });
-            simulacion.agregarListenerUI(listenerSimulacion);
+            simulacion.getBusEventos().agregarListenerUI(listenerSimulacion);
         }
     }
 
@@ -172,7 +172,7 @@ public class PantallaArbolProgresion extends StackPane {
         setManaged(false);
 
         if (listenerSimulacion != null) {
-            simulacion.removerListenerUI(listenerSimulacion);
+            simulacion.getBusEventos().removerListenerUI(listenerSimulacion);
             listenerSimulacion = null;
         }
 
@@ -196,7 +196,7 @@ public class PantallaArbolProgresion extends StackPane {
     private void actualizarPills() {
         double ciencia = simulacion.getInventario() != null ? simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA) : 0.0;
         lblCienciaPill.setText("Ciencia: " + String.format("%.1f", ciencia) + " CIE");
-        lblPlanetasPill.setText("Planetas: " + simulacion.getCantidadPlanetasActuales() + " / " + simulacion.getProgresion().getLimitePlanetas());
+        lblPlanetasPill.setText("Planetas: " + simulacion.getGestorCicloVida().getCantidadPlanetasActuales() + " / " + simulacion.getProgresion().getLimitePlanetas());
         lblMasaPill.setText("Masa Máx: " + String.format("%.1f", simulacion.getProgresion().getLimiteMasaActual()) + "x");
     }
 

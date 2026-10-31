@@ -51,7 +51,7 @@ public class SolidAbstraccionesRefactorTest {
     @DisplayName("GestorEstelas gestiona puntos orbitales, limpieza y limites de memoria (SRP)")
     void testGestorEstelas() {
         GestorEstelas gestor = new GestorEstelas();
-        CuerpoCeleste cuerpo = new Planeta("TestPlaneta", 100.0, 10.0, 20.0);
+        CuerpoCeleste cuerpo = new Planeta("TestPlaneta", 100.0, 10.0, 20.0, TipoCuerpo.PLANETA_ROCOSO);
 
         for (int i = 0; i < 60; i++) {
             cuerpo.setPosicion(new Vector2D(i * 10, i * 10));
@@ -77,7 +77,7 @@ public class SolidAbstraccionesRefactorTest {
         assertTrue(colisionNotificada.get(), "El listener de colision debe ser notificado");
 
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        CuerpoCeleste normal = new Planeta("Normal", 10.0, 0, 0);
+        CuerpoCeleste normal = new Planeta("Normal", 10.0, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
         CuerpoExpirableTest expirado = new CuerpoExpirableTest("Expirado", 10.0, 0, 0);
         motor.registrarExpirable(expirado, expirado);
 
@@ -151,7 +151,7 @@ public class SolidAbstraccionesRefactorTest {
         AtomicBoolean creadorInvocado = new AtomicBoolean(false);
         fabrica.registrarCreador(TipoCuerpo.SATELITE, (x, y, factor, vel) -> {
             creadorInvocado.set(true);
-            return new Planeta("SatCustom", 10.0, x, y);
+            return new Planeta("SatCustom", 10.0, x, y, TipoCuerpo.SATELITE);
         });
 
         CuerpoCeleste custom = fabrica.crearCuerpo(TipoCuerpo.SATELITE, 10, 20, 1.0, Vector2D.cero());
@@ -162,7 +162,7 @@ public class SolidAbstraccionesRefactorTest {
     @Test
     @DisplayName("CuerpoCeleste segrega capacidades en interfaces chicas (ISP / LSP)")
     void testPolimorfismoCuerpoCeleste() {
-        CuerpoCeleste cuerpo = new Planeta("PocoComun", 100.0, 0, 0);
+        CuerpoCeleste cuerpo = new Planeta("PocoComun", 100.0, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(cuerpo.permiteReembolso());
         assertTrue(cuerpo instanceof Civilizable);
@@ -194,7 +194,7 @@ public class SolidAbstraccionesRefactorTest {
 
     private static class CuerpoExpirableTest extends Planeta implements Expirable {
         public CuerpoExpirableTest(String nombre, double masa, double x, double y) {
-            super(nombre, masa, x, y);
+            super(nombre, masa, x, y, org.example.game.cuerpo.TipoCuerpo.PLANETA_ROCOSO);
         }
         @Override
         public boolean estaExpirado() {

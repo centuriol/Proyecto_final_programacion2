@@ -38,7 +38,7 @@ public class RefactorOopModularidadTest {
 
         assertEquals(0, gestor.getCantidadPlanetasActuales());
 
-        Planeta planeta = new Planeta("Tierra", 5.97e24, 0, 0);
+        Planeta planeta = new Planeta("Tierra", 5.97e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
         gestor.agregarCuerpo(planeta);
 
         assertEquals(1, gestor.getCantidadPlanetasActuales());
@@ -69,8 +69,8 @@ public class RefactorOopModularidadTest {
         Estrella sol = new Estrella("Sol", 1.989e30, 0, 0);
         simulacion.agregarCuerpo(sol);
 
-        simulacion.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "NuevoPlaneta");
-        simulacion.actualizarPosicionPreview(1000 + 150, 1000); // 150 px a la derecha
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "NuevoPlaneta");
+        simulacion.getGestorColocacion().actualizarPosicionPreview(1000 + 150, 1000); // 150 px a la derecha
 
         GestorColocacionCuerpos colocacion = simulacion.getGestorColocacion();
         Optional<CuerpoCeleste> colocado = colocacion.confirmarColocacionAutoOrbita(simulacion);
@@ -84,7 +84,7 @@ public class RefactorOopModularidadTest {
     @DisplayName("CoordinadorPasoSimulacion avanza civilizaciones y fisica ordenadamente (SRP)")
     void testCoordinadorPasoSimulacion() {
         SimulacionSolar simulacion = new SimulacionSolar(2000, 2000);
-        Planeta planeta = new Planeta("Colonia", 5.97e24, 100, 100);
+        Planeta planeta = new Planeta("Colonia", 5.97e24, 100, 100, TipoCuerpo.PLANETA_ROCOSO);
         simulacion.agregarCuerpo(planeta);
 
         CoordinadorPasoSimulacion coordinador = simulacion.getCoordinadorPaso();
@@ -107,7 +107,7 @@ public class RefactorOopModularidadTest {
 
         BuscadorOrbitaLibre buscador = new BuscadorOrbitaLibre();
         Estrella sol = new Estrella("Sol", 1.989e30, 0, 0);
-        Planeta planeta = new Planeta("Tierra", 5.97e24, 100, 0);
+        Planeta planeta = new Planeta("Tierra", 5.97e24, 100, 0, TipoCuerpo.PLANETA_ROCOSO);
         boolean libre = buscador.esPosicionLibre(new Vector2D(500, 500), planeta, List.of(sol, planeta));
         assertTrue(libre, "Posicion lejana debe estar libre");
 
@@ -127,7 +127,7 @@ public class RefactorOopModularidadTest {
     @Test
     @DisplayName("Polimorfismo sin instanceof: capacidades registradas en subsistemas y max 25 metodos publicos")
     void testCapacidadesPolimorficasSinInstanceOf() {
-        CuerpoCeleste planeta = new Planeta("Planeta1", 100, 0, 0);
+        CuerpoCeleste planeta = new Planeta("Planeta1", 100, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
         CuerpoCeleste meteorito = new Meteorito("Met1", 50, 10, 10, Vector2D.cero(), 100.0, false);
         CuerpoCeleste agujeroNegro = new AgujeroNegro("BH1", 1000, 0, 0);
         CuerpoCeleste satelite = new Satelite("Sat1", 10, 5, 5);

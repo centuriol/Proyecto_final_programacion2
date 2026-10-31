@@ -59,7 +59,7 @@ public class CoordinadorSesionJuego {
         this.menuPrincipal = menuPrincipal;
         this.pantallaGameOver = pantallaGameOver;
         this.overlayJuego = overlayJuego;
-        this.simulacion.setOnGameOver(this::manejarDerrota);
+        this.simulacion.getBusEventos().setOnGameOver(this::manejarDerrota);
     }
 
     public void vincularMenuPausa(PantallaMenuPausa menuPausa) {
@@ -68,7 +68,7 @@ public class CoordinadorSesionJuego {
 
     public void mostrarMenuInicial() {
         autoguardado.desactivar();
-        simulacion.pause();
+        simulacion.getReloj().pause();
         enPausaPrevioMenu = false;
         accionLimpiarVista.run();
         ocultarMenuPausa();
@@ -93,9 +93,9 @@ public class CoordinadorSesionJuego {
         if (!esPartidaEnCurso() || isEnMenuPausa()) {
             return;
         }
-        enPausaPrevioMenu = simulacion.isEnPausa();
+        enPausaPrevioMenu = simulacion.getReloj().isEnPausa();
         autoguardado.desactivar();
-        simulacion.pause();
+        simulacion.getReloj().pause();
         if (menuPausa != null) {
             menuPausa.mostrar();
         }
@@ -104,7 +104,7 @@ public class CoordinadorSesionJuego {
     public void reanudarDesdePausa() {
         ocultarMenuPausa();
         if (!enPausaPrevioMenu) {
-            simulacion.play();
+            simulacion.getReloj().play();
         }
         enPausaPrevioMenu = false;
         if (esPartidaEnCurso()) {
@@ -115,11 +115,11 @@ public class CoordinadorSesionJuego {
     public boolean guardarDesdePausa() {
         boolean pausadoPorMenu = isEnMenuPausa() && !enPausaPrevioMenu;
         if (pausadoPorMenu) {
-            simulacion.play();
+            simulacion.getReloj().play();
         }
         Path archivo = gestorGuardado.guardarPartidaRapida(simulacion, controlZoom);
         if (isEnMenuPausa()) {
-            simulacion.pause();
+            simulacion.getReloj().pause();
         }
         return archivo != null;
     }
@@ -151,7 +151,7 @@ public class CoordinadorSesionJuego {
 
     public void salir() {
         autoguardado.desactivar();
-        simulacion.pause();
+        simulacion.getReloj().pause();
         ocultarMenuPausa();
         accionSalir.run();
     }

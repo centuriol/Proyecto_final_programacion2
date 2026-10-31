@@ -180,18 +180,6 @@ public class SistemaProgresion {
         return investigar(RamaProgresion.PLANETAS, inventario);
     }
 
-    public double getCostoSiguienteMasa() {
-        return getCostoSiguiente(RamaProgresion.MASA);
-    }
-
-    public boolean puedeSubirLimiteMasa(InventarioJugador inventario) {
-        return puedeInvestigar(RamaProgresion.MASA, inventario);
-    }
-
-    public boolean subirLimiteMasa(InventarioJugador inventario) {
-        return investigar(RamaProgresion.MASA, inventario);
-    }
-
     public void desbloquearTodo() {
         nivelesPorRama.put(RamaProgresion.PLANETAS, getNivelMaximo(RamaProgresion.PLANETAS));
         nivelesPorRama.put(RamaProgresion.MASA, getNivelMaximo(RamaProgresion.MASA));

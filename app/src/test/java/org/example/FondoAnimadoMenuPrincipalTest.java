@@ -53,7 +53,7 @@ class FondoAnimadoMenuPrincipalTest {
         EscenaFondoMenu escena = menu.getEscenaFondo();
 
         assertTrue(menu.isVisible(), "El menu principal inicia visible");
-        assertTrue(app.getSimulacion().isEnPausa(), "La simulacion esta en pausa mientras se muestra el menu principal");
+        assertTrue(app.getSimulacion().getReloj().isEnPausa(), "La simulacion esta en pausa mientras se muestra el menu principal");
         assertEquals(EscenaFondoMenu.TOTAL_ESTRELLAS, escena.getCantidadEstrellas());
 
         double tiempoInicial = escena.getTiempoAnimacion();

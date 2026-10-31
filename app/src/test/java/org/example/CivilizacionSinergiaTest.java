@@ -209,9 +209,9 @@ class CivilizacionSinergiaTest {
         sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 5000);
         sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 5000);
 
-        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "NuevoPlaneta");
-        sim.actualizarPosicionPreview(1120, 540);
-        sim.confirmarColocacionAutoOrbita();
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "NuevoPlaneta");
+        sim.getGestorColocacion().actualizarPosicionPreview(1120, 540);
+        sim.getGestorColocacion().confirmarColocacionAutoOrbita(sim);
 
         CuerpoCeleste nuevoPlaneta = sim.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> "NuevoPlaneta".equals(c.getNombre()))

@@ -93,14 +93,6 @@ public class CuerpoCelesteFactory implements FabricaCuerpos {
         return crearPlaneta(TipoCuerpo.PLANETA_LAVA, x, y, factorMasa, velocidadInicial);
     }
 
-    public Planeta crearPlanetaGaseoso(double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        return crearPlaneta(TipoCuerpo.PLANETA_GASEOSO, x, y, factorMasa, velocidadInicial);
-    }
-
-    public Vector2D calcularVelocidadOrbitalVector(CuerpoCeleste central, Vector2D posicion, boolean horario) {
-        return org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(central, posicion, horario);
-    }
-
     @Override
     public Planeta crearPlanetaPersonalizado(String nombre, double masa, double x, double y, TipoCuerpo tipo, Vector2D velocidadInicial) {
         return fabricaPlanetas.crearPlanetaPersonalizado(nombre, masa, x, y, tipo, velocidadInicial);

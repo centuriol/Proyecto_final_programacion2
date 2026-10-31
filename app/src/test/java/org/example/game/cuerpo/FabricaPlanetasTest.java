@@ -18,7 +18,7 @@ class FabricaPlanetasTest {
     void testCrearPlaneta() {
         Planeta p = fabrica.crearPlaneta(TipoCuerpo.PLANETA_AGUA, 100, 200, 1.5, Vector2D.cero());
         assertNotNull(p);
-        assertEquals(TipoCuerpo.PLANETA_AGUA, p.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_AGUA, p.getTipoCuerpo());
         assertEquals(100.0, p.getPosicion().x(), 1e-9);
         assertEquals(200.0, p.getPosicion().y(), 1e-9);
         assertEquals(TipoCuerpo.PLANETA_AGUA.masaBase * 1.5, p.getMasa(), 1e-6);

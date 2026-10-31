@@ -17,7 +17,7 @@ class OrbitasYDinamicaTest {
         cuerpos.add(estrella);
 
         Vector2D pos = new Vector2D(150, 0);
-        Vector2D vel = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(estrella, pos, false);
+        Vector2D vel = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, pos, false);
         Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(pos.x(), pos.y(), 1.0, vel);
         cuerpos.add(planeta);
 
@@ -39,7 +39,7 @@ class OrbitasYDinamicaTest {
         cuerpos.add(estrella);
 
         Vector2D posInicial = new Vector2D(150, 0);
-        Vector2D velInicial = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(estrella, posInicial, false);
+        Vector2D velInicial = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, posInicial, false);
 
         TrayectoriaPredictor predictor = new TrayectoriaPredictor();
         List<Vector2D> tray = predictor.predecirTrayectoria(posInicial, velInicial, 5.97e24, cuerpos, 50, 1.0);
@@ -136,7 +136,7 @@ class OrbitasYDinamicaTest {
     @Test
     void testLunaOrbitaMasLentoYPresetActualizado() {
         SimulacionSolar sim = new SimulacionSolar(1000, 1000);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
 
         CuerpoCeleste tierra = sim.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> c instanceof Planeta).findFirst().orElse(null);

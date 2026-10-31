@@ -188,11 +188,6 @@ public enum TipoCuerpo {
 
     public String getNombre() { return nombre; }
     public double getMasaBase() { return masaBase; }
-    public double getRadioFisicoBase() { return radioFisicoBase; }
-    public double getTemperaturaBase() { return temperaturaBase; }
-    public boolean isGeneraGravedadFuerte() { return generaGravedadFuerte; }
-    public boolean isPuedeTenerCivilizacion() { return puedeTenerCivilizacion; }
-    public boolean isEsMasivo() { return esMasivo; }
     public int getColorHex() { return colorHex; }
     public CategoriaCuerpo getCategoria() { return categoria; }
 
@@ -216,24 +211,26 @@ public enum TipoCuerpo {
         return categoria == CategoriaCuerpo.PLANETA;
     }
 
-    public boolean esAgujeroNegro() {
-        return categoria == CategoriaCuerpo.AGUJERO_NEGRO;
+    public double getRadioVisualBase() {
+        return switch (this) {
+            case PLANETA_GASEOSO -> 22.0;
+            case PLANETA_HELADO -> 12.0;
+            case AGUJERO_NEGRO_SUPERMASIVO -> 45.0;
+            case AGUJERO_NEGRO -> 25.0;
+            default -> 15.0;
+        };
     }
 
-    public boolean esEstrella() {
-        return categoria == CategoriaCuerpo.ESTRELLA;
-    }
-
-    public boolean esLuna() {
-        return categoria == CategoriaCuerpo.LUNA;
-    }
-
-    public boolean esAtractorOrbital() {
-        return esEstrella() || esAgujeroNegro();
-    }
-
-    public boolean esMenorOrbital() {
+    public boolean puedeOrbitarPlanetas() {
         return this == LUNA || this == SATELITE;
+    }
+
+    ReaccionTermicaPlaneta getReaccionTermica() {
+        return switch (this) {
+            case PLANETA_AGUA -> ReaccionTermicaPlaneta.AGUA;
+            case PLANETA_LAVA -> ReaccionTermicaPlaneta.LAVA;
+            default -> ReaccionTermicaPlaneta.INERTE;
+        };
     }
 
     public int getNivelRequerido() {
@@ -266,10 +263,6 @@ public enum TipoCuerpo {
 
     public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }
     public double getMasaMax() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MAX; }
-
-    public static String formatearMasa(double masaKg) {
-        return FormateadorMasa.formatearMasa(masaKg);
-    }
 
     private DescriptorTipoCuerpo getDescriptor() {
         return CatalogoDescriptoresCuerpo.obtenerDescriptor(this);

@@ -84,4 +84,8 @@ public class CoordinadorPasoSimulacion {
         List<CuerpoCeleste> cuerpos = new ArrayList<>(sistemaSolar.getCuerpos());
         org.example.game.civilizacion.SistemaCivilizaciones.getInstancia().actualizarCivilizaciones(cuerpos, emisorEventos);
     }
+
+    public GeneradorEventosCosmicos getGeneradorEventosCosmicos() {
+        return generadorEventosCosmicos;
+    }
 }

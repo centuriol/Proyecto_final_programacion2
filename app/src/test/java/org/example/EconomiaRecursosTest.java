@@ -161,9 +161,9 @@ class EconomiaRecursosTest {
         double factorInicial = ConfiguracionSimulacion.MASA_FACTOR_MIN;
         assertTrue(sim.getSistemaSolar().getCuerpos().isEmpty());
 
-        sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, factorInicial, "SolInicial");
-        sim.actualizarPosicionPreview(960, 540);
-        sim.confirmarColocacionAutoOrbita();
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.ESTRELLA, factorInicial, "SolInicial");
+        sim.getGestorColocacion().actualizarPosicionPreview(960, 540);
+        sim.getGestorColocacion().confirmarColocacionAutoOrbita(sim);
 
         assertEquals(1, sim.getSistemaSolar().getCuerpos().size());
         double minRestanteEsperado = InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES, factorInicial);
@@ -175,9 +175,9 @@ class EconomiaRecursosTest {
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_ROCOSO, factorInicial));
 
-        sim.entrarModoColocacion(TipoCuerpo.PLANETA_AGUA, factorInicial, "PlanetaAguaInicial");
-        sim.actualizarPosicionPreview(1120, 540);
-        sim.confirmarColocacionAutoOrbita();
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_AGUA, factorInicial, "PlanetaAguaInicial");
+        sim.getGestorColocacion().actualizarPosicionPreview(1120, 540);
+        sim.getGestorColocacion().confirmarColocacionAutoOrbita(sim);
 
         assertEquals(2, sim.getSistemaSolar().getCuerpos().size());
         assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);

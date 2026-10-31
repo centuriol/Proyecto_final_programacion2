@@ -65,7 +65,7 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         Objects.requireNonNull(datos, "Los datos de partida no pueden ser null");
         Objects.requireNonNull(simulacion, "La simulacion destino no puede ser null");
 
-        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion::notificarEvento);
+        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion.getBusEventos()::notificarEvento);
         simulacion.limpiarCuerpos();
         simulacion.getGestorColonizacion().limpiar();
 
@@ -93,13 +93,13 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         Vector2D desplazamiento = (zoom != null && zoom.getDesplazamiento() != null)
                 ? zoom.getDesplazamiento().comoVector()
                 : Vector2D.cero();
-        int ticksEvento = simulacion.getGeneradorEventosCosmicos() != null
-                ? simulacion.getGeneradorEventosCosmicos().getTicksHastaSiguiente()
+        int ticksEvento = simulacion.getCoordinadorPaso() != null && simulacion.getCoordinadorPaso().getGeneradorEventosCosmicos() != null
+                ? simulacion.getCoordinadorPaso().getGeneradorEventosCosmicos().getTicksHastaSiguiente()
                 : 3600;
         return new EstadoRelojGuardado(
-                simulacion.getTickActual(),
-                simulacion.isEnPausa(),
-                simulacion.getVelocidadSimulacion(),
+                simulacion.getReloj().getTickActual(),
+                simulacion.getReloj().isEnPausa(),
+                simulacion.getReloj().getVelocidadSimulacion(),
                 nivelZoom,
                 ticksEvento,
                 desplazamiento
@@ -129,8 +129,8 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
 
         EstadoRelojGuardado reloj = datos.reloj();
         simulacion.getReloj().restaurar(reloj.tickActual(), reloj.enPausa(), reloj.velocidadSimulacion());
-        if (simulacion.getGeneradorEventosCosmicos() != null) {
-            simulacion.getGeneradorEventosCosmicos().setTicksHastaSiguiente(reloj.ticksSiguienteEvento());
+        if (simulacion.getCoordinadorPaso() != null && simulacion.getCoordinadorPaso().getGeneradorEventosCosmicos() != null) {
+            simulacion.getCoordinadorPaso().getGeneradorEventosCosmicos().setTicksHastaSiguiente(reloj.ticksSiguienteEvento());
         }
         if (zoom != null) {
             zoom.setNivelZoom(reloj.nivelZoom());

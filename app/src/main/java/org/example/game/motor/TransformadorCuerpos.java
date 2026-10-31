@@ -68,6 +68,21 @@ public class TransformadorCuerpos {
         public int getTicksEspera() { return ticksEspera; }
         public int getTicksMigracion() { return ticksMigracion; }
         public Vector2D getPosDestinoMigracion() { return posDestinoMigracion; }
+        public String getNombreResultante() { return nombreResultante; }
+        public String getMensajeEvento() { return mensajeEvento; }
+        public double getRadioActivacion() { return radioActivacion; }
+        public Vector2D getPosInicialMigracion() { return posInicialMigracion; }
+        public double getRadioOrbitaDestino() { return radioOrbitaDestino; }
+
+        public void incrementarTicksEspera() { this.ticksEspera++; }
+        public void incrementarTicksMigracion() { this.ticksMigracion++; }
+        public void iniciarMigracion(Vector2D posInicial, Vector2D posDestino, double radioOrbitaDestino) {
+            this.estado = EstadoTransformacion.MIGRANDO;
+            this.posInicialMigracion = posInicial;
+            this.posDestinoMigracion = posDestino;
+            this.radioOrbitaDestino = radioOrbitaDestino;
+            this.ticksMigracion = 0;
+        }
     }
 
     public record ReglaTransformacion(
@@ -83,10 +98,16 @@ public class TransformadorCuerpos {
     private final Map<CuerpoCeleste, Transformable> transformables = new ConcurrentHashMap<>();
     private final List<CuerpoCeleste> estrellasRegistradas = new CopyOnWriteArrayList<>();
     private final BuscadorOrbitaLibre buscadorOrbitaLibre;
+    private final ActualizadorProcesosTransformacion actualizadorProcesos;
     private Consumer<String> listenerMensaje;
 
     public TransformadorCuerpos(BuscadorOrbitaLibre buscadorOrbitaLibre) {
+        this(buscadorOrbitaLibre, new ActualizadorProcesosTransformacion(buscadorOrbitaLibre));
+    }
+
+    public TransformadorCuerpos(BuscadorOrbitaLibre buscadorOrbitaLibre, ActualizadorProcesosTransformacion actualizadorProcesos) {
         this.buscadorOrbitaLibre = buscadorOrbitaLibre != null ? buscadorOrbitaLibre : new BuscadorOrbitaLibre();
+        this.actualizadorProcesos = actualizadorProcesos != null ? actualizadorProcesos : new ActualizadorProcesosTransformacion(this.buscadorOrbitaLibre);
         // Regla 1: Planeta de Agua cerca del sol -> Planeta Porro
         reglas.add(new ReglaTransformacion(
                 TipoCuerpo.PLANETA_AGUA,
@@ -168,7 +189,7 @@ public class TransformadorCuerpos {
         // 2. Actualizar procesos activos en curso
         List<ProcesoTransformacion> snapshotProcesos = new ArrayList<>(procesosActivos.values());
         for (ProcesoTransformacion proceso : snapshotProcesos) {
-            actualizarProceso(proceso, cuerpos);
+            actualizadorProcesos.actualizarProceso(proceso, cuerpos, procesosActivos, transformables, listenerMensaje);
         }
 
         // 3. Buscar nuevos planetas candidatos que entren al radio de activacion
@@ -209,71 +230,6 @@ public class TransformadorCuerpos {
                 }
 
                 if (procesosActivos.containsKey(c)) break;
-            }
-        }
-    }
-
-    private void actualizarProceso(ProcesoTransformacion proceso, List<CuerpoCeleste> cuerpos) {
-        CuerpoCeleste cuerpo = proceso.cuerpo;
-        CuerpoCeleste estrella = proceso.estrella;
-
-        double dist = cuerpo.getPosicion().distanciaA(estrella.getPosicion());
-        double radioMinimo = estrella.getRadio() + cuerpo.getRadio() + 5.0;
-
-        if (proceso.estado == EstadoTransformacion.ESPERANDO) {
-            if (dist > proceso.radioActivacion || dist <= radioMinimo) {
-                procesosActivos.remove(cuerpo);
-                return;
-            }
-
-            proceso.ticksEspera++;
-            if (proceso.ticksEspera >= ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG) {
-                Vector2D posLibre = encontrarPosicionOrbitalLibre(cuerpo, estrella, proceso.radioActivacion, cuerpos);
-
-                if (posLibre == null) {
-                    procesosActivos.remove(cuerpo);
-                    if (listenerMensaje != null) {
-                        listenerMensaje.accept("Migracion abortada para " + cuerpo.getNombre() + ": no hay orbita libre disponible.");
-                    }
-                    return;
-                }
-
-                Transformable t = transformables.get(cuerpo);
-                if (t == null) {
-                    t = org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(cuerpo).orElse(null);
-                }
-                if (t != null) {
-                    t.transformarA(proceso.tipoDestino);
-                }
-                cuerpo.setNombre(proceso.nombreResultante);
-
-                proceso.estado = EstadoTransformacion.MIGRANDO;
-                proceso.posInicialMigracion = cuerpo.getPosicion();
-                proceso.posDestinoMigracion = posLibre;
-                proceso.radioOrbitaDestino = posLibre.distanciaA(estrella.getPosicion());
-                proceso.ticksMigracion = 0;
-
-                if (listenerMensaje != null) {
-                    listenerMensaje.accept(proceso.mensajeEvento);
-                }
-            }
-        } else if (proceso.estado == EstadoTransformacion.MIGRANDO) {
-            proceso.ticksMigracion++;
-            double factorProgreso = Math.min(1.0, (double) proceso.ticksMigracion / ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA);
-
-            double tSuave = factorProgreso * factorProgreso * (3.0 - 2.0 * factorProgreso);
-            Vector2D posActual = proceso.posInicialMigracion.interpolar(proceso.posDestinoMigracion, tSuave);
-            cuerpo.setPosicion(posActual);
-
-            if (factorProgreso >= 1.0) {
-                cuerpo.setPosicion(proceso.posDestinoMigracion);
-                cuerpo.setCuerpoOrbitado(estrella);
-                cuerpo.setRadioOrbita(proceso.radioOrbitaDestino);
-
-                Vector2D velOrb = CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, cuerpo.getPosicion(), false);
-                cuerpo.setVelocidad(velOrb);
-
-                procesosActivos.remove(cuerpo);
             }
         }
     }

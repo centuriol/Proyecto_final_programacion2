@@ -87,7 +87,7 @@ class ArrastreCamaraYColocacionTest {
         double despAntesX = camara.getDesplazamiento().getX();
         double despAntesY = camara.getDesplazamiento().getY();
 
-        simulacion.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaLejano");
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaLejano");
 
         mouse.manejarMouseArrastrado(eventoMouse(MouseEvent.MOUSE_DRAGGED, 600, 300, MouseButton.PRIMARY));
         assertEquals(despAntesX, camara.getDesplazamiento().getX(), 1e-6, "Arrastrar en modo colocacion no debe mover camara");
@@ -129,7 +129,7 @@ class ArrastreCamaraYColocacionTest {
         mouse.manejarMouseArrastrado(eventoMouse(MouseEvent.MOUSE_DRAGGED, 450, 400, MouseButton.PRIMARY));
         assertEquals(50.0, camara.getDesplazamiento().getX(), 1e-6);
 
-        simulacion.entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "Luna");
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "Luna");
         mouse.manejarMouseArrastrado(eventoMouse(MouseEvent.MOUSE_DRAGGED, 600, 500, MouseButton.PRIMARY));
         assertEquals(50.0, camara.getDesplazamiento().getX(), 1e-6);
     }
@@ -154,7 +154,7 @@ class ArrastreCamaraYColocacionTest {
         renderizador.getCamaraZoom().desplazarPorPantalla(1200, -900);
 
         Canvas canvas = new Canvas(1000, 800);
-        simulacion.cargarPresetSistemaBasico();
+        simulacion.getPresetsSistema().cargarPresetSistemaBasico(simulacion);
         assertDoesNotThrow(() -> renderizador.renderizarTodo(
                 canvas.getGraphicsContext2D(),
                 simulacion.getSistemaSolar().getCuerpos(),

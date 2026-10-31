@@ -65,7 +65,7 @@ public class ServicioReembolso {
             }
         }
 
-        simulacion.eliminarCuerpo(cuerpo);
+        simulacion.getGestorCicloVida().eliminarCuerpo(cuerpo);
 
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<TipoRecurso, Double> entry : reembolso.entrySet()) {

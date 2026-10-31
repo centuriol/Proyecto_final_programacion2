@@ -96,7 +96,7 @@ class RanurasYAutoguardadoTest {
         CamaraZoom camaraDestino = new CamaraZoom();
         assertTrue(gestor.cargarUltimoGuardado(destino, camaraDestino));
 
-        assertEquals(200L, destino.getTickActual(), "Debe cargar el 4to guardado (el mas reciente, alojado en Ranura 1)");
+        assertEquals(200L, destino.getReloj().getTickActual(), "Debe cargar el 4to guardado (el mas reciente, alojado en Ranura 1)");
         assertEquals(1.2, camaraDestino.getNivelZoom(), 1e-6);
         assertEquals(600.0, camaraDestino.getDesplazamiento().getX(), 1e-6);
         assertEquals(-320.0, camaraDestino.getDesplazamiento().getY(), 1e-6);
@@ -107,7 +107,7 @@ class RanurasYAutoguardadoTest {
         AtomicLong reloj = new AtomicLong(1_000L);
         GestorGuardadoPartida gestor = crearGestorConRelojControlado("auto", reloj);
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
         CamaraZoom camara = new CamaraZoom();
 
         gestor.setRanuraSeleccionada(2);
@@ -133,7 +133,7 @@ class RanurasYAutoguardadoTest {
     void testAutoguardadoNoEjecutaEnMenuEnPausaNiEnDerrota() {
         GestorGuardadoPartida gestor = crearGestorConRelojControlado("guardas", new AtomicLong(1000L));
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
         TemporizadorAutoguardado auto = new TemporizadorAutoguardado(gestor, sim, null, 5.0);
 
         // Inactivo (como en el menu principal)
@@ -141,11 +141,11 @@ class RanurasYAutoguardadoTest {
 
         // En pausa
         auto.activar();
-        sim.pause();
+        sim.getReloj().pause();
         assertFalse(auto.actualizar(10.0));
 
         // En derrota (agujero negro sin planetas ni lunas)
-        sim.play();
+        sim.getReloj().play();
         sim.limpiarCuerpos();
         sim.agregarCuerpo(new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0));
         assertTrue(sim.estaPerdida());
@@ -164,7 +164,7 @@ class RanurasYAutoguardadoTest {
 
         SimulacionSolar destino = new SimulacionSolar(1280, 720);
         assertTrue(gestor.cargarRanura(1, destino, null));
-        assertEquals(77L, destino.getTickActual());
+        assertEquals(77L, destino.getReloj().getTickActual());
 
         assertThrows(ExcepcionPersistenciaPartida.class, () -> gestor.cargarRanura(0, destino, null));
         assertThrows(ExcepcionPersistenciaPartida.class, () -> gestor.cargarRanura(4, destino, null));
@@ -174,7 +174,7 @@ class RanurasYAutoguardadoTest {
     void testBucleJuegoIntegraTemporizadorAutoguardadoPorFrame() {
         GestorGuardadoPartida gestor = crearGestorConRelojControlado("bucle", new AtomicLong(3000L));
         SimulacionSolar sim = new SimulacionSolar(800, 600);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
         RenderizadorPixelArt renderizador = new RenderizadorPixelArt(800, 600);
         Canvas canvas = new Canvas(800, 600);
 

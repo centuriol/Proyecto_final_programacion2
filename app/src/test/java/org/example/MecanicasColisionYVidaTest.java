@@ -80,7 +80,7 @@ class MecanicasColisionYVidaTest {
         assertTrue(planeta.getCivilizacion().getPoblacion() > 0);
 
         simulacion.agregarCuerpo(planeta);
-        simulacion.eliminarCuerpo(planeta);
+        simulacion.getGestorCicloVida().eliminarCuerpo(planeta);
 
         assertEquals(0.0, planeta.getCivilizacion().getPoblacion(), 1e-6);
         assertEquals(EstadoCivilizacion.EXTINGUIDA, planeta.getCivilizacion().getEstado());

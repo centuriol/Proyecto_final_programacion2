@@ -120,7 +120,7 @@ class ColisionesFisicaTest {
 
         Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
-        simulacion.activarEscudo(planeta);
+        simulacion.getServicioEscudo().activar(simulacion, planeta);
         assertTrue(planeta.tieneEscudo());
 
         Meteorito meteorito = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());

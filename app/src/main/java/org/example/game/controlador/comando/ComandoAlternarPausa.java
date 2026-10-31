@@ -14,7 +14,7 @@ public class ComandoAlternarPausa extends ComandoSimulacionConTiempo {
     @Override
     public void ejecutar() {
         if (simulacion != null) {
-            simulacion.togglePause();
+            simulacion.getReloj().togglePause();
         }
         if (controlTiempo != null) {
             controlTiempo.actualizarSeleccion();

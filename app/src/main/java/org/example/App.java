@@ -56,6 +56,7 @@ public class App extends Application {
     private final VisualizadorDescripcion visualizadorDescripcion = new VentanaDescripcionCuerpo();
     private PantallaMenuPrincipal pantallaMenuPrincipal;
     private PantallaGameOver pantallaGameOver;
+    private final FabricaPantallasModales fabricaPantallas = new FabricaPantallasModales();
 
     @Override
     public void start(Stage stage) {
@@ -113,7 +114,7 @@ public class App extends Application {
         coordinadorSesion.vincularMenuPausa(pantallaMenuPausa);
         coordinadorSesion.mostrarMenuInicial();
 
-        simulacion.agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
+        simulacion.getBusEventos().agregarListenerUI(new SincronizadorUI(hudRecursos, controlTiempo));
         return ensamblarEscenaRaiz(overlayUI);
     }
 
@@ -231,22 +232,9 @@ public class App extends Application {
     }
 
     private void inicializarPantallasModales() {
-        pantallaMenuPrincipal = new PantallaMenuPrincipal(
-                coordinadorSesion::iniciarNuevaPartida,
-                gestorGuardado::obtenerRanuras,
-                coordinadorSesion::cargarRanura,
-                coordinadorSesion::salir
-        );
-        pantallaMenuPausa = new PantallaMenuPausa(
-                coordinadorSesion::reanudarDesdePausa,
-                coordinadorSesion::guardarDesdePausa,
-                coordinadorSesion::cargarDesdePausa,
-                coordinadorSesion::volverAlMenuPrincipal
-        );
-        pantallaGameOver = new PantallaGameOver(
-                coordinadorSesion::volverAlUltimoGuardado,
-                coordinadorSesion::volverAlMenuPrincipal
-        );
+        pantallaMenuPrincipal = fabricaPantallas.crearMenuPrincipal(coordinadorSesion, gestorGuardado);
+        pantallaMenuPausa = fabricaPantallas.crearMenuPausa(coordinadorSesion);
+        pantallaGameOver = fabricaPantallas.crearGameOver(coordinadorSesion);
     }
 
     private void iniciarBucle(ResizableCanvas canvas) {

@@ -54,7 +54,7 @@ public class GestorEstelas {
             Deque<Vector2D> pts = entry.getValue();
             if (pts.size() < 2) continue;
 
-            Color baseCol = RenderizadorPixelArt.colorWeb(c.getColorHex());
+            Color baseCol = UtilidadRender.colorWeb(c.getColorHex());
             int i = 0;
             int total = pts.size();
 

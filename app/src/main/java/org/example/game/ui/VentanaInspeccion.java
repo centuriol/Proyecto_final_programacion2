@@ -84,7 +84,7 @@ public class VentanaInspeccion {
         lblDatosTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblDatosTitulo.setTextFill(TemaUI.COLOR_ORO);
 
-        Label lblMasa = new Label("• Masa: " + TipoCuerpo.formatearMasa(cuerpo.getMasa()));
+        Label lblMasa = new Label("• Masa: " + org.example.game.cuerpo.FormateadorMasa.formatearMasa(cuerpo.getMasa()));
         lblMasa.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lblMasa.setTextFill(Color.web("#d1d5db"));
 
@@ -157,7 +157,7 @@ public class VentanaInspeccion {
             btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             btnActivarEscudo.setStyle(TemaUI.CSS_BTN_PRIMARIO);
             btnActivarEscudo.setOnAction(e -> {
-                simulacion.activarEscudo(cuerpo);
+                simulacion.getServicioEscudo().activar(simulacion, def);
                 stage.close();
             });
             escudoBox.getChildren().add(btnActivarEscudo);
@@ -201,7 +201,7 @@ public class VentanaInspeccion {
         btnEliminar.setStyle(TemaUI.CSS_BTN_PELIGRO);
         btnEliminar.setOnAction(e -> {
             if (simulacion != null) {
-                simulacion.desmantelarCuerpo(cuerpo);
+                simulacion.getServicioReembolso().desmantelarCuerpo(simulacion, cuerpo);
             }
             stage.close();
         });

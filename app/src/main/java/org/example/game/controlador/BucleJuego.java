@@ -56,7 +56,7 @@ public class BucleJuego extends AnimationTimer {
         if (autoguardado != null) {
             autoguardado.actualizar(Math.min(deltaTime, 1.0));
         }
-        simulacion.notificarListenersUI();
+        simulacion.getBusEventos().notificarListenersUI();
         sincronizarDimensiones();
         actualizarAnimaciones(deltaTime);
         renderizarFrame();
@@ -70,7 +70,7 @@ public class BucleJuego extends AnimationTimer {
     }
 
     private void actualizarTicksFisicos(double deltaTime) {
-        double ticksPorSegundo = 20.0 * simulacion.getVelocidadSimulacion();
+        double ticksPorSegundo = 20.0 * simulacion.getReloj().getVelocidadSimulacion();
         double tiempoPorTick = 1.0 / ticksPorSegundo;
 
         tickAcumulado += deltaTime;
@@ -100,7 +100,7 @@ public class BucleJuego extends AnimationTimer {
     }
 
     private void actualizarAnimaciones(double deltaTime) {
-        double multVelocidad = simulacion.isEnPausa() ? 0.0 : simulacion.getVelocidadSimulacion();
+        double multVelocidad = simulacion.getReloj().isEnPausa() ? 0.0 : simulacion.getReloj().getVelocidadSimulacion();
         renderizador.avanzarAnimaciones(Math.min(deltaTime, 0.1), multVelocidad);
     }
 
@@ -108,11 +108,11 @@ public class BucleJuego extends AnimationTimer {
         renderizador.renderizarTodo(
                 canvas.getGraphicsContext2D(),
                 simulacion.getSistemaSolar().getCuerpos(),
-                simulacion.getTickActual(),
-                simulacion.getPosicionPreview(),
-                simulacion.getTipoColocacion(),
-                simulacion.getFactorMasaColocacion(),
-                simulacion.getNombreColocacion(),
+                simulacion.getReloj().getTickActual(),
+                simulacion.getGestorColocacion().getPosicionPreview(),
+                simulacion.getGestorColocacion().getTipoColocacion(),
+                simulacion.getGestorColocacion().getFactorMasaColocacion(),
+                simulacion.getGestorColocacion().getNombreColocacion(),
                 null,
                 proveedorEstado != null ? proveedorEstado.getTrayectoriaPreview() : java.util.Collections.emptyList(),
                 proveedorEstado != null ? proveedorEstado.getCuerpoSeleccionado() : null

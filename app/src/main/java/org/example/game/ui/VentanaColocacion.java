@@ -110,7 +110,7 @@ public class VentanaColocacion {
         double masaInicial = 1.0;
         if (simulacion != null) {
             masaInicial = Math.max(ConfiguracionSimulacion.MASA_FACTOR_MIN,
-                    Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, simulacion.getFactorMasaColocacion()));
+                    Math.min(ConfiguracionSimulacion.MASA_FACTOR_MAX, simulacion.getGestorColocacion().getFactorMasaColocacion()));
         }
         double masaMax = (simulacion != null && simulacion.getProgresion() != null)
                 ? simulacion.getProgresion().getLimiteMasaActual()
@@ -214,7 +214,7 @@ public class VentanaColocacion {
         }
         double factorMasaFinal = tipo.ajustarFactorMasaEfectivo(widgetMasa.getFactorMasa());
         if (simulacion != null) {
-            simulacion.entrarModoColocacion(tipo, factorMasaFinal, nombreFinal);
+            simulacion.getGestorColocacion().entrarModoColocacion(tipo, factorMasaFinal, nombreFinal);
         }
         if (onConfirmado != null) {
             onConfirmado.run();

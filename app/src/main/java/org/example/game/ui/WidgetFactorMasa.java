@@ -96,7 +96,7 @@ public class WidgetFactorMasa extends VBox {
 
     private void actualizarTexto(double factor) {
         if (masaBase > 0) {
-            lblValor.setText(String.format("%.1fx (%s)", factor, TipoCuerpo.formatearMasa(masaBase * factor)));
+            lblValor.setText(String.format("%.1fx (%s)", factor, org.example.game.cuerpo.FormateadorMasa.formatearMasa(masaBase * factor)));
         } else {
             lblValor.setText(String.format("%.1fx", factor));
         }

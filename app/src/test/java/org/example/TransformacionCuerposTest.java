@@ -29,16 +29,16 @@ class TransformacionCuerposTest {
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(agua);
 
-        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         assertFalse(agua.isTransformadoPorEvento());
 
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG - 1; i++) {
             simulacion.avanzarTick();
-            assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+            assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         }
 
         simulacion.avanzarTick();
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
         assertTrue(agua.isTransformadoPorEvento());
         assertEquals("Planeta Porro", agua.getNombre());
 
@@ -56,13 +56,13 @@ class TransformacionCuerposTest {
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(porro);
 
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, porro.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, porro.getTipoCuerpo());
 
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
             simulacion.avanzarTick();
         }
 
-        assertEquals(TipoCuerpo.PLANETA_LAVA, porro.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_LAVA, porro.getTipoCuerpo());
         assertTrue(porro.isTransformadoPorEvento());
         assertEquals("Planeta Lava", porro.getNombre());
     }
@@ -78,7 +78,7 @@ class TransformacionCuerposTest {
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
             simulacion.avanzarTick();
         }
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
 
         Vector2D posAnterior = agua.getPosicion();
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA; i++) {
@@ -111,7 +111,7 @@ class TransformacionCuerposTest {
         simulacion.avanzarTick();
 
         assertFalse(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));
-        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         assertFalse(agua.isTransformadoPorEvento());
     }
 
@@ -126,7 +126,7 @@ class TransformacionCuerposTest {
         simulacion.avanzarTick();
         assertTrue(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));
 
-        simulacion.eliminarCuerpo(agua);
+        simulacion.getGestorCicloVida().eliminarCuerpo(agua);
         simulacion.avanzarTick();
 
         assertFalse(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));

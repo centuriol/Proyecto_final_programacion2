@@ -92,7 +92,7 @@ class CostosProporcionalesYSatelitesMenuTest {
 
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.SATELITE, masaInicial));
 
-        Optional<CuerpoCeleste> sol = sim.spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
+        Optional<CuerpoCeleste> sol = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
         assertTrue(sol.isPresent(), "Debe alcanzar para un Sol inicial");
 
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, masaInicial));
@@ -104,7 +104,7 @@ class CostosProporcionalesYSatelitesMenuTest {
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_GASEOSO, masaInicial));
         assertTrue(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_AGUA, masaInicial));
 
-        Optional<CuerpoCeleste> agua = sim.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 180, 0, masaInicial, new Vector2D(0, 2.0));
+        Optional<CuerpoCeleste> agua = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 180, 0, masaInicial, new Vector2D(0, 2.0));
         assertTrue(agua.isPresent(), "Debe alcanzar para un Planeta de Agua inicial");
         assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
         assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);

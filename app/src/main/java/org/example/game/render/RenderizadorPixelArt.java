@@ -38,6 +38,8 @@ public class RenderizadorPixelArt {
     private final CapaSeleccion capaSeleccion;
     private final CapaTrayectorias capaTrayectorias;
     private final CapaGhostPreview capaGhostPreview;
+    private final CapaNavesColonizadoras capaNaves = new CapaNavesColonizadoras();
+    private final CapaEscudoPlanetario capaEscudo = new CapaEscudoPlanetario();
     private final org.example.game.cuerpo.ServicioEscudo servicioEscudo = org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto();
 
     private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
@@ -161,7 +163,7 @@ public class RenderizadorPixelArt {
             dibujarCuerpoPixelArt(gc, c, cuerpos, tick);
         }
 
-        dibujarNavesColonizadoras(gc);
+        capaNaves.dibujar(gc, proveedorNaves, conversor, anchoCanvas, altoCanvas);
 
         if (gestorEfectos != null) {
             gestorEfectos.dibujar(gc, anchoCanvas, altoCanvas);
@@ -220,7 +222,7 @@ public class RenderizadorPixelArt {
         gc.restore();
 
         if (servicioEscudo.tieneEscudo(c)) {
-            dibujarCupulaEscudo(gc, x, y, r, tick);
+            capaEscudo.dibujarCupula(gc, x, y, r, tick);
         }
 
         gc.setFill(UtilidadRender.colorWeb("#e8e4d8"));
@@ -229,41 +231,6 @@ public class RenderizadorPixelArt {
         gc.fillText(c.getNombre(), x, y + c.getRadio() + 14);
         gc.setTextAlign(javafx.scene.text.TextAlignment.LEFT);
         gc.setGlobalAlpha(1.0);
-    }
-
-    private void dibujarCupulaEscudo(GraphicsContext gc, double cx, double cy, double r, long tick) {
-        double rEfectivo = r * 1.5;
-        double pulso = 0.85 + 0.15 * Math.sin(tick * 0.2);
-
-        gc.setFill(UtilidadRender.colorRgb(91, 227, 255, 0.20 * pulso));
-        gc.fillOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
-
-        gc.setStroke(UtilidadRender.colorWeb("#5be3ff"));
-        gc.setLineWidth(1.8);
-        gc.setLineDashes(6, 4);
-        gc.strokeOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
-        gc.setLineDashes(null);
-    }
-
-    private void dibujarNavesColonizadoras(GraphicsContext gc) {
-        if (proveedorNaves == null) return;
-        List<org.example.game.colonizacion.NaveColonizadora> naves = proveedorNaves.get();
-        if (naves == null || naves.isEmpty()) return;
-
-        for (org.example.game.colonizacion.NaveColonizadora nave : naves) {
-            if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
-            Vector2D pos = nave.getPosicion();
-            double sx = conversor.fisicaAXJavaFX(pos.x(), anchoCanvas);
-            double sy = conversor.fisicaAYJavaFX(pos.y(), altoCanvas);
-
-            gc.save();
-            gc.setFill(UtilidadRender.colorWeb("#50fa7b"));
-            gc.fillOval(sx - 4, sy - 4, 8, 8);
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.0);
-            gc.strokeOval(sx - 5, sy - 5, 10, 10);
-            gc.restore();
-        }
     }
 
     public void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
@@ -319,17 +286,5 @@ public class RenderizadorPixelArt {
 
     public double getTiempoAnimacionSegundos() {
         return tiempoAnimacionSegundos;
-    }
-
-    public static Color colorWeb(String hex) {
-        return UtilidadRender.colorWeb(hex);
-    }
-
-    public static Color colorRgb(int r, int g, int b) {
-        return UtilidadRender.colorRgb(r, g, b);
-    }
-
-    public static Color colorRgb(int r, int g, int b, double opacity) {
-        return UtilidadRender.colorRgb(r, g, b, opacity);
     }
 }

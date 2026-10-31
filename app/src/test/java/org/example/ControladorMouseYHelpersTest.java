@@ -10,6 +10,7 @@ import org.example.game.controlador.SincronizadorUI;
 import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Estrella;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.ControladorColocacion;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
@@ -40,7 +41,7 @@ class ControladorMouseYHelpersTest {
 
     @Test
     void testControladorMouseScrollAjustaZoomComoJuegoNormal() {
-        double masaInicial = simulacion.getFactorMasaColocacion();
+        double masaInicial = simulacion.getGestorColocacion().getFactorMasaColocacion();
         double zoomInicial = controladorMouse.getCamaraZoom().getNivelZoom();
 
         ScrollEvent scrollUp = new ScrollEvent(
@@ -50,7 +51,7 @@ class ControladorMouseYHelpersTest {
         );
         controladorMouse.manejarScroll(scrollUp);
         assertTrue(controladorMouse.getCamaraZoom().getNivelZoom() > zoomInicial);
-        assertEquals(masaInicial, simulacion.getFactorMasaColocacion(), 1e-6);
+        assertEquals(masaInicial, simulacion.getGestorColocacion().getFactorMasaColocacion(), 1e-6);
 
         ScrollEvent scrollDown = new ScrollEvent(
                 ScrollEvent.SCROLL, 0, 0, 0, 0, false, false, false, false, false, false,
@@ -77,8 +78,8 @@ class ControladorMouseYHelpersTest {
 
     @Test
     void testControladorMouseClickSecundarioCancelaColocacion() {
-        simulacion.entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaTest");
-        assertEquals(SimulacionSolar.ModoColocacion.COLOCANDO, simulacion.getModoColocacion());
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaTest");
+        assertEquals(ControladorColocacion.ModoColocacion.COLOCANDO, simulacion.getGestorColocacion().getModoColocacion());
 
         MouseEvent clickSecundario = new MouseEvent(
                 MouseEvent.MOUSE_PRESSED, 100, 100, 100, 100, MouseButton.SECONDARY, 1,
@@ -86,7 +87,7 @@ class ControladorMouseYHelpersTest {
         );
         controladorMouse.manejarMousePresionado(clickSecundario);
 
-        assertEquals(SimulacionSolar.ModoColocacion.NINGUNO, simulacion.getModoColocacion());
+        assertEquals(ControladorColocacion.ModoColocacion.NINGUNO, simulacion.getGestorColocacion().getModoColocacion());
         assertNull(controladorMouse.getCuerpoSeleccionado());
     }
 

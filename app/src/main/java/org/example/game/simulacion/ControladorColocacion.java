@@ -53,7 +53,7 @@ public class ControladorColocacion {
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica, List<CuerpoCeleste> cuerpos) {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica, cuerpos);
         if (cuerpoCercano != null) {
-            boolean esMenorOrbital = (tipoColocacion == TipoCuerpo.LUNA || tipoColocacion == TipoCuerpo.SATELITE);
+            boolean esMenorOrbital = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
             boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
             if (esMenorOrbital && cercanoEsPlaneta) {
                 Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());

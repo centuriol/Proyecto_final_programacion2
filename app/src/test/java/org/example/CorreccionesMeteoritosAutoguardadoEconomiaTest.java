@@ -145,7 +145,7 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
         assertNull(mouse.getCuerpoSeleccionado());
 
         assertDoesNotThrow(() -> VentanaInspeccion.mostrar(meteorito, sim, null, mouse));
-        assertFalse(sim.desmantelarCuerpo(meteorito), "No se puede eliminar un meteorito manualmente");
+        assertFalse(sim.getServicioReembolso().desmantelarCuerpo(sim, meteorito), "No se puede eliminar un meteorito manualmente");
         assertTrue(sim.getSistemaSolar().getCuerpos().contains(meteorito));
     }
 
@@ -247,7 +247,7 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
         double masaInicial = ConfiguracionSimulacion.MASA_FACTOR_MIN;
 
         // No alcanza para 2 soles
-        Optional<CuerpoCeleste> sol1 = sim.spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
+        Optional<CuerpoCeleste> sol1 = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
         assertTrue(sol1.isPresent(), "Al inicio debe alcanzar para colocar 1 Sol");
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, masaInicial), "No debe alcanzar para un segundo Sol");
         assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_ROCOSO, masaInicial), "No debe alcanzar para un Planeta Porro");
@@ -255,7 +255,7 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
 
         // Alcanza exactamente para 1 Planeta de Agua y nada mas
         assertTrue(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_AGUA, masaInicial));
-        Optional<CuerpoCeleste> agua1 = sim.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 180, 0, masaInicial, new Vector2D(0, 2.0));
+        Optional<CuerpoCeleste> agua1 = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 180, 0, masaInicial, new Vector2D(0, 2.0));
         assertTrue(agua1.isPresent(), "Al inicio debe alcanzar para colocar 1 Planeta de Agua junto al Sol");
 
         assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
@@ -267,8 +267,8 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
     void testProgresionMasLentaYReguladaEnConfiguracionEconomia() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
         double masaInicial = ConfiguracionSimulacion.MASA_FACTOR_MIN;
-        sim.spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
-        sim.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, masaInicial, new Vector2D(0, 2.2));
+        sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.ESTRELLA, 0, 0, masaInicial, Vector2D.cero());
+        sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 200, 0, masaInicial, new Vector2D(0, 2.2));
 
         // Tras 1000 ticks (~50 segundos reales a 1x), aun no se desbloquea el primer escalon ni sobra para otro Sol
         sim.avanzarTicks(1000);

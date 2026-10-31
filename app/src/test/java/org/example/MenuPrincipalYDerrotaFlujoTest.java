@@ -64,7 +64,7 @@ class MenuPrincipalYDerrotaFlujoTest {
         assertFalse(overlayJuego.isVisible(), "El HUD de juego debe permanecer oculto en el menu");
         assertFalse(pantallaGameOver.isVisible(), "Game Over debe estar oculto al inicio");
         assertFalse(autoguardado.estaActivo(), "Autoguardado inactivo mientras esta en el menu");
-        assertTrue(simulacion.isEnPausa());
+        assertTrue(simulacion.getReloj().isEnPausa());
         assertFalse(coordinador.esPartidaEnCurso());
 
         assertEquals("Iniciar partida", menuPrincipal.getBtnIniciarPartida().getText());
@@ -86,14 +86,14 @@ class MenuPrincipalYDerrotaFlujoTest {
         assertTrue(overlayJuego.isVisible());
         assertTrue(coordinador.esPartidaEnCurso());
         assertTrue(autoguardado.estaActivo());
-        assertFalse(simulacion.isEnPausa());
+        assertFalse(simulacion.getReloj().isEnPausa());
         assertTrue(camara.esVistaNeutra());
         assertFalse(simulacion.estaPerdida());
     }
 
     @Test
     void testCargarPartidaMuestraTresRanurasYCargaRanuraOcupada() {
-        simulacion.cargarPresetEstrellaBinaria();
+        simulacion.getPresetsSistema().cargarPresetEstrellaBinaria(simulacion);
         simulacion.getReloj().restaurar(144L, false, 2.0);
         gestorGuardado.guardarPartidaRapida(simulacion, camara); // ocupa Ranura 1
 
@@ -111,7 +111,7 @@ class MenuPrincipalYDerrotaFlujoTest {
 
         assertFalse(menuPrincipal.isVisible());
         assertTrue(overlayJuego.isVisible());
-        assertEquals(144L, simulacion.getTickActual());
+        assertEquals(144L, simulacion.getReloj().getTickActual());
         assertEquals(3, simulacion.getSistemaSolar().getCuerpos().size());
     }
 
@@ -125,7 +125,7 @@ class MenuPrincipalYDerrotaFlujoTest {
 
         assertTrue(salidaInvocada.get());
         assertFalse(autoguardado.estaActivo());
-        assertTrue(simulacion.isEnPausa());
+        assertTrue(simulacion.getReloj().isEnPausa());
     }
 
     @Test
@@ -134,7 +134,7 @@ class MenuPrincipalYDerrotaFlujoTest {
         simulacion.avanzarTicks(15);
         camara.desplazarPorPantalla(180, -90);
         gestorGuardado.guardarAutoguardado(simulacion, camara);
-        long tickGuardado = simulacion.getTickActual();
+        long tickGuardado = simulacion.getReloj().getTickActual();
 
         // Provocar derrota dejando un agujero negro sin planetas ni lunas
         simulacion.limpiarCuerpos();
@@ -153,7 +153,7 @@ class MenuPrincipalYDerrotaFlujoTest {
         assertFalse(menuPrincipal.isVisible());
         assertTrue(overlayJuego.isVisible());
         assertFalse(simulacion.estaPerdida());
-        assertEquals(tickGuardado, simulacion.getTickActual());
+        assertEquals(tickGuardado, simulacion.getReloj().getTickActual());
         assertEquals(180.0, camara.getDesplazamiento().getX(), 1e-6);
         assertEquals(-90.0, camara.getDesplazamiento().getY(), 1e-6);
         assertTrue(autoguardado.estaActivo());

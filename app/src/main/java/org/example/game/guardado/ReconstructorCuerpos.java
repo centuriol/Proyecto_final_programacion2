@@ -101,7 +101,6 @@ public class ReconstructorCuerpos {
             civ.restaurarMetricas(civDatos.poblacion(), civDatos.nivelTecnologico(), civDatos.estabilidad(), civDatos.felicidad());
             civ.restaurarEstadoGeneral(civDatos.estado(), civDatos.ticksEfectoEvento());
             civ.setEmisorEventos(emisorActivo);
-            planeta.sincronizarFlagCivilizacion();
         }
         return planeta;
     }

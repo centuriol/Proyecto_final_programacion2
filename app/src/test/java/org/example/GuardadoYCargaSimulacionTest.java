@@ -73,7 +73,7 @@ class GuardadoYCargaSimulacionTest {
         simOrigen.getInventario().getRecursoObj(TipoRecurso.MINERALES).setCantidad(777.5);
         simOrigen.getInventario().getRecursoObj(TipoRecurso.ENERGIA).setCantidad(444.25);
         simOrigen.getReloj().restaurar(512L, true, 3.0);
-        simOrigen.getGeneradorEventosCosmicos().setTicksHastaSiguiente(1420);
+        simOrigen.getCoordinadorPaso().getGeneradorEventosCosmicos().setTicksHastaSiguiente(1420);
 
         GestorGuardadoPartida gestor = new GestorGuardadoPartida(new RepositorioPartidasArchivo(tempDir.resolve("saves")));
         gestor.guardarPartida("sistema_completo", simOrigen, zoomOrigen);
@@ -82,11 +82,11 @@ class GuardadoYCargaSimulacionTest {
         CamaraZoom zoomDestino = new CamaraZoom();
         assertTrue(gestor.cargarPartida("sistema_completo", simDestino, zoomDestino));
 
-        assertEquals(512L, simDestino.getTickActual());
-        assertTrue(simDestino.isEnPausa());
-        assertEquals(3.0, simDestino.getVelocidadSimulacion(), 1e-6);
+        assertEquals(512L, simDestino.getReloj().getTickActual());
+        assertTrue(simDestino.getReloj().isEnPausa());
+        assertEquals(3.0, simDestino.getReloj().getVelocidadSimulacion(), 1e-6);
         assertEquals(1.4, zoomDestino.getNivelZoom(), 1e-6);
-        assertEquals(1420, simDestino.getGeneradorEventosCosmicos().getTicksHastaSiguiente());
+        assertEquals(1420, simDestino.getCoordinadorPaso().getGeneradorEventosCosmicos().getTicksHastaSiguiente());
         assertEquals(777.5, simDestino.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
         assertEquals(444.25, simDestino.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
         assertEquals(4, simDestino.getProgresion().getNivel(RamaProgresion.PLANETAS));
@@ -142,7 +142,7 @@ class GuardadoYCargaSimulacionTest {
         GestorGuardadoPartida gestor = new GestorGuardadoPartida(repoMemoria);
 
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
         gestor.guardarPartida("memoria_slot", sim, null);
 
         assertTrue(repoMemoria.existe("memoria_slot"));
@@ -164,7 +164,7 @@ class GuardadoYCargaSimulacionTest {
         ComandoCargarPartida cmdCargar = new ComandoCargarPartida(gestor, sim, zoom);
         BarraGuardadoWidget barra = new BarraGuardadoWidget(cmdGuardar, cmdCargar);
 
-        sim.cargarPresetEstrellaBinaria();
+        sim.getPresetsSistema().cargarPresetEstrellaBinaria(sim);
         zoom.setNivelZoom(0.7);
         barra.getBtnGuardar().fire();
 
@@ -182,10 +182,10 @@ class GuardadoYCargaSimulacionTest {
     void testCargarPartidaInexistenteNotificaAdvertenciaSinBorrarEstadoActual() {
         GestorGuardadoPartida gestor = new GestorGuardadoPartida(new RepositorioPartidasArchivo(tempDir.resolve("vacio")));
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.cargarPresetSistemaBasico();
+        sim.getPresetsSistema().cargarPresetSistemaBasico(sim);
 
         List<MensajeEvento> eventos = new ArrayList<>();
-        sim.agregarListenerEvento(eventos::add);
+        sim.getBusEventos().agregarListenerEvento(eventos::add);
 
         boolean exito = gestor.cargarPartida("inexistente", sim, null);
         assertFalse(exito);
@@ -220,7 +220,7 @@ class GuardadoYCargaSimulacionTest {
         GestorGuardadoPartida gestor = new GestorGuardadoPartida(new RepositorioMemoriaTest());
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
         List<MensajeEvento> eventos = new ArrayList<>();
-        sim.agregarListenerEvento(eventos::add);
+        sim.getBusEventos().agregarListenerEvento(eventos::add);
 
         gestor.guardarPartidaRapida(sim, null);
         gestor.cargarPartidaRapida(sim, null);
