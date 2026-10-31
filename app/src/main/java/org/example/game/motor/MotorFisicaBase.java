@@ -1,11 +1,14 @@
 package org.example.game.motor;
 
+import org.example.game.cuerpo.Actualizable;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Expirable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -20,10 +23,36 @@ public abstract class MotorFisicaBase implements MotorFisica, ObservableFisica {
 
     protected final double radioMundo;
     protected final List<Runnable> listenersColision = new ArrayList<>();
+    protected final Map<CuerpoCeleste, Actualizable> actualizables = new ConcurrentHashMap<>();
+    protected final Map<CuerpoCeleste, Expirable> expirables = new ConcurrentHashMap<>();
     protected Consumer<String> listenerMensaje;
 
     public MotorFisicaBase(double radioMundo) {
         this.radioMundo = radioMundo;
+    }
+
+    public void registrarActualizable(CuerpoCeleste cuerpo, Actualizable actualizable) {
+        if (cuerpo != null && actualizable != null) {
+            actualizables.put(cuerpo, actualizable);
+        }
+    }
+
+    public void registrarExpirable(CuerpoCeleste cuerpo, Expirable expirable) {
+        if (cuerpo != null && expirable != null) {
+            expirables.put(cuerpo, expirable);
+        }
+    }
+
+    public void desregistrar(CuerpoCeleste cuerpo) {
+        if (cuerpo != null) {
+            actualizables.remove(cuerpo);
+            expirables.remove(cuerpo);
+        }
+    }
+
+    public void limpiarCapacidades() {
+        actualizables.clear();
+        expirables.clear();
     }
 
     @Override
@@ -42,7 +71,9 @@ public abstract class MotorFisicaBase implements MotorFisica, ObservableFisica {
         for (Runnable l : listenersColision) {
             try {
                 l.run();
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                System.err.println("[WARN] Error al ejecutar listener de colision: " + ex.getMessage());
+            }
         }
     }
 
@@ -50,19 +81,20 @@ public abstract class MotorFisicaBase implements MotorFisica, ObservableFisica {
         Iterator<CuerpoCeleste> it = cuerpos.iterator();
         while (it.hasNext()) {
             CuerpoCeleste c = it.next();
-            if (c instanceof Expirable exp && exp.estaExpirado()) {
+            Expirable exp = expirables.get(c);
+            if (exp != null && exp.estaExpirado()) {
+                expirables.remove(c);
+                actualizables.remove(c);
                 it.remove();
                 continue;
             }
 
             double dist = c.getPosicion().magnitud();
             if (dist > radioMundo * ConstantesFisicas.LIMITE_ESCAPE_FACTOR) {
+                expirables.remove(c);
+                actualizables.remove(c);
                 it.remove();
             }
         }
-    }
-
-    public double getRadioMundo() {
-        return radioMundo;
     }
 }

@@ -1,11 +1,11 @@
 package org.example;
-
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.example.game.controlador.*;
 import org.example.game.controlador.comando.*;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.ControladorColocacion;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
 import org.example.game.ui.ControlTiempoWidget;
@@ -13,11 +13,8 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class ControladorTecladoYComandosTest {
 
@@ -58,36 +55,36 @@ class ControladorTecladoYComandosTest {
 
     @Test
     void testComandoAlternarPausaConEspacio() {
-        boolean pausaInicial = simulacion.isEnPausa();
+        boolean pausaInicial = simulacion.getReloj().isEnPausa();
         KeyEvent eventSpace = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.SPACE, false, false, false, false);
         controladorTeclado.handle(eventSpace);
 
-        assertEquals(!pausaInicial, simulacion.isEnPausa());
+        assertEquals(!pausaInicial, simulacion.getReloj().isEnPausa());
 
         controladorTeclado.handle(eventSpace);
-        assertEquals(pausaInicial, simulacion.isEnPausa());
+        assertEquals(pausaInicial, simulacion.getReloj().isEnPausa());
     }
 
     @Test
     void testComandoAvanzarPasoConTeclaS() {
-        simulacion.pause();
-        long tickAntes = simulacion.getTickActual();
+        simulacion.getReloj().pause();
+        long tickAntes = simulacion.getReloj().getTickActual();
         KeyEvent eventS = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.S, false, false, false, false);
         controladorTeclado.handle(eventS);
 
-        assertEquals(tickAntes + 1, simulacion.getTickActual(), "Debe avanzar 1 tick");
-        assertTrue(simulacion.isEnPausa(), "Debe permanecer pausado tras avanzar un paso discreto");
+        assertEquals(tickAntes + 1, simulacion.getReloj().getTickActual(), "Debe avanzar 1 tick");
+        assertTrue(simulacion.getReloj().isEnPausa(), "Debe permanecer pausado tras avanzar un paso discreto");
     }
 
     @Test
     void testComandoCancelarConEscape() {
-        simulacion.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaTest");
-        assertEquals(SimulacionSolar.ModoColocacion.COLOCANDO, simulacion.getModoColocacion());
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaTest");
+        assertEquals(ControladorColocacion.ModoColocacion.COLOCANDO, simulacion.getGestorColocacion().getModoColocacion());
 
         KeyEvent eventEsc = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false);
         controladorTeclado.handle(eventEsc);
 
-        assertEquals(SimulacionSolar.ModoColocacion.NINGUNO, simulacion.getModoColocacion());
+        assertEquals(ControladorColocacion.ModoColocacion.NINGUNO, simulacion.getGestorColocacion().getModoColocacion());
         assertNull(controladorMouse.getCuerpoSeleccionado());
         assertTrue(controladorMouse.getTrayectoriaPreview().isEmpty());
     }
@@ -132,14 +129,14 @@ class ControladorTecladoYComandosTest {
 
     @Test
     void testComandosAjustarFactorMasaMasYMenos() {
-        double factorInicial = simulacion.getFactorMasaColocacion();
+        double factorInicial = simulacion.getGestorColocacion().getFactorMasaColocacion();
 
         KeyEvent keyPlus = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.PLUS, false, false, false, false);
         controladorTeclado.handle(keyPlus);
-        assertTrue(simulacion.getFactorMasaColocacion() > factorInicial);
+        assertTrue(simulacion.getGestorColocacion().getFactorMasaColocacion() > factorInicial);
 
         KeyEvent keyMinus = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.MINUS, false, false, false, false);
         controladorTeclado.handle(keyMinus);
-        assertEquals(factorInicial, simulacion.getFactorMasaColocacion(), 1e-4);
+        assertEquals(factorInicial, simulacion.getGestorColocacion().getFactorMasaColocacion(), 1e-4);
     }
 }

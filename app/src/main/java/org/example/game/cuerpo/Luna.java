@@ -1,7 +1,5 @@
 package org.example.game.cuerpo;
 
-import org.example.game.cuerpo.CuerpoCeleste;
-
 /**
  * Luna craterizada que puede orbitar planetas o estrellas.
  * SRP: Representa las propiedades y comportamiento de un satélite natural.
@@ -13,8 +11,13 @@ public class Luna extends CuerpoCeleste {
     }
 
     @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarLuna(this);
+    }
+
+    @Override
     public String describir() {
-        return "Luna " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
+        return "Luna " + getNombre() + " (masa: " + FormateadorMasa.formatearMasa(getMasa()) + ")";
     }
 
     @Override

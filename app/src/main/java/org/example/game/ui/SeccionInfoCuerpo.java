@@ -13,17 +13,31 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.example.game.cuerpo.CatalogoDescriptoresCuerpo;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.TipoRecurso;
 import org.example.game.render.GestorImagenes;
+import org.example.game.render.RepositorioSprites;
+
+import java.util.Map;
 
 /**
- * Secciones visuales reutilizables para ventanas modales de información y configuración de cuerpos celestes (SRP).
+ * Secciones visuales reutilizables para ventanas modales de información y configuración de cuerpos celestes (SRP / DIP).
  */
-public final class SeccionInfoCuerpo {
+public class SeccionInfoCuerpo implements ProveedorInfoCuerpo {
 
-    private SeccionInfoCuerpo() {}
+    private final RepositorioSprites repositorioSprites;
 
-    public static VBox inicializarDialogo(Stage stage, String titulo, Window owner) {
+    public SeccionInfoCuerpo() {
+        this(new GestorImagenes());
+    }
+
+    public SeccionInfoCuerpo(RepositorioSprites repositorioSprites) {
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
+    }
+
+    @Override
+    public VBox inicializarDialogo(Stage stage, String titulo, Window owner) {
         stage.setTitle(titulo);
         if (owner != null) {
             stage.initOwner(owner);
@@ -36,7 +50,8 @@ public final class SeccionInfoCuerpo {
         return root;
     }
 
-    public static void vincularCierrePorEscape(Scene scene, Stage stage) {
+    @Override
+    public void vincularCierrePorEscape(Scene scene, Stage stage) {
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 stage.close();
@@ -44,9 +59,10 @@ public final class SeccionInfoCuerpo {
         });
     }
 
-    public static Node crearNodoIcono(TipoCuerpo tipo) {
-        if (GestorImagenes.tieneImagen(tipo)) {
-            javafx.scene.image.ImageView imgView = GestorImagenes.crearImageView(tipo, 44, 44);
+    @Override
+    public Node crearNodoIcono(TipoCuerpo tipo) {
+        if (repositorioSprites.tieneSprite(tipo)) {
+            javafx.scene.image.ImageView imgView = repositorioSprites.crearVistaIcono(tipo, 44, 44);
             StackPane imgBox = new StackPane(imgView);
             imgBox.setPrefSize(48, 48);
             imgBox.setStyle("-fx-background-color: #0d0e15; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
@@ -59,7 +75,8 @@ public final class SeccionInfoCuerpo {
         }
     }
 
-    public static HBox crearHeader(Node iconoNodo, String titulo, String subtitulo) {
+    @Override
+    public HBox crearHeader(Node iconoNodo, String titulo, String subtitulo) {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -77,7 +94,8 @@ public final class SeccionInfoCuerpo {
         return header;
     }
 
-    public static VBox crearSeccionDescripcion(TipoCuerpo tipo) {
+    @Override
+    public VBox crearSeccionDescripcion(TipoCuerpo tipo) {
         VBox descBox = new VBox(4);
         Label lblDescTitulo = new Label("DESCRIPCIÓN DEL CUERPO");
         lblDescTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
@@ -93,7 +111,8 @@ public final class SeccionInfoCuerpo {
         return descBox;
     }
 
-    public static VBox crearSeccionCaracteristicas(TipoCuerpo tipo) {
+    @Override
+    public VBox crearSeccionCaracteristicas(TipoCuerpo tipo) {
         VBox box = new VBox(6);
         box.setPadding(new Insets(10));
         box.setStyle(TemaUI.CSS_SECCION_CARD);
@@ -107,7 +126,7 @@ public final class SeccionInfoCuerpo {
         grid.setVgap(4);
 
         agregarFilaPropiedad(grid, 0, "Categoría:", tipo.categoria.name(), "#5be3ff");
-        agregarFilaPropiedad(grid, 1, "Masa Base:", TipoCuerpo.formatearMasa(tipo.masaBase), "#e8e4d8");
+        agregarFilaPropiedad(grid, 1, "Masa Base:", org.example.game.cuerpo.FormateadorMasa.formatearMasa(tipo.masaBase), "#e8e4d8");
         agregarFilaPropiedad(grid, 2, "Radio Físico:", String.format(java.util.Locale.US, "%,.0f km", tipo.radioFisicoBase / 1000.0), "#e8e4d8");
         agregarFilaPropiedad(grid, 3, "Temperatura:", String.format(java.util.Locale.US, "%.0f K (%.1f °C)", tipo.temperaturaBase, tipo.temperaturaBase - 273.15), "#e8e4d8");
 
@@ -129,7 +148,8 @@ public final class SeccionInfoCuerpo {
         return box;
     }
 
-    public static void agregarFilaPropiedad(GridPane grid, int fila, String clave, String valor, String colorValorHex) {
+    @Override
+    public void agregarFilaPropiedad(GridPane grid, int fila, String clave, String valor, String colorValorHex) {
         Label lblClave = new Label(clave);
         lblClave.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
         lblClave.setTextFill(TemaUI.COLOR_TEXTO_MUTED);
@@ -142,23 +162,28 @@ public final class SeccionInfoCuerpo {
         grid.add(lblValor, 1, fila);
     }
 
-    public static String obtenerNombrePorDefecto(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getNombrePorDefecto() : "Cuerpo";
+    @Override
+    public String obtenerNombrePorDefecto(TipoCuerpo tipo) {
+        return tipo != null ? CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).nombrePorDefecto() : "Cuerpo";
     }
 
-    public static String obtenerIcono(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getIcono() : "[???]";
+    @Override
+    public String obtenerIcono(TipoCuerpo tipo) {
+        return tipo != null ? CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).icono() : "[???]";
     }
 
-    public static String obtenerSubtitulo(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getSubtitulo() : "Objeto Astronómico";
+    @Override
+    public String obtenerSubtitulo(TipoCuerpo tipo) {
+        return tipo != null ? CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).subtitulo() : "Objeto Astronomico";
     }
 
-    public static String obtenerLore(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getLore() : "Cuerpo celeste en el sistema.";
+    @Override
+    public String obtenerLore(TipoCuerpo tipo) {
+        return tipo != null ? CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).lore() : "Cuerpo celeste en el sistema.";
     }
 
-    public static void poblarListaCostos(VBox contenedor, java.util.Map<org.example.game.jugador.TipoRecurso, Double> costos) {
+    @Override
+    public void poblarListaCostos(VBox contenedor, Map<TipoRecurso, Double> costos) {
         contenedor.getChildren().clear();
         if (costos == null || costos.isEmpty()) {
             agregarMensajeEstado(contenedor, "• Gratis (Sin costo de colocación)", "#d1d5db");
@@ -169,7 +194,8 @@ public final class SeccionInfoCuerpo {
         }
     }
 
-    public static void poblarListaProduccion(VBox contenedor, java.util.Map<org.example.game.jugador.TipoRecurso, Double> prod) {
+    @Override
+    public void poblarListaProduccion(VBox contenedor, Map<TipoRecurso, Double> prod) {
         contenedor.getChildren().clear();
         if (prod == null || prod.isEmpty()) {
             agregarMensajeEstado(contenedor, "• No genera producción pasiva", "#8c92a4");
@@ -180,14 +206,14 @@ public final class SeccionInfoCuerpo {
         }
     }
 
-    private static void agregarItemRecurso(VBox contenedor, org.example.game.jugador.TipoRecurso tipo, String texto) {
+    private void agregarItemRecurso(VBox contenedor, TipoRecurso tipo, String texto) {
         Label lbl = new Label(texto);
         lbl.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lbl.setTextFill(Color.web(tipo.getColorHex()));
         contenedor.getChildren().add(lbl);
     }
 
-    private static void agregarMensajeEstado(VBox contenedor, String mensaje, String colorHex) {
+    private void agregarMensajeEstado(VBox contenedor, String mensaje, String colorHex) {
         Label lbl = new Label(mensaje);
         lbl.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lbl.setTextFill(Color.web(colorHex));

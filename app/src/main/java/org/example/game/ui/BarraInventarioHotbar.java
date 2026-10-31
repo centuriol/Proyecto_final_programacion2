@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -11,11 +10,9 @@ import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Barra de inventario inferior (Hotbar) estilo RimWorld.
  * SRP: Gestiona la selección rápida de los 8 tipos de cuerpos y el factor de masa.
@@ -23,6 +20,7 @@ import java.util.Map;
 public class BarraInventarioHotbar extends HBox {
 
     private final SimulacionSolar simulacion;
+    private final VentanaDescripcionCuerpo ventanaDialogos;
     private final List<SlotHotbar> slotCards = new ArrayList<>();
     private TipoCuerpo tipoSeleccionado = null;
     private boolean retraida = false;
@@ -39,7 +37,12 @@ public class BarraInventarioHotbar extends HBox {
     };
 
     public BarraInventarioHotbar(SimulacionSolar simulacion) {
+        this(simulacion, new VentanaDescripcionCuerpo());
+    }
+
+    public BarraInventarioHotbar(SimulacionSolar simulacion, VentanaDescripcionCuerpo ventanaDialogos) {
         this.simulacion = simulacion;
+        this.ventanaDialogos = ventanaDialogos != null ? ventanaDialogos : new VentanaDescripcionCuerpo();
 
         setAlignment(Pos.CENTER);
         setPadding(new Insets(6, 12, 6, 12));
@@ -56,7 +59,7 @@ public class BarraInventarioHotbar extends HBox {
         }
 
         actualizarBloqueos();
-        this.simulacion.agregarListenerUI(this::actualizarBloqueos);
+        this.simulacion.getBusEventos().agregarListenerUI(this::actualizarBloqueos);
     }
 
     public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
@@ -99,7 +102,7 @@ public class BarraInventarioHotbar extends HBox {
     public void abrirVentanaColocacion(TipoCuerpo tipo) {
         if (tipo == null) return;
         javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-        VentanaDescripcionCuerpo.mostrarParaColocar(tipo, simulacion, owner, () -> marcarSeleccionado(tipo));
+        ventanaDialogos.abrirParaColocar(tipo, simulacion, owner, () -> marcarSeleccionado(tipo));
     }
 
     public void marcarSeleccionado(TipoCuerpo tipo) {
@@ -143,11 +146,7 @@ public class BarraInventarioHotbar extends HBox {
     }
 
     private double obtenerCostoDesbloqueo(TipoCuerpo tipo) {
-        if (tipo == TipoCuerpo.LUNA) return org.example.game.progresion.ElementoDesbloqueable.LUNA.costoCiencia;
-        if (tipo == TipoCuerpo.PLANETA_ROCOSO) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_PORRO.costoCiencia;
-        if (tipo == TipoCuerpo.SATELITE) return org.example.game.progresion.ElementoDesbloqueable.SATELITE.costoCiencia;
-        if (tipo == TipoCuerpo.PLANETA_LAVA) return org.example.game.progresion.ElementoDesbloqueable.PLANETA_LAVA.costoCiencia;
-        return 0;
+        return tipo != null ? tipo.getCostoDesbloqueoCiencia() : 0.0;
     }
 
     public void deseleccionar() {

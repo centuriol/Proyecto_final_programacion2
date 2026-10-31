@@ -1,13 +1,22 @@
 package org.example.game.motor.colision;
-
 import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.RegistroCapacidades;
 import org.example.game.simulacion.ConfiguracionColisiones;
-
 /**
  * Regla de colisión asimétrica donde el cuerpo menor es destruido y el mayor absorbe una fracción de su masa.
  */
 public class ReglaColisionAsimetrica implements ReglaColision {
+
+    private final UtilidadColision utilidadColision;
+
+    public ReglaColisionAsimetrica() {
+        this(new UtilidadColision());
+    }
+
+    public ReglaColisionAsimetrica(UtilidadColision utilidadColision) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+    }
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
@@ -21,11 +30,13 @@ public class ReglaColisionAsimetrica implements ReglaColision {
 
         double masaGanada = menor.getMasa() * ConfiguracionColisiones.PORCENTAJE_GANANCIA_MASA_COLISION;
         mayor.setMasa(mayor.getMasa() + masaGanada);
-        UtilidadColision.generarEscombros(menor, ctx.aEliminar(), ctx.aAgregar());
+        utilidadColision.generarEscombros(menor, ctx.aEliminar(), ctx.aAgregar());
 
-        if (mayor instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-            civ.getCivilizacion().recibirImpactoMeteorito();
-        }
+        RegistroCapacidades.obtenerCivilizable(mayor).ifPresent(civ -> {
+            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+                civ.getCivilizacion().recibirImpactoMeteorito();
+            }
+        });
 
         ctx.emitirMensaje("Impacto destructivo asimétrico: " + menor.getNombre() + " destruido al colisionar con " + mayor.getNombre() + ".");
     }

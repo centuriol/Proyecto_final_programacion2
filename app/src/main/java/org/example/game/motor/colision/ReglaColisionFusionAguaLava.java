@@ -1,21 +1,42 @@
 package org.example.game.motor.colision;
 
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.RegistroCapacidades;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.cuerpo.Transformable;
+import org.example.game.cuerpo.VisitanteCuerpo;
 import org.example.game.motor.Vector2D;
 
 /**
  * Regla de reacción hidro-magmática (Easter egg) que fusiona Agua y Lava en Planeta Porro inerte.
+ * Despacho doble polimórfico sin consultar subtipos desde el consumidor (Tarea 3).
  */
 public class ReglaColisionFusionAguaLava implements ReglaColision {
 
+    private final UtilidadColision utilidadColision;
+
+    public ReglaColisionFusionAguaLava() {
+        this(new UtilidadColision());
+    }
+
+    public ReglaColisionFusionAguaLava(UtilidadColision utilidadColision) {
+        this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+    }
+
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-        return (ta == TipoCuerpo.PLANETA_AGUA && tb == TipoCuerpo.PLANETA_LAVA)
-                || (ta == TipoCuerpo.PLANETA_LAVA && tb == TipoCuerpo.PLANETA_AGUA);
+        Boolean res = a.aceptar(new VisitanteCuerpo<>() {
+            @Override
+            public Boolean visitarPlaneta(Planeta pA) {
+                return b.aceptar(new VisitanteCuerpo<>() {
+                    @Override
+                    public Boolean visitarPlaneta(Planeta pB) {
+                        return pA.puedeFusionarHidroMagmatica(pB);
+                    }
+                });
+            }
+        });
+        return Boolean.TRUE.equals(res);
     }
 
     @Override
@@ -40,16 +61,16 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
         sobreviviente.setVelocidad(nuevaVel);
         sobreviviente.setMasa(masaTotal);
         sobreviviente.setNombre("Planeta Porro");
-        if (sobreviviente instanceof Transformable t) {
-            t.transformarA(TipoCuerpo.PLANETA_ROCOSO);
-            t.setTransformadoPorEvento(true);
-        }
+        RegistroCapacidades.obtenerTransformable(sobreviviente).ifPresent(trans -> {
+            trans.transformarA(TipoCuerpo.PLANETA_ROCOSO);
+            trans.setTransformadoPorEvento(true);
+        });
 
         if (sobreviviente.getCuerpoOrbitado() == null && absorbido.getCuerpoOrbitado() != null) {
             sobreviviente.setCuerpoOrbitado(absorbido.getCuerpoOrbitado());
         }
 
-        UtilidadColision.desactivarYEliminar(absorbido, ctx.aEliminar());
+        utilidadColision.desactivarYEliminar(absorbido, ctx.aEliminar());
         ctx.emitirMensaje("Reacción hidro-magmática: Colisión entre Agua y Lava formó un nuevo Planeta Porro inerte.");
     }
 }

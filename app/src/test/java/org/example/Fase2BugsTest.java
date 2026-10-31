@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.example.game.civilizacion.CivilizacionComponent;
@@ -16,12 +15,9 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class Fase2BugsTest {
 
@@ -29,17 +25,17 @@ public class Fase2BugsTest {
     @DisplayName("Bug 1: SimulacionSolar.step() avanza exactamente 1 tick y permanece pausado")
     void testSimulacionStepPermanecePausado() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
-        sim.pause();
-        assertTrue(sim.isEnPausa());
-        long tickInicial = sim.getTickActual();
+        sim.getReloj().pause();
+        assertTrue(sim.getReloj().isEnPausa());
+        long tickInicial = sim.getReloj().getTickActual();
 
         sim.step();
-        assertEquals(tickInicial + 1, sim.getTickActual(), "Debe haber avanzado exactamente 1 tick");
-        assertTrue(sim.isEnPausa(), "Debe permanecer pausado tras llamar a step()");
+        assertEquals(tickInicial + 1, sim.getReloj().getTickActual(), "Debe haber avanzado exactamente 1 tick");
+        assertTrue(sim.getReloj().isEnPausa(), "Debe permanecer pausado tras llamar a step()");
 
         // Un llamado a avanzarTick sin step no debe avanzar mientras esté pausado
         sim.avanzarTick();
-        assertEquals(tickInicial + 1, sim.getTickActual(), "No debe seguir avanzando si no se despausó");
+        assertEquals(tickInicial + 1, sim.getReloj().getTickActual(), "No debe seguir avanzando si no se despausó");
     }
 
     @Test
@@ -94,14 +90,14 @@ public class Fase2BugsTest {
         sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 1000);
         sim.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 1000);
 
-        Optional<CuerpoCeleste> opt = sim.spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
+        Optional<CuerpoCeleste> opt = sim.getGestorCicloVida().spawnCuerpo(TipoCuerpo.PLANETA_ROCOSO, 100, 100, 1.0, Vector2D.cero());
         assertTrue(opt.isPresent(), "spawnCuerpo debe retornar Optional con el cuerpo creado");
         assertTrue(opt.get().getNombre().startsWith("Planeta-"));
 
         // Colocación asistida
-        sim.entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaOrbital");
-        sim.actualizarPosicionPreview(150, 100);
-        sim.confirmarColocacionAutoOrbita();
+        sim.getGestorColocacion().entrarModoColocacion(TipoCuerpo.LUNA, 1.0, "LunaOrbital");
+        sim.getGestorColocacion().actualizarPosicionPreview(150, 100);
+        sim.getGestorColocacion().confirmarColocacionAutoOrbita(sim);
 
         CuerpoCeleste luna = sim.getSistemaSolar().getCuerpos().stream()
                 .filter(c -> "LunaOrbital".equals(c.getNombre()))
@@ -128,8 +124,8 @@ public class Fase2BugsTest {
         MotorFisicaPermisiva motor = new MotorFisicaPermisiva(1000);
         assertNotNull(motor);
         // Verificar que motor avance sin excepciones usando el Set aEliminar
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         List<CuerpoCeleste> cuerpos = new java.util.ArrayList<>(List.of(p1, p2));
         assertDoesNotThrow(() -> motor.avanzarPaso(cuerpos));
     }
@@ -139,14 +135,18 @@ public class Fase2BugsTest {
     void testServicioReembolsoEnSimulacion() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
         sim.getProgresion().desbloquearTodo();
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
         sim.agregarCuerpo(planeta);
 
         double minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
-        boolean desmantelado = ServicioReembolso.desmantelarCuerpo(sim, planeta);
+        boolean desmantelado = sim.getServicioReembolso().desmantelarCuerpo(sim, planeta);
 
         assertTrue(desmantelado);
         assertFalse(sim.getSistemaSolar().getCuerpos().contains(planeta));
-        assertEquals(minAntes + 50.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(
+                minAntes + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * ServicioReembolso.FACTOR_REEMBOLSO,
+                sim.getInventario().getRecurso(TipoRecurso.MINERALES),
+                1e-6
+        );
     }
 }

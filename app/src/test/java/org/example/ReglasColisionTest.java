@@ -1,15 +1,11 @@
 package org.example;
-
 import org.example.game.cuerpo.*;
 import org.example.game.motor.Vector2D;
 import org.example.game.motor.colision.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 public class ReglasColisionTest {
 
     @Test
@@ -17,7 +13,7 @@ public class ReglasColisionTest {
     void testReglaAgujeroNegroDevora() {
         ReglaColisionAgujeroNegro regla = new ReglaColisionAgujeroNegro();
         AgujeroNegro bh = new AgujeroNegro("BH", 1e28, 0, 0);
-        Planeta planeta = new Planeta("Tierra", 1e24, 0, 0);
+        Planeta planeta = new Planeta("Tierra", 1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(regla.aplica(bh, planeta));
         Set<CuerpoCeleste> aEliminar = new HashSet<>();
@@ -66,7 +62,7 @@ public class ReglasColisionTest {
     @DisplayName("ReglaColisionEscudo absorbe impacto de meteorito")
     void testReglaEscudoAbsorbe() {
         ReglaColisionEscudo regla = new ReglaColisionEscudo();
-        Planeta planeta = new Planeta("Defendido", 1e24, 0, 0);
+        Planeta planeta = new Planeta("Defendido", 1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
         planeta.activarEscudo(5);
         Meteorito m = new Meteorito("Meteor", 1e18, 0, 0, Vector2D.cero(), 500, false);
 
@@ -102,8 +98,8 @@ public class ReglasColisionTest {
     @DisplayName("ReglaColisionAbsorcionPorRatio absorbe con diferencia extrema de masa")
     void testReglaAbsorcionExtrema() {
         ReglaColisionAbsorcionPorRatio regla = new ReglaColisionAbsorcionPorRatio();
-        Planeta grande = new Planeta("Grande", 1e26, 0, 0);
-        Planeta chico = new Planeta("Chico", 1e24, 0, 0);
+        Planeta grande = new Planeta("Grande", 1e26, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
+        Planeta chico = new Planeta("Chico", 1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(regla.aplica(grande, chico));
         Set<CuerpoCeleste> aEliminar = new HashSet<>();
@@ -119,8 +115,8 @@ public class ReglasColisionTest {
     @DisplayName("ReglaColisionColapsoMutuo genera escombros para masas similares")
     void testReglaColapsoMutuo() {
         ReglaColisionColapsoMutuo regla = new ReglaColisionColapsoMutuo();
-        Planeta p1 = new Planeta("P1", 1e24, 0, 0);
-        Planeta p2 = new Planeta("P2", 1.1e24, 0, 0);
+        Planeta p1 = new Planeta("P1", 1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
+        Planeta p2 = new Planeta("P2", 1.1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(regla.aplica(p1, p2));
         Set<CuerpoCeleste> aEliminar = new HashSet<>();
@@ -137,8 +133,8 @@ public class ReglasColisionTest {
     @DisplayName("ReglaColisionAsimetrica gana 30% de masa")
     void testReglaAsimetrica() {
         ReglaColisionAsimetrica regla = new ReglaColisionAsimetrica();
-        Planeta mayor = new Planeta("Mayor", 3e24, 0, 0);
-        Planeta menor = new Planeta("Menor", 1e24, 0, 0);
+        Planeta mayor = new Planeta("Mayor", 3e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
+        Planeta menor = new Planeta("Menor", 1e24, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(regla.aplica(mayor, menor));
         Set<CuerpoCeleste> aEliminar = new HashSet<>();

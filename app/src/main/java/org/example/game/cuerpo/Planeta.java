@@ -1,7 +1,7 @@
 package org.example.game.cuerpo;
 
 import org.example.game.civilizacion.CivilizacionComponent;
-
+import org.example.game.simulacion.ConfiguracionSimulacion;
 import java.util.List;
 
 public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, Defensor, Transformable {
@@ -10,17 +10,26 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     private boolean transformadoPorEvento = false;
     private CivilizacionComponent civilizacion;
     private int golpesEscudo = 0;
-
-    public Planeta(String nombre, double masa, double x, double y) {
-        this(nombre, masa, x, y, TipoCuerpo.PLANETA_ROCOSO);
-    }
+    private final double masaInicial;
+    private ReaccionTermicaPlaneta reaccionTermica;
 
     public Planeta(String nombre, double masa, double x, double y, TipoCuerpo subTipo) {
         super(nombre, masa, x, y, subTipo);
         this.subTipo = subTipo;
-        if (subTipo == TipoCuerpo.PLANETA_ROCOSO) {
+        this.masaInicial = masa;
+        this.reaccionTermica = (subTipo != null) ? subTipo.getReaccionTermica() : ReaccionTermicaPlaneta.INERTE;
+        if (subTipo != null && subTipo.puedeTenerCivilizacion) {
             desarrollarCivilizacion();
         }
+        RegistroCapacidades.registrarPlaneta(this);
+    }
+
+    public double getMasaInicial() {
+        return masaInicial;
+    }
+
+    public double getMasaBase() {
+        return subTipo != null ? subTipo.masaBase : 1.0;
     }
 
     @Override
@@ -40,7 +49,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
 
     @Override
     public boolean absorberGolpeEscudo() {
-        if (golpesEscudo > 0) {
+        if (tieneEscudo()) {
             golpesEscudo--;
             return true;
         }
@@ -49,17 +58,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
 
     @Override
     public boolean puedeRecibirEscudo() {
-        return true;
-    }
-
-    @Override
-    public double getRadioEscudo() {
-        return 65.0;
-    }
-
-    @Override
-    public double getPulsoVisual() {
-        return 0.0;
+        return !tieneCivilizacion() || (civilizacion != null && civilizacion.estaViva());
     }
 
     @Override
@@ -82,7 +81,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
         if (transformadoPorEvento) return;
         this.tieneCivilizacion = true;
         if (civilizacion == null) {
-            civilizacion = new CivilizacionComponent(this);
+            civilizacion = new CivilizacionComponent(this, ConfiguracionSimulacion.POBLACION_INICIAL);
         }
     }
 
@@ -107,6 +106,25 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     }
 
     @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarPlaneta(this);
+    }
+
+    public void restaurarAtributosPlaneta(boolean transformado, int escudo, boolean poseeComponenteCivilizacion) {
+        this.transformadoPorEvento = transformado;
+        this.golpesEscudo = Math.max(0, escudo);
+        if (!poseeComponenteCivilizacion) {
+            this.civilizacion = null;
+            this.tieneCivilizacion = false;
+        } else {
+            if (this.civilizacion == null) {
+                this.civilizacion = new CivilizacionComponent(this, ConfiguracionSimulacion.POBLACION_INICIAL);
+            }
+            this.tieneCivilizacion = this.civilizacion.estaViva();
+        }
+    }
+
+    @Override
     public String describir() {
         String civInfo = "";
         if (civilizacion != null) {
@@ -117,14 +135,7 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
 
     @Override
     public double getRadio() {
-        double radioBase;
-        if (subTipo == TipoCuerpo.PLANETA_GASEOSO) {
-            radioBase = 22.0;
-        } else if (subTipo == TipoCuerpo.PLANETA_HELADO) {
-            radioBase = 12.0;
-        } else {
-            radioBase = 15.0;
-        }
+        double radioBase = (subTipo != null) ? subTipo.getRadioVisualBase() : 15.0;
         double factor = getMasa() / (subTipo != null ? subTipo.masaBase : TipoCuerpo.PLANETA_ROCOSO.masaBase);
         if (factor <= 0) return 3.0;
         return Math.max(3.0, radioBase * Math.cbrt(factor));
@@ -138,8 +149,8 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
         return subTipo.getColorHexString();
     }
 
-    public TipoCuerpo getSubTipo() {
-        return subTipo;
+    public boolean puedeFusionarHidroMagmatica(Planeta otro) {
+        return otro != null && this.reaccionTermica.interactuar(otro.reaccionTermica);
     }
 
     @Override
@@ -156,12 +167,18 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     public void transformarA(TipoCuerpo nuevoTipo) {
         if (nuevoTipo != null) {
             this.subTipo = nuevoTipo;
+            this.reaccionTermica = nuevoTipo.getReaccionTermica();
             this.transformadoPorEvento = true;
             if (civilizacion != null) {
                 civilizacion.destruir();
                 this.tieneCivilizacion = false;
             }
         }
+    }
+
+    @Override
+    public boolean permiteReembolso() {
+        return !transformadoPorEvento;
     }
 
     @Override

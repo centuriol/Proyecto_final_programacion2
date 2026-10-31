@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -17,7 +16,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.simulacion.SimulacionSolar;
-
 /**
  * Widget compacto de control de tiempo (esquina inferior izquierda).
  * Dispone exclusivamente de los controles de pausado/corriendo y velocidades 1x, 2x, 3x y 4x.
@@ -57,31 +55,31 @@ public class ControlTiempoWidget extends HBox {
         setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
         configurarBoton(btnPause, "Pausar / Reanudar (Espacio)", () -> {
-            simulacion.togglePause();
+            simulacion.getReloj().togglePause();
             actualizarSeleccion();
         });
 
         configurarBoton(btn1x, "Velocidad 1x", () -> {
-            simulacion.play();
-            simulacion.setVelocidadSimulacion(1.0);
+            simulacion.getReloj().play();
+            simulacion.getReloj().setVelocidadSimulacion(1.0);
             actualizarSeleccion();
         });
 
         configurarBoton(btn2x, "Velocidad 2x", () -> {
-            simulacion.play();
-            simulacion.setVelocidadSimulacion(2.0);
+            simulacion.getReloj().play();
+            simulacion.getReloj().setVelocidadSimulacion(2.0);
             actualizarSeleccion();
         });
 
         configurarBoton(btn3x, "Velocidad 3x", () -> {
-            simulacion.play();
-            simulacion.setVelocidadSimulacion(3.0);
+            simulacion.getReloj().play();
+            simulacion.getReloj().setVelocidadSimulacion(3.0);
             actualizarSeleccion();
         });
 
         configurarBoton(btn4x, "Velocidad 4x", () -> {
-            simulacion.play();
-            simulacion.setVelocidadSimulacion(4.0);
+            simulacion.getReloj().play();
+            simulacion.getReloj().setVelocidadSimulacion(4.0);
             actualizarSeleccion();
         });
 
@@ -112,16 +110,16 @@ public class ControlTiempoWidget extends HBox {
     }
 
     public void actualizarTick() {
-        boolean pausa = simulacion.isEnPausa();
-        double v = simulacion.getVelocidadSimulacion();
+        boolean pausa = simulacion.getReloj().isEnPausa();
+        double v = simulacion.getReloj().getVelocidadSimulacion();
         if (ultimaPausa == null || ultimaVelocidadEstilo == null || pausa != ultimaPausa || Math.abs(v - ultimaVelocidadEstilo) > 0.001) {
             actualizarSeleccion();
         }
     }
 
     public void actualizarSeleccion() {
-        boolean pausa = simulacion.isEnPausa();
-        double v = simulacion.getVelocidadSimulacion();
+        boolean pausa = simulacion.getReloj().isEnPausa();
+        double v = simulacion.getReloj().getVelocidadSimulacion();
         this.ultimaPausa = pausa;
         this.ultimaVelocidadEstilo = v;
 
@@ -136,8 +134,8 @@ public class ControlTiempoWidget extends HBox {
     }
 
     private boolean esBotonActivo(Button btn) {
-        boolean pausa = simulacion.isEnPausa();
-        double v = simulacion.getVelocidadSimulacion();
+        boolean pausa = simulacion.getReloj().isEnPausa();
+        double v = simulacion.getReloj().getVelocidadSimulacion();
         if (btn == btnPause) return pausa;
         if (pausa) return false;
         if (btn == btn1x) return Math.abs(v - 1.0) < 0.2;

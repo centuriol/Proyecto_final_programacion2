@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import org.example.game.controlador.BucleJuego;
@@ -15,12 +14,9 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class RendimientoRegresionTest {
 
@@ -29,7 +25,7 @@ public class RendimientoRegresionTest {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
         AtomicInteger conteoUI = new AtomicInteger(0);
 
-        sim.agregarListenerUI(conteoUI::incrementAndGet);
+        sim.getBusEventos().agregarListenerUI(conteoUI::incrementAndGet);
 
         // Ejecutar 10 ticks de simulacion fisica
         for (int i = 0; i < 10; i++) {
@@ -41,7 +37,7 @@ public class RendimientoRegresionTest {
                 "avanzarTick() no debe invocar callbacks de UI directamente; deben sincronizarse por frame");
 
         // Al invocar notificarListenersUI explicitamente (fin de frame), se debe disparar
-        sim.notificarListenersUI();
+        sim.getBusEventos().notificarListenersUI();
         assertEquals(1, conteoUI.get(),
                 "notificarListenersUI() debe invocar a los observadores registrados");
     }
@@ -53,19 +49,19 @@ public class RendimientoRegresionTest {
         AtomicInteger conteoListener2 = new AtomicInteger(0);
         AtomicInteger conteoListener3 = new AtomicInteger(0);
 
-        sim.agregarListenerUI(conteoListener1::incrementAndGet);
-        sim.agregarListenerUI(conteoListener2::incrementAndGet);
-        sim.agregarListenerUI(conteoListener3::incrementAndGet);
+        sim.getBusEventos().agregarListenerUI(conteoListener1::incrementAndGet);
+        sim.getBusEventos().agregarListenerUI(conteoListener2::incrementAndGet);
+        sim.getBusEventos().agregarListenerUI(conteoListener3::incrementAndGet);
 
-        sim.notificarListenersUI();
+        sim.getBusEventos().notificarListenersUI();
 
         assertEquals(1, conteoListener1.get(), "Listener 1 debe recibir notificacion");
         assertEquals(1, conteoListener2.get(), "Listener 2 no debe haber sido pisado");
         assertEquals(1, conteoListener3.get(), "Listener 3 no debe haber sido pisado");
 
         // Remover listener 2
-        sim.removerListenerUI(conteoListener2::incrementAndGet); // referencia distinta no remueve
-        sim.removerListenerUI(null); // proteccion contra null
+        sim.getBusEventos().removerListenerUI(conteoListener2::incrementAndGet); // referencia distinta no remueve
+        sim.getBusEventos().removerListenerUI(null); // proteccion contra null
     }
 
     @Test
@@ -77,7 +73,7 @@ public class RendimientoRegresionTest {
         BucleJuego bucle = new BucleJuego(sim, renderizador, canvas, null);
 
         AtomicInteger conteoUI = new AtomicInteger(0);
-        sim.agregarListenerUI(conteoUI::incrementAndGet);
+        sim.getBusEventos().agregarListenerUI(conteoUI::incrementAndGet);
 
         // Simular frame 1 (inicializa timestamp)
         bucle.handle(1_000_000_000L);
@@ -88,7 +84,7 @@ public class RendimientoRegresionTest {
         bucle.handle(1_400_000_000L);
 
         // Debe haberse ejecutado el lote de ticks en la fisica
-        assertTrue(sim.getTickActual() >= 1, "La simulacion debio avanzar ticks en el frame");
+        assertTrue(sim.getReloj().getTickActual() >= 1, "La simulacion debio avanzar ticks en el frame");
 
         // Regresion: UI debe haberse notificado exactamente 1 vez para este frame
         assertEquals(1, conteoUI.get(),
@@ -98,7 +94,7 @@ public class RendimientoRegresionTest {
     @Test
     void testTrayectoriaPredictorCalculaCorrectamenteSinObjetosIntermedios() {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         sim.agregarCuerpo(sol);
 
         TrayectoriaPredictor predictor = new TrayectoriaPredictor();

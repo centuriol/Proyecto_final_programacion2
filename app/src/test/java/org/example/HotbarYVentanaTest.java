@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -13,23 +12,22 @@ import org.example.game.ui.VentanaDescripcionCuerpo;
 import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class HotbarYVentanaTest {
 
     @Test
     void testVentanaDescripcionCuerpoLore() {
-        String loreSol = VentanaDescripcionCuerpo.obtenerLore(TipoCuerpo.ESTRELLA);
+        org.example.game.ui.VisualizadorDescripcion ventana = new VentanaDescripcionCuerpo();
+        String loreSol = ventana.lore(TipoCuerpo.ESTRELLA);
         assertNotNull(loreSol);
         assertFalse(loreSol.isBlank());
 
-        String lorePlaneta = VentanaDescripcionCuerpo.obtenerLore(TipoCuerpo.PLANETA_ROCOSO);
+        String lorePlaneta = ventana.lore(TipoCuerpo.PLANETA_ROCOSO);
         assertNotNull(lorePlaneta);
         assertFalse(lorePlaneta.isBlank());
 
-        String loreLuna = VentanaDescripcionCuerpo.obtenerLore(TipoCuerpo.LUNA);
+        String loreLuna = ventana.lore(TipoCuerpo.LUNA);
         assertNotNull(loreLuna);
         assertFalse(loreLuna.isBlank());
     }
@@ -111,8 +109,9 @@ class HotbarYVentanaTest {
 
     @Test
     void testVentanaDescripcionCaracteristicas() {
+        org.example.game.ui.VisualizadorDescripcion ventana = new VentanaDescripcionCuerpo();
         for (TipoCuerpo tipo : new TipoCuerpo[]{TipoCuerpo.ESTRELLA, TipoCuerpo.PLANETA_ROCOSO, TipoCuerpo.LUNA}) {
-            VBox caracBox = VentanaDescripcionCuerpo.crearSeccionCaracteristicas(tipo);
+            VBox caracBox = ventana.caracteristicas(tipo);
             assertNotNull(caracBox);
             assertEquals(2, caracBox.getChildren().size());
 

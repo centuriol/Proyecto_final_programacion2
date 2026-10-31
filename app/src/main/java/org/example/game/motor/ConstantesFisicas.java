@@ -1,5 +1,4 @@
 package org.example.game.motor;
-
 /**
  * Constantes físicas centralizadas para toda la simulación.
  * Principio: Single Responsibility - un solo lugar para configuración física.
@@ -37,25 +36,6 @@ public final class ConstantesFisicas {
     // --- Límites mundo ---
     public static final double RADIO_MUNDO_DEFAULT = 10000.0;
     public static final double LIMITE_ESCAPE_FACTOR = 2.0;
-
-    // --- Conversión coordenadas ---
-    // JavaFX: origen arriba-izquierda, Y crece hacia ABAJO
-    // Física: origen centro, Y crece hacia ARRIBA
-    public static double fisicaAYJavaFX(double yFisica, double altoMundo) {
-        return altoMundo / 2.0 - yFisica;
-    }
-
-    public static double javaFXAFisica(double yJavaFX, double altoMundo) {
-        return altoMundo / 2.0 - yJavaFX;
-    }
-
-    public static double fisicaAXJavaFX(double xFisica, double anchoMundo) {
-        return anchoMundo / 2.0 + xFisica;
-    }
-
-    public static double javaFXAFisicaX(double xJavaFX, double anchoMundo) {
-        return xJavaFX - anchoMundo / 2.0;
-    }
 
     private ConstantesFisicas() {}
 }

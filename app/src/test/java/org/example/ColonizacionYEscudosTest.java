@@ -1,5 +1,4 @@
 package org.example;
-
 import org.example.game.civilizacion.CivilizacionComponent;
 import org.example.game.colonizacion.NaveColonizadora;
 import org.example.game.cuerpo.*;
@@ -11,11 +10,8 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class ColonizacionYEscudosTest {
 
@@ -29,9 +25,9 @@ class ColonizacionYEscudosTest {
 
     @Test
     void testSoloPlanetaPorroNaceConCivilizacion() {
-        Planeta porro = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(100, 0, 1.0, Vector2D.cero());
-        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(200, 0, 1.0, Vector2D.cero());
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(100, 0, 1.0, Vector2D.cero());
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(200, 0, 1.0, Vector2D.cero());
 
         assertTrue(porro.tieneCivilizacion());
         assertFalse(agua.tieneCivilizacion());
@@ -43,10 +39,10 @@ class ColonizacionYEscudosTest {
 
     @Test
     void testCrecimientoLogisticoYCapacidad() {
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         Vector2D posPorro = new Vector2D(150, 0);
-        Vector2D velPorro = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posPorro, false);
-        Planeta porro = CuerpoCelesteFactory.crearPlanetaRocoso(posPorro.x(), posPorro.y(), 1.0, velPorro);
+        Vector2D velPorro = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, posPorro, false);
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(posPorro.x(), posPorro.y(), 1.0, velPorro);
         CivilizacionComponent civ = porro.getCivilizacion();
         assertNotNull(civ);
 
@@ -69,16 +65,16 @@ class ColonizacionYEscudosTest {
         simulacion.getInventario().agregarRecurso(TipoRecurso.MINERALES, 1000);
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 1000);
 
-        Planeta origen = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta origen = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         CivilizacionComponent civOrigen = origen.getCivilizacion();
         civOrigen.setPoblacion(civOrigen.getPoblacionMaxima() * 0.85);
 
-        Planeta destino = CuerpoCelesteFactory.crearPlanetaAgua(500, 0, 1.0, Vector2D.cero());
+        Planeta destino = new CuerpoCelesteFactory().crearPlanetaAgua(500, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(origen);
         simulacion.agregarCuerpo(destino);
 
         double pobAntesOrigen = civOrigen.getPoblacion();
-        boolean lanzada = simulacion.getGestorColonizacion().lanzar(origen, destino, simulacion.getInventario(), simulacion::notificarEvento, 0);
+        boolean lanzada = simulacion.getGestorColonizacion().lanzar(origen, destino, simulacion.getInventario(), simulacion.getBusEventos()::notificarEvento, 0);
         assertTrue(lanzada);
 
         assertEquals(1, simulacion.getGestorColonizacion().getNaves().size());
@@ -100,17 +96,17 @@ class ColonizacionYEscudosTest {
         simulacion.getInventario().agregarRecurso(TipoRecurso.MINERALES, 1000);
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 1000);
 
-        Planeta origen = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta origen = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         origen.getCivilizacion().setPoblacion(origen.getCivilizacion().getPoblacionMaxima() * 0.90);
-        Planeta destino = CuerpoCelesteFactory.crearPlanetaAgua(1000, 0, 1.0, Vector2D.cero());
+        Planeta destino = new CuerpoCelesteFactory().crearPlanetaAgua(1000, 0, 1.0, Vector2D.cero());
 
         simulacion.agregarCuerpo(origen);
         simulacion.agregarCuerpo(destino);
 
-        assertTrue(simulacion.getGestorColonizacion().lanzar(origen, destino, simulacion.getInventario(), simulacion::notificarEvento, 0));
+        assertTrue(simulacion.getGestorColonizacion().lanzar(origen, destino, simulacion.getInventario(), simulacion.getBusEventos()::notificarEvento, 0));
 
-        simulacion.eliminarCuerpo(destino);
-        simulacion.getGestorColonizacion().actualizar(simulacion::notificarEvento, 1);
+        simulacion.getGestorCicloVida().eliminarCuerpo(destino);
+        simulacion.getGestorColonizacion().actualizar(simulacion.getBusEventos()::notificarEvento, 1);
         assertTrue(simulacion.getGestorColonizacion().getNaves().isEmpty());
     }
 
@@ -119,13 +115,13 @@ class ColonizacionYEscudosTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 500);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
 
         assertFalse(planeta.tieneEscudo());
         assertTrue(planeta.puedeRecibirEscudo());
 
-        boolean activado = ServicioEscudo.activar(simulacion, planeta);
+        boolean activado = simulacion.getServicioEscudo().activar(simulacion, planeta);
         assertTrue(activado);
         assertTrue(planeta.tieneEscudo());
         assertEquals(5, planeta.getGolpesEscudoRestantes());
@@ -140,7 +136,7 @@ class ColonizacionYEscudosTest {
         assertEquals(ConfiguracionSimulacion.PRODUCCION_SATELITE_ENERGIA, satelite.getTipoCuerpo().getProduccionBase().get(TipoRecurso.ENERGIA), 1e-6);
         assertNull(satelite.getTipoCuerpo().getProduccionBase().get(TipoRecurso.MINERALES));
 
-        simulacion.eliminarCuerpo(planeta);
+        simulacion.getGestorCicloVida().eliminarCuerpo(planeta);
         assertFalse(simulacion.getSistemaSolar().getCuerpos().contains(satelite));
     }
 
@@ -149,16 +145,16 @@ class ColonizacionYEscudosTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 500);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
-        ServicioEscudo.activar(simulacion, planeta);
+        simulacion.getServicioEscudo().activar(simulacion, planeta);
 
         double masaInicial = planeta.getMasa();
         int golpes = planeta.getGolpesEscudoRestantes();
 
         for (int i = 0; i < golpes; i++) {
             assertTrue(planeta.tieneEscudo());
-            Meteorito met = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
+            Meteorito met = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
             simulacion.agregarCuerpo(met);
             simulacion.avanzarTick();
             assertEquals(masaInicial, planeta.getMasa(), 1e-3);
@@ -172,11 +168,11 @@ class ColonizacionYEscudosTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 500);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
-        ServicioEscudo.activar(simulacion, planeta);
+        simulacion.getServicioEscudo().activar(simulacion, planeta);
 
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         simulacion.agregarCuerpo(sol);
 
         simulacion.avanzarTick();
@@ -187,20 +183,21 @@ class ColonizacionYEscudosTest {
     void testEscudoMasCaroSegunMasaDelPlaneta() {
         simulacion.getProgresion().desbloquearTodo();
 
-        Planeta planetaChico = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 0.3, Vector2D.cero());
-        Planeta planetaNormal = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta planetaGrande = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
-        Planeta planetaColosal = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Planeta planetaChico = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 0.3, Vector2D.cero());
+        Planeta planetaNormal = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta planetaGrande = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
+        Planeta planetaColosal = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
 
-        double costoChico = ServicioEscudo.calcularCostoEscudo(planetaChico);
-        double costoNormal = ServicioEscudo.calcularCostoEscudo(planetaNormal);
-        double costoGrande = ServicioEscudo.calcularCostoEscudo(planetaGrande);
-        double costoColosal = ServicioEscudo.calcularCostoEscudo(planetaColosal);
+        ServicioEscudo servicioEscudo = new ServicioEscudo();
+        double costoChico = servicioEscudo.calcularCostoEscudo(planetaChico);
+        double costoNormal = servicioEscudo.calcularCostoEscudo(planetaNormal);
+        double costoGrande = servicioEscudo.calcularCostoEscudo(planetaGrande);
+        double costoColosal = servicioEscudo.calcularCostoEscudo(planetaColosal);
 
         assertTrue(costoChico < costoNormal);
-        assertEquals(50.0, costoNormal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA, costoNormal, 1e-6);
         assertTrue(costoGrande > costoNormal);
         assertTrue(costoColosal > costoGrande);
-        assertEquals(250.0, costoColosal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * 5.0, costoColosal, 1e-6);
     }
 }

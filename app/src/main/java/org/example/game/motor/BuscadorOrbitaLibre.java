@@ -1,18 +1,21 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.simulacion.ConfiguracionTransformacion;
-
 import java.util.List;
-
 /**
  * SRP: Algoritmo de exploración y búsqueda de órbitas seguras libres de solapamiento.
  */
-public final class BuscadorOrbitaLibre {
+public class BuscadorOrbitaLibre {
 
-    private BuscadorOrbitaLibre() {}
+    private static final BuscadorOrbitaLibre INSTANCIA_POR_DEFECTO = new BuscadorOrbitaLibre();
 
-    public static Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
+    public BuscadorOrbitaLibre() {}
+
+    public static BuscadorOrbitaLibre getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
+
+    public Vector2D buscarPosicionLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
         double radioBase = radioActivacion + 40.0;
         Vector2D dirActual = cuerpo.getPosicion().restar(estrella.getPosicion());
         double anguloActual = (dirActual.magnitud() > 0.001) ? Math.atan2(dirActual.y(), dirActual.x()) : 0.0;
@@ -29,7 +32,7 @@ public final class BuscadorOrbitaLibre {
                         Math.sin(angulo) * radioTest
                 ));
 
-                if (posicionEstaLibre(posCandidata, cuerpo, cuerpos)) {
+                if (esPosicionLibre(posCandidata, cuerpo, cuerpos)) {
                     return posCandidata;
                 }
             }
@@ -37,7 +40,7 @@ public final class BuscadorOrbitaLibre {
         return null;
     }
 
-    public static boolean posicionEstaLibre(Vector2D pos, CuerpoCeleste cuerpo, List<CuerpoCeleste> cuerpos) {
+    public boolean esPosicionLibre(Vector2D pos, CuerpoCeleste cuerpo, List<CuerpoCeleste> cuerpos) {
         double radioCuerpo = cuerpo.getRadio();
         double margen = ConfiguracionTransformacion.MARGEN_SEGURIDAD_ORBITA_LIBRE;
 
@@ -50,5 +53,13 @@ public final class BuscadorOrbitaLibre {
             }
         }
         return true;
+    }
+
+    public static Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
+        return INSTANCIA_POR_DEFECTO.buscarPosicionLibre(cuerpo, estrella, radioActivacion, cuerpos);
+    }
+
+    public static boolean posicionEstaLibre(Vector2D pos, CuerpoCeleste cuerpo, List<CuerpoCeleste> cuerpos) {
+        return INSTANCIA_POR_DEFECTO.esPosicionLibre(pos, cuerpo, cuerpos);
     }
 }

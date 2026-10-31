@@ -1,9 +1,6 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-
 import java.util.function.Consumer;
-
 /**
  * Estrategia de detección y captura gravitacional de órbitas relativas (Strategy / OCP).
  */

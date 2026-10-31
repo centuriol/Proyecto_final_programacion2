@@ -1,24 +1,5 @@
 package org.example;
-
-import javafx.scene.input.ScrollEvent;
-import org.example.game.civilizacion.EstadoCivilizacion;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.controlador.ControladorMouse;
-import org.example.game.cuerpo.*;
-import org.example.game.motor.MotorFisicaPermisiva;
-import org.example.game.motor.Vector2D;
-import org.example.game.render.CamaraZoom;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import javafx.scene.input.ScrollEvent; import org.example.game.civilizacion.EstadoCivilizacion; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.controlador.ControladorMouse; import org.example.game.cuerpo.*; import org.example.game.motor.MotorFisicaPermisiva; import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.ArrayList; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class MecanicasColisionYVidaTest {
 
@@ -33,12 +14,12 @@ class MecanicasColisionYVidaTest {
 
     @Test
     void testRadioCapturaEscalaConRadioAtraccionDeEstrella() {
-        Estrella estrella1 = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Estrella estrellaGrande = CuerpoCelesteFactory.crearEstrella(0, 0, 4.0);
+        Estrella estrella1 = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Estrella estrellaGrande = new CuerpoCelesteFactory().crearEstrella(0, 0, 4.0);
 
         assertTrue(estrellaGrande.getRadioAtraccion() > estrella1.getRadioAtraccion());
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(0, 300, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 300, 1.0, Vector2D.cero());
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
         cuerpos.add(estrella1);
         cuerpos.add(planeta);
@@ -53,8 +34,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testColisionAsimetricaMayorGanaPorcentajeDeMasa() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta mayor = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
-        Planeta menor = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Planeta mayor = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
+        Planeta menor = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(mayor);
         cuerpos.add(menor);
 
@@ -71,14 +52,15 @@ class MecanicasColisionYVidaTest {
         assertEquals(masaEsperadaMayor, mayor.getMasa(), 1e-6);
 
         long countMeteoritos = cuerpos.stream().filter(c -> c instanceof Meteorito).count();
-        assertEquals(ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO, countMeteoritos);
+        assertTrue(countMeteoritos >= ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO);
+        assertTrue(countMeteoritos <= ConfiguracionSimulacion.MAX_FRAGMENTOS_POR_COLAPSO);
     }
 
     @Test
     void testColisionSimetricaAmbosColapsan() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(p1);
         cuerpos.add(p2);
 
@@ -86,18 +68,19 @@ class MecanicasColisionYVidaTest {
 
         assertFalse(cuerpos.contains(p1));
         assertFalse(cuerpos.contains(p2));
-        assertEquals(ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO * 2, cuerpos.size());
+        assertTrue(cuerpos.size() >= ConfiguracionSimulacion.FRAGMENTOS_POR_COLAPSO * 2);
+        assertTrue(cuerpos.size() <= ConfiguracionSimulacion.MAX_FRAGMENTOS_POR_COLAPSO * 2);
     }
 
     @Test
     void testPoblacionEnCeroTrasEliminacionManual() {
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
         planeta.desarrollarCivilizacion();
         assertTrue(planeta.tieneCivilizacion());
         assertTrue(planeta.getCivilizacion().getPoblacion() > 0);
 
         simulacion.agregarCuerpo(planeta);
-        simulacion.eliminarCuerpo(planeta);
+        simulacion.getGestorCicloVida().eliminarCuerpo(planeta);
 
         assertEquals(0.0, planeta.getCivilizacion().getPoblacion(), 1e-6);
         assertEquals(EstadoCivilizacion.EXTINGUIDA, planeta.getCivilizacion().getEstado());
@@ -107,8 +90,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testPoblacionEnCeroTrasColisionAsimetrica() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta mayor = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
-        Planeta menor = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        Planeta mayor = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Planeta menor = new CuerpoCelesteFactory().crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
         menor.desarrollarCivilizacion();
         assertTrue(menor.tieneCivilizacion());
 
@@ -124,8 +107,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testPoblacionEnCeroTrasAbsorcionPorAgujeroNegro() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 2.0);
-        Planeta victima = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 2.0);
+        Planeta victima = new CuerpoCelesteFactory().crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
         victima.desarrollarCivilizacion();
         assertTrue(victima.tieneCivilizacion());
 

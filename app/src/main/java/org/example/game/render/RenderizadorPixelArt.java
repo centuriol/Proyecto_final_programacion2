@@ -1,19 +1,17 @@
 package org.example.game.render;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Defensor;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
 import org.example.game.motor.GestorAgujeroNegro;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.capa.*;
 import org.example.game.render.cuerpo.*;
-
 import java.util.*;
-
 /**
  * Renderizador Pixel Art para el juego "Órbita" estilo RimWorld UI.
  * SRP: Orquesta las capas de fondo, zonas, atracción, cuerpos, trayectoria, selección y ghost.
@@ -31,6 +29,7 @@ public class RenderizadorPixelArt {
     private final CamaraZoom camaraZoom = new CamaraZoom();
     private final RenderizadorFondo renderizadorFondo;
     private final GestorEstelas gestorEstelas;
+    private final ConversorCoordenadas conversor;
     private final RepositorioSprites repositorioSprites;
 
     // Capas visuales (SRP)
@@ -39,6 +38,9 @@ public class RenderizadorPixelArt {
     private final CapaSeleccion capaSeleccion;
     private final CapaTrayectorias capaTrayectorias;
     private final CapaGhostPreview capaGhostPreview;
+    private final CapaNavesColonizadoras capaNaves = new CapaNavesColonizadoras();
+    private final CapaEscudoPlanetario capaEscudo = new CapaEscudoPlanetario();
+    private final org.example.game.cuerpo.ServicioEscudo servicioEscudo = org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto();
 
     private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
     private java.util.function.Supplier<List<org.example.game.colonizacion.NaveColonizadora>> proveedorNaves;
@@ -59,7 +61,8 @@ public class RenderizadorPixelArt {
         this.altoCanvas = alto;
         this.renderizadorFondo = renderizadorFondo != null ? renderizadorFondo : new RenderizadorFondo(ancho, alto);
         this.gestorEstelas = gestorEstelas != null ? gestorEstelas : new GestorEstelas();
-        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : GestorImagenes.getInstancia();
+        this.conversor = new TransformadorCoordenadas();
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         this.capaZonasHabitables = capaZonasHabitables != null ? capaZonasHabitables : new CapaZonasHabitables();
         this.capaAreaAtraccion = capaAreaAtraccion != null ? capaAreaAtraccion : new CapaAreaAtraccion();
         this.capaSeleccion = capaSeleccion != null ? capaSeleccion : new CapaSeleccion();
@@ -125,23 +128,25 @@ public class RenderizadorPixelArt {
                                Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
                                CuerpoCeleste cuerpoSeleccionado) {
 
-        double zoom = camaraZoom.getNivelZoom();
-        if (!camaraZoom.esZoomNeutro()) {
-            gc.save();
-            double cx = anchoCanvas / 2.0;
-            double cy = altoCanvas / 2.0;
-            gc.translate(cx * (1.0 - zoom), cy * (1.0 - zoom));
-            gc.scale(zoom, zoom);
-        }
-
         renderizadorFondo.dibujarFondo(gc, anchoCanvas, altoCanvas, tick);
-
-        if (mostrarGrilla) {
-            renderizadorFondo.dibujarGrilla(gc, anchoCanvas, altoCanvas);
-        }
 
         if (repositorioSprites.obtenerImagenFondo() == null) {
             renderizadorFondo.dibujarEstrellasFondo(gc, tick);
+        }
+
+        double zoom = camaraZoom.getNivelZoom();
+        boolean vistaTransformada = !camaraZoom.esVistaNeutra();
+        if (vistaTransformada) {
+            gc.save();
+            gc.translate(
+                    camaraZoom.calcularTraslacionX(anchoCanvas),
+                    camaraZoom.calcularTraslacionY(altoCanvas)
+            );
+            gc.scale(zoom, zoom);
+        }
+
+        if (mostrarGrilla) {
+            renderizadorFondo.dibujarGrilla(gc, anchoCanvas, altoCanvas, camaraZoom);
         }
 
         if (mostrarZonasHabitables) {
@@ -158,7 +163,7 @@ public class RenderizadorPixelArt {
             dibujarCuerpoPixelArt(gc, c, cuerpos, tick);
         }
 
-        dibujarNavesColonizadoras(gc);
+        capaNaves.dibujar(gc, proveedorNaves, conversor, anchoCanvas, altoCanvas);
 
         if (gestorEfectos != null) {
             gestorEfectos.dibujar(gc, anchoCanvas, altoCanvas);
@@ -177,19 +182,19 @@ public class RenderizadorPixelArt {
                     tiempoAnimacionSegundos, anchoCanvas, altoCanvas);
         }
 
-        if (!camaraZoom.esZoomNeutro()) {
+        if (vistaTransformada) {
             gc.restore();
         }
     }
 
     private void dibujarCuerpoPixelArt(GraphicsContext gc, CuerpoCeleste c, List<CuerpoCeleste> cuerpos, long tick) {
-        double x = Math.round(ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas));
-        double y = Math.round(ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas));
+        double x = Math.round(conversor.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas));
+        double y = Math.round(conversor.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas));
         TipoCuerpo tipo = c.getTipoCuerpo();
         double r = c.getRadio();
 
         double angulo = 0.0;
-        if (tipo != TipoCuerpo.ESTRELLA) {
+        if (c.getMasa() < 1e29) {
             double velAngular = 57.2958 / Math.max(6.0, r);
             double faseInicial = (c.getNombre() != null) ? Math.abs(c.getNombre().hashCode() % 360) : 0;
             angulo = (faseInicial + tiempoAnimacionSegundos * velAngular) % 360.0;
@@ -216,8 +221,8 @@ public class RenderizadorPixelArt {
 
         gc.restore();
 
-        if (c instanceof Defensor d && d.tieneEscudo()) {
-            dibujarCupulaEscudo(gc, x, y, r, tick);
+        if (servicioEscudo.tieneEscudo(c)) {
+            capaEscudo.dibujarCupula(gc, x, y, r, tick);
         }
 
         gc.setFill(UtilidadRender.colorWeb("#e8e4d8"));
@@ -228,43 +233,12 @@ public class RenderizadorPixelArt {
         gc.setGlobalAlpha(1.0);
     }
 
-    private void dibujarCupulaEscudo(GraphicsContext gc, double cx, double cy, double r, long tick) {
-        double rEfectivo = r * 1.5;
-        double pulso = 0.85 + 0.15 * Math.sin(tick * 0.2);
-
-        gc.setFill(UtilidadRender.colorRgb(91, 227, 255, 0.20 * pulso));
-        gc.fillOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
-
-        gc.setStroke(UtilidadRender.colorWeb("#5be3ff"));
-        gc.setLineWidth(1.8);
-        gc.setLineDashes(6, 4);
-        gc.strokeOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);
-        gc.setLineDashes(null);
-    }
-
-    private void dibujarNavesColonizadoras(GraphicsContext gc) {
-        if (proveedorNaves == null) return;
-        List<org.example.game.colonizacion.NaveColonizadora> naves = proveedorNaves.get();
-        if (naves == null || naves.isEmpty()) return;
-
-        for (org.example.game.colonizacion.NaveColonizadora nave : naves) {
-            if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
-            Vector2D pos = nave.getPosicion();
-            double sx = ConstantesFisicas.fisicaAXJavaFX(pos.x(), anchoCanvas);
-            double sy = ConstantesFisicas.fisicaAYJavaFX(pos.y(), altoCanvas);
-
-            gc.save();
-            gc.setFill(UtilidadRender.colorWeb("#50fa7b"));
-            gc.fillOval(sx - 4, sy - 4, 8, 8);
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.0);
-            gc.strokeOval(sx - 5, sy - 5, 10, 10);
-            gc.restore();
-        }
-    }
-
     public void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
         gestorEstelas.actualizar(cuerpos);
+    }
+
+    public void limpiarEstelas() {
+        gestorEstelas.limpiar();
     }
 
     public void toggleGrilla() { mostrarGrilla = !mostrarGrilla; }
@@ -280,9 +254,7 @@ public class RenderizadorPixelArt {
             this.anchoCanvas = w;
             this.altoCanvas = h;
             renderizadorFondo.generarEstrellasFondo(w, h);
-            if (w > 0) {
-                renderizadorFondo.setDesplazamientoFondoX(renderizadorFondo.getDesplazamientoFondoX() % w);
-            }
+            renderizadorFondo.normalizarDesplazamiento(w);
         }
     }
 
@@ -294,8 +266,7 @@ public class RenderizadorPixelArt {
 
     public void avanzarFondo(double deltaTime, double multiplicadorVelocidad) {
         if (deltaTime <= 0 || multiplicadorVelocidad <= 0) return;
-        double desplazamientoPx = renderizadorFondo.getVelocidadBaseFondo() * multiplicadorVelocidad * deltaTime;
-        renderizadorFondo.setDesplazamientoFondoX(renderizadorFondo.getDesplazamientoFondoX() + desplazamientoPx);
+        renderizadorFondo.avanzarDesplazamiento(deltaTime, multiplicadorVelocidad, anchoCanvas);
     }
 
     public Image getImagenFondo() {
@@ -312,17 +283,5 @@ public class RenderizadorPixelArt {
 
     public double getTiempoAnimacionSegundos() {
         return tiempoAnimacionSegundos;
-    }
-
-    public static Color colorWeb(String hex) {
-        return UtilidadRender.colorWeb(hex);
-    }
-
-    public static Color colorRgb(int r, int g, int b) {
-        return UtilidadRender.colorRgb(r, g, b);
-    }
-
-    public static Color colorRgb(int r, int g, int b, double opacity) {
-        return UtilidadRender.colorRgb(r, g, b, opacity);
     }
 }

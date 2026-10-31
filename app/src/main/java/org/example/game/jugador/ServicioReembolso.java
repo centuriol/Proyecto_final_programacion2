@@ -1,12 +1,10 @@
 package org.example.game.jugador;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.simulacion.MensajeEvento;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Servicio de negocio para el cálculo de reembolsos y desmantelamiento de cuerpos celestes.
  *
@@ -14,22 +12,23 @@ import java.util.Map;
  * - SRP: Encapsula la lógica económica de reciclaje/reembolso sin acoplarse a la interfaz gráfica.
  * - LSP: Interactúa polimórficamente con CuerpoCeleste sin comprobaciones tipo instanceof.
  */
-public final class ServicioReembolso {
+public class ServicioReembolso {
 
     public static final double FACTOR_REEMBOLSO = 0.5;
 
-    private ServicioReembolso() {}
+    public ServicioReembolso() {}
 
     /**
      * Calcula los recursos devueltos al reciclar un cuerpo celeste.
      * Si el cuerpo fue transformado por evento u otro mecanismo, no otorga reembolso.
      */
-    public static Map<TipoRecurso, Double> calcularReembolso(CuerpoCeleste cuerpo) {
+    public Map<TipoRecurso, Double> calcularReembolso(CuerpoCeleste cuerpo) {
         if (cuerpo == null || !cuerpo.permiteReembolso() || cuerpo.getTipoCuerpo() == null) {
             return Collections.emptyMap();
         }
-        double factorMasa = (cuerpo.getTipoCuerpo().masaBase > 0)
-                ? Math.max(0.1, cuerpo.getMasa() / cuerpo.getTipoCuerpo().masaBase)
+        double masaBase = cuerpo.getTipoCuerpo().masaBase;
+        double factorMasa = (masaBase > 0)
+                ? Math.max(0.1, cuerpo.getMasa() / masaBase)
                 : 1.0;
         Map<TipoRecurso, Double> costosOriginales = InventarioJugador.getCostosEscalados(cuerpo.getTipoCuerpo(), factorMasa);
         if (costosOriginales.isEmpty()) {
@@ -46,7 +45,7 @@ public final class ServicioReembolso {
         return Collections.unmodifiableMap(reembolso);
     }
 
-    public static boolean reembolsarYEliminar(CuerpoCeleste cuerpo, SimulacionSolar simulacion) {
+    public boolean reembolsarYEliminar(CuerpoCeleste cuerpo, SimulacionSolar simulacion) {
         return desmantelarCuerpo(simulacion, cuerpo);
     }
 
@@ -54,8 +53,8 @@ public final class ServicioReembolso {
      * Desmantela el cuerpo en la simulación, acreditando el reembolso correspondiente
      * al inventario del jugador y emitiendo un evento informativo.
      */
-    public static boolean desmantelarCuerpo(SimulacionSolar simulacion, CuerpoCeleste cuerpo) {
-        if (simulacion == null || cuerpo == null) return false;
+    public boolean desmantelarCuerpo(SimulacionSolar simulacion, CuerpoCeleste cuerpo) {
+        if (simulacion == null || cuerpo == null || !cuerpo.esInteractuablePorUsuario()) return false;
 
         boolean permiteReembolso = cuerpo.permiteReembolso();
         Map<TipoRecurso, Double> reembolso = permiteReembolso ? calcularReembolso(cuerpo) : Collections.emptyMap();
@@ -66,7 +65,7 @@ public final class ServicioReembolso {
             }
         }
 
-        simulacion.eliminarCuerpo(cuerpo);
+        simulacion.getGestorCicloVida().eliminarCuerpo(cuerpo);
 
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<TipoRecurso, Double> entry : reembolso.entrySet()) {

@@ -1,10 +1,7 @@
 package org.example.game.controlador;
-
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-
 import java.util.Objects;
-
 /**
  * Representa una combinación inmutable de tecla y modificadores (Ctrl, Shift, Alt).
  * Implementado como Java 17 record.

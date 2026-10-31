@@ -3,7 +3,8 @@ package org.example.game.render.capa;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.render.UtilidadRender;
 
 /**
@@ -12,11 +13,20 @@ import org.example.game.render.UtilidadRender;
 public class CapaSeleccion {
 
     private static final Color COLOR_ACENTO_CYAN = UtilidadRender.colorWeb("#5be3ff");
+    private final ConversorCoordenadas conversor;
+
+    public CapaSeleccion() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public CapaSeleccion(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void dibujar(GraphicsContext gc, CuerpoCeleste c, double anchoCanvas, double altoCanvas) {
         if (c == null) return;
-        double cx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
-        double cy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
+        double cx = conversor.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
+        double cy = conversor.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
         double r = c.getRadio() + 6.0;
 
         gc.setStroke(COLOR_ACENTO_CYAN);

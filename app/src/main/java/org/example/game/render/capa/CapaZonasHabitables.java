@@ -2,8 +2,8 @@ package org.example.game.render.capa;
 
 import javafx.scene.canvas.GraphicsContext;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.render.UtilidadRender;
 
 import java.util.List;
@@ -14,16 +14,26 @@ import java.util.List;
 public class CapaZonasHabitables {
 
     private static final double[] RADIOS_REFERENCIA_ORBITAL = { 160.0, 280.0, 400.0 };
+    private final ConversorCoordenadas conversor;
+
+    public CapaZonasHabitables() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public CapaZonasHabitables(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
-                double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
-                double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
+            if (c != null && c.esSimulado() && c.getMasa() >= 1e29 && c.getMasa() < 1e31) {
+                double sx = conversor.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
+                double sy = conversor.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
 
                 double factorMasa = 1.0;
-                if (c.getTipoCuerpo() != null && c.getTipoCuerpo().masaBase > 0) {
-                    factorMasa = Math.max(0.1, c.getMasa() / c.getTipoCuerpo().masaBase);
+                double masaBase = c.getTipoCuerpo() != null ? c.getTipoCuerpo().masaBase : 1.989e30;
+                if (masaBase > 0) {
+                    factorMasa = Math.max(0.1, c.getMasa() / masaBase);
                 }
                 double escala = Math.sqrt(factorMasa);
 

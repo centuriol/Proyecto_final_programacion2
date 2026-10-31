@@ -1,11 +1,8 @@
 package org.example.game.cuerpo;
-
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Tipos de cuerpos celestes con propiedades fisicas y de juego distintas.
  *
@@ -191,11 +188,6 @@ public enum TipoCuerpo {
 
     public String getNombre() { return nombre; }
     public double getMasaBase() { return masaBase; }
-    public double getRadioFisicoBase() { return radioFisicoBase; }
-    public double getTemperaturaBase() { return temperaturaBase; }
-    public boolean isGeneraGravedadFuerte() { return generaGravedadFuerte; }
-    public boolean isPuedeTenerCivilizacion() { return puedeTenerCivilizacion; }
-    public boolean isEsMasivo() { return esMasivo; }
     public int getColorHex() { return colorHex; }
     public CategoriaCuerpo getCategoria() { return categoria; }
 
@@ -219,32 +211,58 @@ public enum TipoCuerpo {
         return categoria == CategoriaCuerpo.PLANETA;
     }
 
-    public boolean esAgujeroNegro() {
-        return categoria == CategoriaCuerpo.AGUJERO_NEGRO;
+    public double getRadioVisualBase() {
+        return switch (this) {
+            case PLANETA_GASEOSO -> 22.0;
+            case PLANETA_HELADO -> 12.0;
+            case AGUJERO_NEGRO_SUPERMASIVO -> 45.0;
+            case AGUJERO_NEGRO -> 25.0;
+            default -> 15.0;
+        };
     }
 
-    public boolean esEstrella() {
-        return categoria == CategoriaCuerpo.ESTRELLA;
-    }
-
-    public boolean esLuna() {
-        return categoria == CategoriaCuerpo.LUNA;
-    }
-
-    public boolean esAtractorOrbital() {
-        return esEstrella() || esAgujeroNegro();
-    }
-
-    public boolean esMenorOrbital() {
+    public boolean puedeOrbitarPlanetas() {
         return this == LUNA || this == SATELITE;
+    }
+
+    ReaccionTermicaPlaneta getReaccionTermica() {
+        return switch (this) {
+            case PLANETA_AGUA -> ReaccionTermicaPlaneta.AGUA;
+            case PLANETA_LAVA -> ReaccionTermicaPlaneta.LAVA;
+            default -> ReaccionTermicaPlaneta.INERTE;
+        };
+    }
+
+    public int getNivelRequerido() {
+        return switch (this) {
+            case LUNA -> 1;
+            case PLANETA_ROCOSO -> 2;
+            case SATELITE -> 3;
+            case PLANETA_LAVA -> 5;
+            default -> 0;
+        };
+    }
+
+    public double getCostoDesbloqueoCiencia() {
+        return switch (this) {
+            case LUNA -> 100.0;
+            case PLANETA_ROCOSO -> 200.0;
+            case SATELITE -> 350.0;
+            case PLANETA_LAVA -> 800.0;
+            default -> 0.0;
+        };
+    }
+
+    public boolean permiteAjusteMasa() {
+        return this != SATELITE;
+    }
+
+    public double ajustarFactorMasaEfectivo(double factorMasa) {
+        return permiteAjusteMasa() ? factorMasa : 1.0;
     }
 
     public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }
     public double getMasaMax() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MAX; }
-
-    public static String formatearMasa(double masaKg) {
-        return FormateadorMasa.formatearMasa(masaKg);
-    }
 
     private DescriptorTipoCuerpo getDescriptor() {
         return CatalogoDescriptoresCuerpo.obtenerDescriptor(this);
@@ -264,25 +282,5 @@ public enum TipoCuerpo {
 
     public double getRadioAtraccionMax() {
         return getDescriptor().radioAtraccionMax();
-    }
-
-    public String getNombrePorDefecto() {
-        return getDescriptor().nombrePorDefecto();
-    }
-
-    public String getIcono() {
-        return getDescriptor().icono();
-    }
-
-    public String getSubtitulo() {
-        return getDescriptor().subtitulo();
-    }
-
-    public String getLore() {
-        return getDescriptor().lore();
-    }
-
-    public String getRutaAudio() {
-        return getDescriptor().rutaAudio();
     }
 }

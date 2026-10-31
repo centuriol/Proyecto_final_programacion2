@@ -1,14 +1,12 @@
 package org.example.game.efectos;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 /**
  * Gestor de efectos visuales (anillos y partículas de explosión que se desvanecen en ~40 frames).
  * SRP: Responsable exclusivo de registrar y dibujar efectos transitorios visuales.
@@ -33,13 +31,13 @@ public class GestorEfectos {
             return frameActual >= duracionFrames;
         }
 
-        void dibujar(GraphicsContext gc, double anchoCanvas, double altoCanvas) {
+        void dibujar(GraphicsContext gc, double anchoCanvas, double altoCanvas, ConversorCoordenadas conversor) {
             double prog = (double) frameActual / duracionFrames;
             double alpha = Math.max(0.0, 1.0 - prog);
             double radio = radioInicial + prog * 50.0;
 
-            double cx = ConstantesFisicas.fisicaAXJavaFX(posicionFisica.x(), anchoCanvas);
-            double cy = ConstantesFisicas.fisicaAYJavaFX(posicionFisica.y(), altoCanvas);
+            double cx = conversor.fisicaAXJavaFX(posicionFisica.x(), anchoCanvas);
+            double cy = conversor.fisicaAYJavaFX(posicionFisica.y(), altoCanvas);
 
             // Anillo exterior
             gc.save();
@@ -57,6 +55,15 @@ public class GestorEfectos {
     }
 
     private final List<EfectoExplosion> explosiones = new ArrayList<>();
+    private final ConversorCoordenadas conversor;
+
+    public GestorEfectos() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public GestorEfectos(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void agregarExplosion(Vector2D posicionFisica, double radioInicial, Color color) {
         if (posicionFisica != null) {
@@ -79,7 +86,7 @@ public class GestorEfectos {
 
     public void dibujar(GraphicsContext gc, double anchoCanvas, double altoCanvas) {
         for (EfectoExplosion e : explosiones) {
-            e.dibujar(gc, anchoCanvas, altoCanvas);
+            e.dibujar(gc, anchoCanvas, altoCanvas, conversor);
         }
     }
 

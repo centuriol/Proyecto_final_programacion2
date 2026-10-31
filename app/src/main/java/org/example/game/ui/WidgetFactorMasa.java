@@ -1,5 +1,4 @@
 package org.example.game.ui;
-
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -10,9 +9,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.ConfiguracionSimulacion;
-
 import java.util.function.DoubleConsumer;
-
 /**
  * Control visual reutilizable para la selección y previsualización del factor de masa.
  *
@@ -99,7 +96,7 @@ public class WidgetFactorMasa extends VBox {
 
     private void actualizarTexto(double factor) {
         if (masaBase > 0) {
-            lblValor.setText(String.format("%.1fx (%s)", factor, TipoCuerpo.formatearMasa(masaBase * factor)));
+            lblValor.setText(String.format("%.1fx (%s)", factor, org.example.game.cuerpo.FormateadorMasa.formatearMasa(masaBase * factor)));
         } else {
             lblValor.setText(String.format("%.1fx", factor));
         }

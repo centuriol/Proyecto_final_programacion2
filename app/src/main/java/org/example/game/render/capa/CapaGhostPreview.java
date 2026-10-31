@@ -1,26 +1,31 @@
 package org.example.game.render.capa;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.RepositorioSprites;
 import org.example.game.render.UtilidadRender;
-
 /**
  * Capa de renderizado para el fantasma (ghost preview) y guía de colocación en tiempo real (SRP).
  */
 public class CapaGhostPreview {
 
     private final RepositorioSprites repositorioSprites;
+    private final ConversorCoordenadas conversor;
     private static final Color COLOR_ACENTO_CYAN = UtilidadRender.colorWeb("#5be3ff");
     private static final Color COLOR_TEXTO_ETIQUETA = UtilidadRender.colorWeb("#e8e4d8");
     private static final Color COLOR_VERDE_EXITO = UtilidadRender.colorWeb("#50fa7b");
 
     public CapaGhostPreview(RepositorioSprites repositorioSprites) {
+        this(repositorioSprites, new TransformadorCoordenadas());
+    }
+
+    public CapaGhostPreview(RepositorioSprites repositorioSprites, ConversorCoordenadas conversor) {
         this.repositorioSprites = repositorioSprites;
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa,
@@ -28,8 +33,8 @@ public class CapaGhostPreview {
                         double anchoCanvas, double altoCanvas) {
         if (posFisica == null || tipo == null) return;
 
-        double x = ConstantesFisicas.fisicaAXJavaFX(posFisica.x(), anchoCanvas);
-        double y = ConstantesFisicas.fisicaAYJavaFX(posFisica.y(), altoCanvas);
+        double x = conversor.fisicaAXJavaFX(posFisica.x(), anchoCanvas);
+        double y = conversor.fisicaAYJavaFX(posFisica.y(), altoCanvas);
         double r = Math.max(8.0, Math.min(35.0, 15.0 * factorMasa));
 
         double pulso = 1.0 + 0.15 * Math.sin(tick * 0.25);
@@ -50,9 +55,10 @@ public class CapaGhostPreview {
         Image imgGhost = repositorioSprites != null ? repositorioSprites.obtenerImagen(tipo) : null;
         if (imgGhost != null) {
             gc.setGlobalAlpha(0.65);
-            double tamGhost = (tipo == TipoCuerpo.ESTRELLA) ? Math.max(32.0, r * 2.2) : Math.max(16.0, r * 2.0);
+            org.example.game.render.EstrategiaVisualTipo est = org.example.game.render.RegistroEstrategiasVisuales.get(tipo);
+            double tamGhost = est.calcularTamanoGhost(r);
             double angulo = 0.0;
-            if (tipo != TipoCuerpo.ESTRELLA) {
+            if (est.tieneRotacionAnimada()) {
                 double velAngular = 57.2958 / Math.max(6.0, r);
                 angulo = (tiempoAnimacion * velAngular) % 360.0;
             }
@@ -69,27 +75,15 @@ public class CapaGhostPreview {
     }
 
     private void dibujarAreaColapsoYReferencias(GraphicsContext gc, TipoCuerpo tipo, double factorMasa, double x, double y) {
-        double rAtraccion;
-        if (tipo == TipoCuerpo.ESTRELLA) {
-            rAtraccion = Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
-        } else if (tipo == TipoCuerpo.PLANETA_ROCOSO || tipo == TipoCuerpo.PLANETA_GASEOSO
-                || tipo == TipoCuerpo.PLANETA_HELADO || tipo == TipoCuerpo.PLANETA_AGUA
-                || tipo == TipoCuerpo.PLANETA_LAVA) {
-            rAtraccion = Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
-        } else if (tipo == TipoCuerpo.LUNA) {
-            rAtraccion = Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
-        } else if (tipo == TipoCuerpo.AGUJERO_NEGRO || tipo == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO) {
-            rAtraccion = Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
-        } else {
-            rAtraccion = Math.max(20.0, 35.0 * Math.sqrt(factorMasa));
-        }
+        org.example.game.render.EstrategiaVisualTipo est = org.example.game.render.RegistroEstrategiasVisuales.get(tipo);
+        double rAtraccion = est.calcularRadioAtraccionPreview(factorMasa);
 
         gc.setStroke(UtilidadRender.colorRgb(255, 255, 255, 0.20));
         gc.setLineWidth(1.0);
         gc.setLineDashes(3, 5);
         gc.strokeOval(x - rAtraccion, y - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
 
-        if (tipo == TipoCuerpo.ESTRELLA) {
+        if (est.tieneLineasReferenciaOrbital()) {
             double escala = Math.sqrt(Math.max(0.1, factorMasa));
             double[] radiosReferencia = CapaZonasHabitables.getRadiosReferenciaOrbital();
             gc.setStroke(UtilidadRender.colorRgb(91, 227, 255, 0.12));

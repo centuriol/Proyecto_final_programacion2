@@ -1,17 +1,15 @@
 package org.example.game.render;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Gestiona el historial y dibujo de estelas orbitales de los cuerpos celestes.
  *
@@ -21,7 +19,16 @@ import java.util.Map;
 public class GestorEstelas {
 
     private final Map<CuerpoCeleste, Deque<Vector2D>> estelas = new HashMap<>();
+    private final ConversorCoordenadas conversor;
     private static final int MAX_PUNTOS_ESTELA = 45;
+
+    public GestorEstelas() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public GestorEstelas(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void actualizar(List<CuerpoCeleste> cuerpos) {
         if (cuerpos == null) {
@@ -34,7 +41,7 @@ public class GestorEstelas {
 
         for (CuerpoCeleste c : cuerpos) {
             Deque<Vector2D> cola = estelas.computeIfAbsent(c, k -> new ArrayDeque<>());
-            cola.addLast(new Vector2D(c.getPosicionX(), c.getPosicionY()));
+            cola.addLast(c.getPosicion());
             if (cola.size() > MAX_PUNTOS_ESTELA) {
                 cola.removeFirst();
             }
@@ -47,7 +54,7 @@ public class GestorEstelas {
             Deque<Vector2D> pts = entry.getValue();
             if (pts.size() < 2) continue;
 
-            Color baseCol = RenderizadorPixelArt.colorWeb(c.getColorHex());
+            Color baseCol = UtilidadRender.colorWeb(c.getColorHex());
             int i = 0;
             int total = pts.size();
 
@@ -55,10 +62,10 @@ public class GestorEstelas {
             for (Vector2D pt : pts) {
                 if (prev != null) {
                     double progress = (double) i / total;
-                    double x1 = ConstantesFisicas.fisicaAXJavaFX(prev.x(), anchoCanvas);
-                    double y1 = ConstantesFisicas.fisicaAYJavaFX(prev.y(), altoCanvas);
-                    double x2 = ConstantesFisicas.fisicaAXJavaFX(pt.x(), anchoCanvas);
-                    double y2 = ConstantesFisicas.fisicaAYJavaFX(pt.y(), altoCanvas);
+                    double x1 = conversor.fisicaAXJavaFX(prev.x(), anchoCanvas);
+                    double y1 = conversor.fisicaAYJavaFX(prev.y(), altoCanvas);
+                    double x2 = conversor.fisicaAXJavaFX(pt.x(), anchoCanvas);
+                    double y2 = conversor.fisicaAYJavaFX(pt.y(), altoCanvas);
 
                     gc.setStroke(Color.color(baseCol.getRed(), baseCol.getGreen(), baseCol.getBlue(), progress * 0.45));
                     gc.setLineWidth(Math.max(1.0, progress * 2.5));

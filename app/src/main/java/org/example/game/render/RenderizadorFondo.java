@@ -1,13 +1,10 @@
 package org.example.game.render;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 /**
  * Responsable exclusivo de dibujar el fondo espacial, nebulosas procedimentales,
  * grilla opcional y estrellas titilantes.
@@ -24,8 +21,10 @@ public class RenderizadorFondo {
     private static final Color COLOR_NEBULOSA_2 = Color.rgb(15, 45, 65, 0.18);
 
     private Image imagenFondo;
+    private final RepositorioSprites repositorioSprites;
     private double desplazamientoFondoX = 0.0;
     private double velocidadBaseFondo = 1.0;
+    private double anchoCanvas;
 
     private final List<EstrellaFondo> estrellasFondo = new ArrayList<>();
 
@@ -44,11 +43,20 @@ public class RenderizadorFondo {
     }
 
     public RenderizadorFondo(double ancho, double alto) {
-        this.imagenFondo = GestorImagenes.getImagenFondo();
+        this(ancho, alto, new GestorImagenes());
+    }
+
+    public RenderizadorFondo(double ancho, double alto, RepositorioSprites repositorioSprites) {
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
+        this.imagenFondo = this.repositorioSprites.obtenerImagenFondo();
+        this.anchoCanvas = Math.max(0.0, ancho);
         generarEstrellasFondo(ancho, alto);
     }
 
     public void generarEstrellasFondo(double ancho, double alto) {
+        if (ancho > 0) {
+            this.anchoCanvas = ancho;
+        }
         estrellasFondo.clear();
         Random rand = new Random(42);
         for (int i = 0; i < 180; i++) {
@@ -67,6 +75,7 @@ public class RenderizadorFondo {
 
         Image fondo = getImagenFondo();
         if (fondo != null) {
+            normalizarDesplazamiento(anchoCanvas);
             double x1 = desplazamientoFondoX;
             double x2 = desplazamientoFondoX - anchoCanvas;
             gc.drawImage(fondo, x1, 0, anchoCanvas + 1, altoCanvas);
@@ -85,22 +94,45 @@ public class RenderizadorFondo {
     }
 
     public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas) {
+        dibujarGrilla(gc, anchoCanvas, altoCanvas, 1.0);
+    }
+
+    public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas, double nivelZoom) {
+        CamaraZoom temporal = new CamaraZoom(nivelZoom, CamaraZoom.INCREMENTO_POR_DEFECTO);
+        dibujarGrilla(gc, anchoCanvas, altoCanvas, temporal);
+    }
+
+    public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas, CamaraZoom camara) {
+        CamaraZoom cam = camara != null ? camara : new CamaraZoom();
+        double minX = cam.pantallaAMundoX(0.0, anchoCanvas);
+        double maxX = cam.pantallaAMundoX(anchoCanvas, anchoCanvas);
+        double minY = cam.pantallaAMundoY(0.0, altoCanvas);
+        double maxY = cam.pantallaAMundoY(altoCanvas, altoCanvas);
+
         gc.setStroke(COLOR_GRILLA_LINEA);
         gc.setLineWidth(1.0);
         gc.setGlobalAlpha(0.25);
 
         int tamanoCelda = 32;
-        for (double x = 0; x < anchoCanvas; x += tamanoCelda) {
-            gc.strokeLine(x, 0, x, altoCanvas);
+        double inicioX = Math.floor(minX / tamanoCelda) * tamanoCelda;
+        double inicioY = Math.floor(minY / tamanoCelda) * tamanoCelda;
+        for (double x = inicioX; x <= maxX; x += tamanoCelda) {
+            gc.strokeLine(x, minY, x, maxY);
         }
-        for (double y = 0; y < altoCanvas; y += tamanoCelda) {
-            gc.strokeLine(0, y, anchoCanvas, y);
+        for (double y = inicioY; y <= maxY; y += tamanoCelda) {
+            gc.strokeLine(minX, y, maxX, y);
         }
 
         gc.setStroke(COLOR_GRILLA_EJE);
         gc.setGlobalAlpha(0.18);
-        gc.strokeLine(anchoCanvas / 2.0, 0, anchoCanvas / 2.0, altoCanvas);
-        gc.strokeLine(0, altoCanvas / 2.0, anchoCanvas, altoCanvas / 2.0);
+        double ejeX = anchoCanvas / 2.0;
+        double ejeY = altoCanvas / 2.0;
+        if (ejeX >= minX && ejeX <= maxX) {
+            gc.strokeLine(ejeX, minY, ejeX, maxY);
+        }
+        if (ejeY >= minY && ejeY <= maxY) {
+            gc.strokeLine(minX, ejeY, maxX, ejeY);
+        }
 
         gc.setGlobalAlpha(1.0);
     }
@@ -116,23 +148,39 @@ public class RenderizadorFondo {
     }
 
     public void avanzarDesplazamiento(double deltaTime, double multiplicadorVelocidad, double anchoCanvas) {
-        if (anchoCanvas > 0) {
-            double deltaX = velocidadBaseFondo * multiplicadorVelocidad * deltaTime;
-            desplazamientoFondoX = (desplazamientoFondoX + deltaX) % anchoCanvas;
-            if (desplazamientoFondoX < 0) {
-                desplazamientoFondoX += anchoCanvas;
-            }
+        if (anchoCanvas <= 0 || deltaTime <= 0 || multiplicadorVelocidad <= 0) {
+            return;
+        }
+        this.anchoCanvas = anchoCanvas;
+        double deltaX = velocidadBaseFondo * multiplicadorVelocidad * deltaTime;
+        desplazamientoFondoX += deltaX;
+        normalizarDesplazamiento(anchoCanvas);
+    }
+
+    public void normalizarDesplazamiento(double ancho) {
+        if (ancho > 0) {
+            this.anchoCanvas = ancho;
+            desplazamientoFondoX = (desplazamientoFondoX % ancho + ancho) % ancho;
         }
     }
 
+    public void normalizarDesplazamiento() {
+        normalizarDesplazamiento(this.anchoCanvas);
+    }
+
     public double getDesplazamientoFondoX() { return desplazamientoFondoX; }
-    public void setDesplazamientoFondoX(double desplazamiento) { this.desplazamientoFondoX = desplazamiento; }
+    public void setDesplazamientoFondoX(double desplazamiento) {
+        this.desplazamientoFondoX = desplazamiento;
+        if (this.anchoCanvas > 0) {
+            normalizarDesplazamiento(this.anchoCanvas);
+        }
+    }
     public double getVelocidadBaseFondo() { return velocidadBaseFondo; }
     public void setVelocidadBaseFondo(double vel) { this.velocidadBaseFondo = vel; }
 
     public Image getImagenFondo() {
         if (imagenFondo == null) {
-            imagenFondo = GestorImagenes.getImagenFondo();
+            imagenFondo = repositorioSprites.obtenerImagenFondo();
         }
         return imagenFondo;
     }

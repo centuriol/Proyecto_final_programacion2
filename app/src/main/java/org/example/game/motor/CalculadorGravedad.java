@@ -1,11 +1,8 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
-
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Calculador de fuerzas gravitacionales N-Body y atracción hacia colapso estelar/arcade.
  *
@@ -49,7 +46,7 @@ public class CalculadorGravedad {
             return;
         }
 
-        if (ci.getTipoCuerpo() == TipoCuerpo.SATELITE && cj.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+        if (ci.getMasa() <= 10.0 && cj.getMasa() <= 10.0) {
             return;
         }
 
@@ -92,11 +89,12 @@ public class CalculadorGravedad {
         Vector2D dirHaciaMayor = mayor.getPosicion().restar(menor.getPosicion()).normalizar();
 
         double factorMasaMayor = 1.0;
-        if (mayor.getTipoCuerpo() != null && mayor.getTipoCuerpo().masaBase > 0) {
-            factorMasaMayor = Math.max(0.1, mayor.getMasa() / mayor.getTipoCuerpo().masaBase);
+        double masaBaseMayor = mayor.getTipoCuerpo() != null ? mayor.getTipoCuerpo().masaBase : 1.0;
+        if (masaBaseMayor > 0) {
+            factorMasaMayor = Math.max(0.1, mayor.getMasa() / masaBaseMayor);
         }
 
-        double aMenor = (mayor.getTipoCuerpo() != null && mayor.getTipoCuerpo().esAtractorOrbital())
+        double aMenor = mayor.getMasa() >= 1e29
                 ? (0.5 + 3.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor)
                 : (0.35 + 2.0 * penetracion * penetracion) * Math.sqrt(factorMasaMayor);
 

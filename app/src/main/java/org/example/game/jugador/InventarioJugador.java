@@ -1,9 +1,7 @@
 package org.example.game.jugador;
-
 import org.example.game.cuerpo.TipoCuerpo;
 import java.util.EnumMap;
 import java.util.Map;
-
 /**
  * Inventario del jugador: almacena recursos y gestiona costos de creación.
  */
@@ -21,11 +19,12 @@ public class InventarioJugador {
     }
 
     private void darRecursosIniciales() {
-        // Recursos iniciales exactos para colocar 1 Sol (Estrella) y 1 Planeta Rocoso (a masa 1.0x)
-        double minInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES
-                + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_MINERALES; // 300 + 100 = 400.0
-        double eneInicial = org.example.game.simulacion.ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA
-                + org.example.game.simulacion.ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA;   // 150 + 50 = 200.0
+        // Recursos iniciales exactos para colocar unicamente 1 Sol y 1 Planeta de Agua al inicio (masa inicial)
+        double factorInicial = org.example.game.simulacion.ConfiguracionEconomia.FACTOR_MASA_INICIAL;
+        double minInicial = calcularCostoEscalado(org.example.game.simulacion.ConfiguracionEconomia.COSTO_ESTRELLA_MINERALES, factorInicial)
+                + calcularCostoEscalado(org.example.game.simulacion.ConfiguracionEconomia.COSTO_PLANETA_AGUA_MINERALES, factorInicial);
+        double eneInicial = calcularCostoEscalado(org.example.game.simulacion.ConfiguracionEconomia.COSTO_ESTRELLA_ENERGIA, factorInicial)
+                + calcularCostoEscalado(org.example.game.simulacion.ConfiguracionEconomia.COSTO_PLANETA_AGUA_ENERGIA, factorInicial);
 
         agregarRecurso(TipoRecurso.MINERALES, minInicial);
         agregarRecurso(TipoRecurso.ENERGIA, eneInicial);
@@ -54,7 +53,7 @@ public class InventarioJugador {
     public static Map<TipoRecurso, Double> getCostosEscalados(TipoCuerpo tipo, double factorMasa) {
         Map<TipoRecurso, Double> base = getCostosBase(tipo);
         if (base.isEmpty()) return Map.of();
-        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
+        double factorEfectivo = (tipo != null) ? tipo.ajustarFactorMasaEfectivo(factorMasa) : factorMasa;
         Map<TipoRecurso, Double> escalado = new java.util.LinkedHashMap<>();
         for (Map.Entry<TipoRecurso, Double> e : base.entrySet()) {
             escalado.put(e.getKey(), calcularCostoEscalado(e.getValue(), factorEfectivo));
@@ -80,7 +79,7 @@ public class InventarioJugador {
     public static Map<TipoRecurso, Double> getProduccionEscaladaPorTick(TipoCuerpo tipo, double factorMasa) {
         Map<TipoRecurso, Double> base = getProduccionBasePorTick(tipo);
         if (base.isEmpty()) return Map.of();
-        double mult = (tipo == TipoCuerpo.SATELITE) ? 1.0 : Math.max(0.1, factorMasa);
+        double mult = (tipo != null) ? Math.max(0.1, tipo.ajustarFactorMasaEfectivo(factorMasa)) : Math.max(0.1, factorMasa);
         Map<TipoRecurso, Double> escalada = new java.util.LinkedHashMap<>();
         for (Map.Entry<TipoRecurso, Double> e : base.entrySet()) {
             escalada.put(e.getKey(), e.getValue() * mult);
@@ -102,7 +101,10 @@ public class InventarioJugador {
      * @return Costo total requerido para ese recurso.
      */
     public static double calcularCostoEscalado(double costoBase, double factorMasa) {
-        return costoBase * Math.pow(Math.max(0, factorMasa), 1.5);
+        return costoBase * Math.pow(
+                Math.max(0, factorMasa),
+                org.example.game.simulacion.ConfiguracionEconomia.EXPONENTE_COSTO_MASA
+        );
     }
 
     /**

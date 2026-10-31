@@ -5,6 +5,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import org.example.game.cuerpo.TipoCuerpo;
 
+import java.io.InputStream;
+
 /**
  * Contrato para el acceso desacoplado al catálogo y sprites de la simulación (DIP / ISP).
  */
@@ -23,4 +25,12 @@ public interface RepositorioSprites {
     ImageView crearVistaIcono(TipoCuerpo tipo, double ancho, double alto);
 
     StackPane crearContenedorSprite(TipoCuerpo tipo, double ancho, double alto);
+
+    Image decodificarPixil(InputStream is);
+
+    void precargar();
+
+    void limpiarCache();
+
+    void setNombreFondoActivo(String nombre);
 }

@@ -1,5 +1,4 @@
 package org.example.game.civilizacion;
-
 /**
  * Estados de prosperidad y supervivencia de una civilización planetaria.
  */

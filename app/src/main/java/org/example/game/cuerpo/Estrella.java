@@ -3,11 +3,21 @@ package org.example.game.cuerpo;
 public class Estrella extends CuerpoCeleste {
     public Estrella(String nombre, double masa, double x, double y) {
         super(nombre, masa, x, y, TipoCuerpo.ESTRELLA);
+        RegistroCapacidades.registrarEstrella(this);
+    }
+
+    public double getMasaBase() {
+        return TipoCuerpo.ESTRELLA.masaBase;
+    }
+
+    @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarEstrella(this);
     }
 
     @Override
     public String describir() {
-        return "Estrella " + getNombre() + " (masa: " + TipoCuerpo.formatearMasa(getMasa()) + ")";
+        return "Estrella " + getNombre() + " (masa: " + FormateadorMasa.formatearMasa(getMasa()) + ")";
     }
 
     @Override

@@ -1,7 +1,5 @@
 package org.example.game.ui;
-
 import javafx.scene.canvas.Canvas;
-
 /**
  * Canvas con redimensionamiento automático para layouts de JavaFX (como StackPane).
  * Permite que el lienzo se ajuste al tamaño exacto de la ventana/pantalla

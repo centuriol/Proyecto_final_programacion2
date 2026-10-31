@@ -1,5 +1,4 @@
 package org.example.game.render.cuerpo;
-
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
@@ -7,7 +6,6 @@ import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.render.RenderizadorCuerpo;
 import org.example.game.render.UtilidadRender;
-
 /**
  * Renderizador Pixel Art para agujeros negros con horizonte de sucesos y disco de acreción (SRP / OCP).
  */

@@ -1,5 +1,4 @@
 package org.example.game.simulacion;
-
 /**
  * Controla el tiempo, pausas, pasos discretos y velocidad de la simulación (SRP).
  */
@@ -46,6 +45,13 @@ public class RelojSimulacion {
         enPausa = false;
         pasoUnico = false;
         velocidadSimulacion = 1.0;
+    }
+
+    public void restaurar(long tick, boolean pausa, double velocidad) {
+        this.tickActual = Math.max(0L, tick);
+        this.enPausa = pausa;
+        this.pasoUnico = false;
+        setVelocidadSimulacion(velocidad);
     }
 
     public long getTickActual() {

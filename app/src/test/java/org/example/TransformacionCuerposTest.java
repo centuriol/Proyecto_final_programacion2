@@ -1,5 +1,4 @@
 package org.example;
-
 import org.example.game.simulacion.ConfiguracionSimulacion;
 import org.example.game.cuerpo.*;
 import org.example.game.motor.TransformadorCuerpos;
@@ -9,12 +8,9 @@ import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 class TransformacionCuerposTest {
 
@@ -28,21 +24,21 @@ class TransformacionCuerposTest {
     @Test
     void testEasterEggTransformacionAguaAPorroCercaDelSol() {
         simulacion.limpiarCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(agua);
 
-        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         assertFalse(agua.isTransformadoPorEvento());
 
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG - 1; i++) {
             simulacion.avanzarTick();
-            assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+            assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         }
 
         simulacion.avanzarTick();
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
         assertTrue(agua.isTransformadoPorEvento());
         assertEquals("Planeta Porro", agua.getNombre());
 
@@ -55,18 +51,18 @@ class TransformacionCuerposTest {
     @Test
     void testEasterEggTransformacionPorroALavaMuyCercaDelSol() {
         simulacion.limpiarCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta porro = CuerpoCelesteFactory.crearPlanetaRocoso(60, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(60, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(porro);
 
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, porro.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, porro.getTipoCuerpo());
 
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
             simulacion.avanzarTick();
         }
 
-        assertEquals(TipoCuerpo.PLANETA_LAVA, porro.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_LAVA, porro.getTipoCuerpo());
         assertTrue(porro.isTransformadoPorEvento());
         assertEquals("Planeta Lava", porro.getNombre());
     }
@@ -74,15 +70,15 @@ class TransformacionCuerposTest {
     @Test
     void testEasterEggGradualEsperaYMigracionSinSaltos() {
         simulacion.limpiarCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(agua);
 
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
             simulacion.avanzarTick();
         }
-        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
 
         Vector2D posAnterior = agua.getPosicion();
         for (int i = 0; i < ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA; i++) {
@@ -100,8 +96,8 @@ class TransformacionCuerposTest {
     @Test
     void testCancelacionAMitadPorSalidaDeRadio() {
         simulacion.limpiarCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(agua);
 
@@ -115,22 +111,22 @@ class TransformacionCuerposTest {
         simulacion.avanzarTick();
 
         assertFalse(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));
-        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getSubTipo());
+        assertEquals(TipoCuerpo.PLANETA_AGUA, agua.getTipoCuerpo());
         assertFalse(agua.isTransformadoPorEvento());
     }
 
     @Test
     void testPlanetaEliminadoDuranteEsperaNoDejaEstadoColgado() {
         simulacion.limpiarCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(sol);
         simulacion.agregarCuerpo(agua);
 
         simulacion.avanzarTick();
         assertTrue(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));
 
-        simulacion.eliminarCuerpo(agua);
+        simulacion.getGestorCicloVida().eliminarCuerpo(agua);
         simulacion.avanzarTick();
 
         assertFalse(simulacion.getTransformadorCuerpos().tieneProcesoActivo(agua));
@@ -140,8 +136,8 @@ class TransformacionCuerposTest {
     @Test
     void testDestinoLibreEligeOrbitaEstableYMigra() {
         TransformadorCuerpos transformador = new TransformadorCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
 
         List<CuerpoCeleste> cuerpos = new ArrayList<>(List.of(sol, agua));
         Vector2D destino = transformador.encontrarPosicionOrbitalLibre(agua, sol, ConfiguracionSimulacion.RADIO_TRANSFORMACION_AGUA_PORRO, cuerpos);
@@ -154,8 +150,8 @@ class TransformacionCuerposTest {
     @Test
     void testDestinoOcupadoBuscaOrbitaLibreOAbortaSinColision() {
         TransformadorCuerpos transformador = new TransformadorCuerpos();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(90, 0, 1.0, Vector2D.cero());
 
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
         cuerpos.add(sol);
@@ -168,7 +164,7 @@ class TransformacionCuerposTest {
                 double rad = Math.toRadians(ang * 22.5);
                 double x = Math.cos(rad) * radio;
                 double y = Math.sin(rad) * radio;
-                Planeta obstaculo = CuerpoCelesteFactory.crearPlanetaRocoso(x, y, 1.0, Vector2D.cero());
+                Planeta obstaculo = new CuerpoCelesteFactory().crearPlanetaRocoso(x, y, 1.0, Vector2D.cero());
                 cuerpos.add(obstaculo);
             }
         }

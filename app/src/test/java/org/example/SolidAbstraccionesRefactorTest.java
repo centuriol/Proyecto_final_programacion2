@@ -1,5 +1,4 @@
 package org.example;
-
 import javafx.scene.input.KeyCode;
 import org.example.game.cuerpo.*;
 import org.example.game.motor.MotorFisica;
@@ -18,15 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(JavaFXExtension.class)
 public class SolidAbstraccionesRefactorTest {
 
@@ -55,7 +51,7 @@ public class SolidAbstraccionesRefactorTest {
     @DisplayName("GestorEstelas gestiona puntos orbitales, limpieza y limites de memoria (SRP)")
     void testGestorEstelas() {
         GestorEstelas gestor = new GestorEstelas();
-        CuerpoCeleste cuerpo = new Planeta("TestPlaneta", 100.0, 10.0, 20.0);
+        CuerpoCeleste cuerpo = new Planeta("TestPlaneta", 100.0, 10.0, 20.0, TipoCuerpo.PLANETA_ROCOSO);
 
         for (int i = 0; i < 60; i++) {
             cuerpo.setPosicion(new Vector2D(i * 10, i * 10));
@@ -81,8 +77,9 @@ public class SolidAbstraccionesRefactorTest {
         assertTrue(colisionNotificada.get(), "El listener de colision debe ser notificado");
 
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        CuerpoCeleste normal = new Planeta("Normal", 10.0, 0, 0);
-        CuerpoCeleste expirado = new CuerpoExpirableTest("Expirado", 10.0, 0, 0);
+        CuerpoCeleste normal = new Planeta("Normal", 10.0, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
+        CuerpoExpirableTest expirado = new CuerpoExpirableTest("Expirado", 10.0, 0, 0);
+        motor.registrarExpirable(expirado, expirado);
 
         cuerpos.add(normal);
         cuerpos.add(expirado);
@@ -95,8 +92,9 @@ public class SolidAbstraccionesRefactorTest {
     @Test
     @DisplayName("ServicioReembolso calcula el 50% de recuperacion y respeta restricciones de transformacion (SRP / LSP)")
     void testServicioReembolso() {
+        ServicioReembolso servicioReembolso = new ServicioReembolso();
         CuerpoCeleste planeta = new Planeta("Mundo", TipoCuerpo.PLANETA_ROCOSO.masaBase, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
-        Map<TipoRecurso, Double> reembolso = ServicioReembolso.calcularReembolso(planeta);
+        Map<TipoRecurso, Double> reembolso = servicioReembolso.calcularReembolso(planeta);
 
         assertNotNull(reembolso);
         assertFalse(reembolso.isEmpty(), "Debe existir reembolso para un cuerpo normal");
@@ -113,7 +111,7 @@ public class SolidAbstraccionesRefactorTest {
             t.setTransformadoPorEvento(true);
         }
         assertFalse(planeta.permiteReembolso());
-        Map<TipoRecurso, Double> reembolsoTransformado = ServicioReembolso.calcularReembolso(planeta);
+        Map<TipoRecurso, Double> reembolsoTransformado = servicioReembolso.calcularReembolso(planeta);
         assertTrue(reembolsoTransformado.isEmpty(), "No debe haber reembolso si fue transformado por evento");
     }
 
@@ -139,34 +137,32 @@ public class SolidAbstraccionesRefactorTest {
     @Test
     @DisplayName("CuerpoCelesteFactory permite registrar y crear cuerpos dinamicamente via CreadorCuerpo (OCP)")
     void testCuerpoCelesteFactoryExtensible() {
+        org.example.game.cuerpo.FabricaCuerpos fabrica = new CuerpoCelesteFactory();
         // Creacion por registro estandar
-        CuerpoCeleste sol = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.ESTRELLA, 100, 200, 1.0, Vector2D.cero());
+        CuerpoCeleste sol = fabrica.crearCuerpo(TipoCuerpo.ESTRELLA, 100, 200, 1.0, Vector2D.cero());
         assertNotNull(sol);
         assertEquals(TipoCuerpo.ESTRELLA, sol.getTipoCuerpo());
 
-        CuerpoCeleste planeta = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.PLANETA_ROCOSO, 50, 60, 1.2, new Vector2D(0, 5));
+        CuerpoCeleste planeta = fabrica.crearCuerpo(TipoCuerpo.PLANETA_ROCOSO, 50, 60, 1.2, new Vector2D(0, 5));
         assertNotNull(planeta);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, planeta.getTipoCuerpo());
 
         // Registro de un creador personalizado para validar OCP
         AtomicBoolean creadorInvocado = new AtomicBoolean(false);
-        CuerpoCelesteFactory.registrarCreador(TipoCuerpo.SATELITE, (x, y, factor, vel) -> {
+        fabrica.registrarCreador(TipoCuerpo.SATELITE, (x, y, factor, vel) -> {
             creadorInvocado.set(true);
-            return new Planeta("SatCustom", 10.0, x, y);
+            return new Planeta("SatCustom", 10.0, x, y, TipoCuerpo.SATELITE);
         });
 
-        CuerpoCeleste custom = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.SATELITE, 10, 20, 1.0, Vector2D.cero());
+        CuerpoCeleste custom = fabrica.crearCuerpo(TipoCuerpo.SATELITE, 10, 20, 1.0, Vector2D.cero());
         assertTrue(creadorInvocado.get(), "El creador registrado debe invocarse polimorficamente");
         assertNotNull(custom);
-
-        // Restaurar creador de satelite para no afectar otros tests
-        CuerpoCelesteFactory.registrarCreador(TipoCuerpo.SATELITE, CuerpoCelesteFactory::crearSatelite);
     }
 
     @Test
     @DisplayName("CuerpoCeleste segrega capacidades en interfaces chicas (ISP / LSP)")
     void testPolimorfismoCuerpoCeleste() {
-        CuerpoCeleste cuerpo = new Planeta("PocoComun", 100.0, 0, 0);
+        CuerpoCeleste cuerpo = new Planeta("PocoComun", 100.0, 0, 0, TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(cuerpo.permiteReembolso());
         assertTrue(cuerpo instanceof Civilizable);
@@ -198,7 +194,7 @@ public class SolidAbstraccionesRefactorTest {
 
     private static class CuerpoExpirableTest extends Planeta implements Expirable {
         public CuerpoExpirableTest(String nombre, double masa, double x, double y) {
-            super(nombre, masa, x, y);
+            super(nombre, masa, x, y, org.example.game.cuerpo.TipoCuerpo.PLANETA_ROCOSO);
         }
         @Override
         public boolean estaExpirado() {

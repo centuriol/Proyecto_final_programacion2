@@ -1,9 +1,6 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-
 import java.util.function.Consumer;
-
 /**
  * Estrategia de captura para planetas alrededor de estrellas o agujeros negros.
  */
@@ -11,13 +8,12 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsPlaneta = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esPlaneta();
-        boolean cjEsPlaneta = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().esPlaneta();
+        boolean ciEsPlaneta = ci.getMasa() >= 1e22 && ci.getMasa() <= 1e28;
+        boolean cjEsPlaneta = cj.getMasa() >= 1e22 && cj.getMasa() <= 1e28;
         CuerpoCeleste planeta = ciEsPlaneta ? ci : (cjEsPlaneta ? cj : null);
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
 
-        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getTipoCuerpo() != null &&
-                estrella.getTipoCuerpo().esAtractorOrbital());
+        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getMasa() >= 1e29);
 
         if (esPlanetaYEstrella) {
             double radioCapturaPlaneta = estrella.getRadioAtraccion() * 7.0;
@@ -29,7 +25,7 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
 
     @Override
     public CuerpoCeleste[] ejecutarCaptura(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje, AsistenteOrbital asistente) {
-        boolean ciEsPlaneta = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esPlaneta();
+        boolean ciEsPlaneta = ci.getMasa() <= 1e28;
         CuerpoCeleste planeta = ciEsPlaneta ? ci : cj;
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
 

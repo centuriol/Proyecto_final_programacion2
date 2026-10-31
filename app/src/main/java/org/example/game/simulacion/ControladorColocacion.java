@@ -1,13 +1,10 @@
 package org.example.game.simulacion;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
-
 import java.util.List;
-
 /**
  * Controla la lógica de selección, preview y parámetros para colocación de cuerpos (SRP).
  */
@@ -22,6 +19,15 @@ public class ControladorColocacion {
     private double factorMasaColocacion = 1.0;
     private String nombreColocacion = null;
     private Vector2D posicionPreview = null;
+    private final ConversorCoordenadas conversor;
+
+    public ControladorColocacion() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public ControladorColocacion(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa, String nombre, double maxMasaPermitida) {
         this.modoColocacion = ModoColocacion.COLOCANDO;
@@ -39,27 +45,29 @@ public class ControladorColocacion {
     }
 
     public void actualizarPosicionPreview(double xJavaFX, double yJavaFX, double anchoMundo, double altoMundo) {
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(xJavaFX, anchoMundo);
-        double yFisica = ConstantesFisicas.javaFXAFisica(yJavaFX, altoMundo);
+        double xFisica = conversor.javaFXAFisicaX(xJavaFX, anchoMundo);
+        double yFisica = conversor.javaFXAFisica(yJavaFX, altoMundo);
         this.posicionPreview = new Vector2D(xFisica, yFisica);
     }
 
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica, List<CuerpoCeleste> cuerpos) {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica, cuerpos);
         if (cuerpoCercano != null) {
-            boolean esMenorOrbital = (tipoColocacion == TipoCuerpo.LUNA || tipoColocacion == TipoCuerpo.SATELITE);
-            if (esMenorOrbital && cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta()) {
+            boolean esMenorOrbital = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
+            boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
+            if (esMenorOrbital && cercanoEsPlaneta) {
                 Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
                 double dist = Math.max(1.0, r.magnitud());
-                double factorMasa = (cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().masaBase > 0)
-                        ? Math.max(0.2, cuerpoCercano.getMasa() / cuerpoCercano.getTipoCuerpo().masaBase)
+                double masaBase = cuerpoCercano.getTipoCuerpo() != null ? cuerpoCercano.getTipoCuerpo().masaBase : 1.0;
+                double factorMasa = (masaBase > 0)
+                        ? Math.max(0.2, cuerpoCercano.getMasa() / masaBase)
                         : 1.0;
                 double vOrb = Math.sqrt(75.0 * factorMasa / dist);
                 Vector2D uRadial = r.dividir(dist);
                 Vector2D uTangencial = new Vector2D(-uRadial.y(), uRadial.x());
                 return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
             }
-            return CuerpoCelesteFactory.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
+            return org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
         }
         return Vector2D.cero();
     }
@@ -69,11 +77,9 @@ public class ControladorColocacion {
         double maxFuerza = 0;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.LUNA || c.getTipoCuerpo() == TipoCuerpo.SATELITE ||
-                c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+            if (!c.permiteReembolso() || c.getMasa() < 1e22) {
                 continue;
             }
-            if (!c.getTipoCuerpo().esMasivo && c.getMasa() < 1e22) continue;
 
             double dist = pos.distanciaA(c.getPosicion());
             if (dist < 10.0) continue;

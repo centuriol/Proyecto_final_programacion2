@@ -1,9 +1,6 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-
 import java.util.List;
-
 /**
  * Responsable de la integración numérica del movimiento de los cuerpos celestes (SRP).
  */
@@ -39,7 +36,8 @@ public class IntegradorMovimiento {
             }
 
             Vector2D nuevaPos = c.getPosicion().sumar(nuevaVel.multiplicar(dt));
-            c.confirmarPaso(nuevaPos, nuevaVel);
+            c.setPosicion(nuevaPos);
+            c.setVelocidad(nuevaVel);
         }
     }
 

@@ -20,8 +20,6 @@ import java.util.*;
  */
 public class GestorImagenes implements RepositorioSprites {
 
-    private static final GestorImagenes INSTANCIA = new GestorImagenes();
-
     private final Map<String, Image> cacheImagenes = new HashMap<>();
     private final Set<String> recursosFallidos = new HashSet<>();
     private final Map<TipoCuerpo, String> mapeoCuerpos = new EnumMap<>(TipoCuerpo.class);
@@ -44,10 +42,7 @@ public class GestorImagenes implements RepositorioSprites {
         mapeoCuerpos.put(TipoCuerpo.PLANETA_LAVA, "planeta lava");
     }
 
-    public static GestorImagenes getInstancia() {
-        return INSTANCIA;
-    }
-
+    @Override
     public void precargar() {
         for (String nombre : mapeoCuerpos.values()) {
             obtenerImagenPorNombre(nombre);
@@ -119,7 +114,7 @@ public class GestorImagenes implements RepositorioSprites {
         if (iv != null) {
             contenedor.getChildren().add(iv);
         } else if (tipo != null) {
-            javafx.scene.control.Label lbl = new javafx.scene.control.Label(tipo.getIcono());
+            javafx.scene.control.Label lbl = new javafx.scene.control.Label(org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).icono());
             lbl.setFont(javafx.scene.text.Font.font("Monospace", javafx.scene.text.FontWeight.BOLD, 10));
             lbl.setTextFill(javafx.scene.paint.Color.web(tipo.getColorHexString()));
             contenedor.getChildren().add(lbl);
@@ -127,7 +122,8 @@ public class GestorImagenes implements RepositorioSprites {
         return contenedor;
     }
 
-    public void setNombreFondoActivoInstancia(String nombre) {
+    @Override
+    public void setNombreFondoActivo(String nombre) {
         if (nombre != null && !nombre.isBlank()) {
             this.nombreFondoActivo = nombre.trim();
         }
@@ -154,23 +150,11 @@ public class GestorImagenes implements RepositorioSprites {
         return fondo;
     }
 
-    public void limpiarCacheInstancia() {
+    @Override
+    public void limpiarCache() {
         cacheImagenes.clear();
         recursosFallidos.clear();
     }
-
-    // ===== Métodos Estáticos para Compatibilidad (Delegación a INSTANCIA) =====
-
-    public static void precargarImagenes() { INSTANCIA.precargar(); }
-    public static Image getImagen(TipoCuerpo tipo) { return INSTANCIA.obtenerImagen(tipo); }
-    public static boolean tieneImagen(TipoCuerpo tipo) { return INSTANCIA.tieneSprite(tipo); }
-    public static void registrarMapeo(TipoCuerpo tipo, String nombreRecurso) { INSTANCIA.asociarMapeo(tipo, nombreRecurso); }
-    public static Image getImagenPorNombre(String nombre) { return INSTANCIA.obtenerImagenPorNombre(nombre); }
-    public static ImageView crearImageView(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearVistaIcono(tipo, ancho, alto); }
-    public static StackPane crearContenedorIcono(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearContenedorSprite(tipo, ancho, alto); }
-    public static void setNombreFondoActivo(String nombre) { INSTANCIA.setNombreFondoActivoInstancia(nombre); }
-    public static Image getImagenFondo() { return INSTANCIA.obtenerImagenFondo(); }
-    public static void limpiarCache() { INSTANCIA.limpiarCacheInstancia(); }
 
     private Image cargarImagen(String nombre) {
         String baseNombre = nombre;
@@ -199,7 +183,9 @@ public class GestorImagenes implements RepositorioSprites {
                     } else {
                         return new Image(isClasspath);
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    System.err.println("[WARN] No se pudo decodificar imagen desde classpath (" + baseNombre + ext + "): " + ex.getMessage());
+                }
             }
 
             for (String dir : DIRECTORIOS_BUSQUEDA) {
@@ -212,7 +198,9 @@ public class GestorImagenes implements RepositorioSprites {
                         } else {
                             return new Image(fis);
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception ex) {
+                        System.err.println("[WARN] No se pudo cargar imagen desde archivo de disco (" + f.getAbsolutePath() + "): " + ex.getMessage());
+                    }
                 }
             }
         }
@@ -234,7 +222,8 @@ public class GestorImagenes implements RepositorioSprites {
         return null;
     }
 
-    public static Image decodificarPixil(InputStream is) {
+    @Override
+    public Image decodificarPixil(InputStream is) {
         try {
             String contenido = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             int idx = contenido.indexOf("base64,");

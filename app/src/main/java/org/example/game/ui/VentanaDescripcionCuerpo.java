@@ -8,47 +8,57 @@ import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.SimulacionSolar;
 
 /**
- * Fachada para las ventanas modales de inspección y colocación de cuerpos celestes (Facade / SRP).
+ * Fachada para las ventanas modales de inspección y colocación de cuerpos celestes (Facade / SRP / DIP).
  */
-public class VentanaDescripcionCuerpo {
+public class VentanaDescripcionCuerpo implements VisualizadorDescripcion {
 
-    public static void mostrarParaColocar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
+    private final ProveedorInfoCuerpo infoCuerpo;
+
+    public VentanaDescripcionCuerpo() {
+        this(new SeccionInfoCuerpo());
+    }
+
+    public VentanaDescripcionCuerpo(ProveedorInfoCuerpo infoCuerpo) {
+        this.infoCuerpo = infoCuerpo != null ? infoCuerpo : new SeccionInfoCuerpo();
+    }
+
+    @Override
+    public void abrirParaColocar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
         VentanaColocacion.mostrar(tipo, simulacion, owner, onConfirmado);
     }
 
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, Window owner) {
-        VentanaInspeccion.mostrar(cuerpo, null, owner, null);
-    }
-
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
-        VentanaInspeccion.mostrar(cuerpo, simulacion, owner, null);
-    }
-
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
+    @Override
+    public void abrirParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
         VentanaInspeccion.mostrar(cuerpo, simulacion, owner, controladorMouse);
     }
 
-    public static void mostrar(TipoCuerpo tipo, Window owner) {
+    @Override
+    public void abrir(TipoCuerpo tipo, Window owner) {
         VentanaColocacion.mostrar(tipo, null, owner, null);
     }
 
-    public static String obtenerNombrePorDefecto(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerNombrePorDefecto(tipo);
+    @Override
+    public String nombrePorDefecto(TipoCuerpo tipo) {
+        return infoCuerpo.obtenerNombrePorDefecto(tipo);
     }
 
-    public static String obtenerIcono(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerIcono(tipo);
+    @Override
+    public String icono(TipoCuerpo tipo) {
+        return infoCuerpo.obtenerIcono(tipo);
     }
 
-    public static String obtenerSubtitulo(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerSubtitulo(tipo);
+    @Override
+    public String subtitulo(TipoCuerpo tipo) {
+        return infoCuerpo.obtenerSubtitulo(tipo);
     }
 
-    public static String obtenerLore(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerLore(tipo);
+    @Override
+    public String lore(TipoCuerpo tipo) {
+        return infoCuerpo.obtenerLore(tipo);
     }
 
-    public static VBox crearSeccionCaracteristicas(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.crearSeccionCaracteristicas(tipo);
+    @Override
+    public VBox caracteristicas(TipoCuerpo tipo) {
+        return infoCuerpo.crearSeccionCaracteristicas(tipo);
     }
 }
