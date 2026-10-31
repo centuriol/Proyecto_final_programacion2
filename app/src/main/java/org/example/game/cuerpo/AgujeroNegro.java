@@ -25,6 +25,31 @@ public class AgujeroNegro extends CuerpoCeleste {
     }
 
     @Override
+    public java.util.Optional<AgujeroNegro> comoAgujeroNegro() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public boolean esAgujeroNegro() {
+        return true;
+    }
+
+    @Override
+    public boolean esAtractorMasivo() {
+        return true;
+    }
+
+    @Override
+    public boolean esAtractorOrbital() {
+        return true;
+    }
+
+    @Override
+    public boolean esMasivo() {
+        return true;
+    }
+
+    @Override
     public <R> R aceptar(VisitanteCuerpo<R> visitante) {
         return visitante.visitarAgujeroNegro(this);
     }

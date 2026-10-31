@@ -1,5 +1,6 @@
 package org.example.game.motor;
 
+import org.example.game.cuerpo.AgujeroNegro;
 import org.example.game.cuerpo.CuerpoCeleste;
 
 import java.util.ArrayList;
@@ -24,12 +25,12 @@ public class GestorAgujeroNegro {
             return;
         }
 
-        List<CuerpoCeleste> agujeros = filtrarAgujerosNegros(cuerpos);
+        List<AgujeroNegro> agujeros = filtrarAgujerosNegros(cuerpos);
         if (agujeros.isEmpty()) {
             return;
         }
 
-        for (CuerpoCeleste bh : agujeros) {
+        for (AgujeroNegro bh : agujeros) {
             for (CuerpoCeleste c : cuerpos) {
                 if (esObjetivoValido(bh, c)) {
                     procesarInteraccion(bh, c, aEliminar, emisorMensajes);
@@ -38,21 +39,21 @@ public class GestorAgujeroNegro {
         }
     }
 
-    private List<CuerpoCeleste> filtrarAgujerosNegros(List<CuerpoCeleste> cuerpos) {
-        List<CuerpoCeleste> agujeros = new ArrayList<>();
+    private List<AgujeroNegro> filtrarAgujerosNegros(List<CuerpoCeleste> cuerpos) {
+        List<AgujeroNegro> agujeros = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
-            if (c != null && c.esSimulado() && c.getTipoCuerpo() != null && c.getTipoCuerpo().esAgujeroNegro()) {
-                agujeros.add(c);
+            if (c != null && c.esSimulado()) {
+                c.comoAgujeroNegro().ifPresent(agujeros::add);
             }
         }
         return agujeros;
     }
 
-    private boolean esObjetivoValido(CuerpoCeleste bh, CuerpoCeleste c) {
-        return c != null && c != bh && c.esSimulado() && (c.getTipoCuerpo() == null || !c.getTipoCuerpo().esAgujeroNegro());
+    private boolean esObjetivoValido(AgujeroNegro bh, CuerpoCeleste c) {
+        return c != null && c != bh && c.esSimulado() && !c.esAgujeroNegro();
     }
 
-    private void procesarInteraccion(CuerpoCeleste bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
+    private void procesarInteraccion(AgujeroNegro bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
         double rHorizonte = bh.getRadio();
         double dist = bh.getPosicion().distanciaA(c.getPosicion());
         if (dist <= rHorizonte) {
@@ -62,14 +63,8 @@ public class GestorAgujeroNegro {
         }
     }
 
-    private void absorberEnHorizonte(CuerpoCeleste bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
-        if (bh instanceof org.example.game.cuerpo.AgujeroNegro an) {
-            an.absorber(c);
-        } else {
-            bh.setMasa(bh.getMasa() + c.getMasa());
-            c.setSimulado(false);
-            c.setMasa(0);
-        }
+    private void absorberEnHorizonte(AgujeroNegro bh, CuerpoCeleste c, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
+        bh.absorber(c);
         if (aEliminar != null && !aEliminar.contains(c)) {
             aEliminar.add(c);
         }
@@ -78,7 +73,7 @@ public class GestorAgujeroNegro {
         }
     }
 
-    private void aplicarAtraccionImplacable(CuerpoCeleste bh, CuerpoCeleste c, double dist) {
+    private void aplicarAtraccionImplacable(AgujeroNegro bh, CuerpoCeleste c, double dist) {
         Vector2D dir = bh.getPosicion().restar(c.getPosicion()).normalizar();
         double distSegura = Math.max(10.0, dist);
         double fuerzaArrastre = Math.max(12.0, (120000.0 / (distSegura * distSegura)) + (1200.0 / distSegura));
@@ -86,12 +81,12 @@ public class GestorAgujeroNegro {
     }
 
     private static double calcularProximidadNormalizada(CuerpoCeleste c, List<CuerpoCeleste> todos) {
-        if (c == null || todos == null || (c.getTipoCuerpo() != null && c.getTipoCuerpo().esAgujeroNegro())) {
+        if (c == null || todos == null || c.esAgujeroNegro()) {
             return 1.0;
         }
         double minT = 1.0;
         for (CuerpoCeleste otro : todos) {
-            if (otro != null && otro.esSimulado() && otro.getTipoCuerpo() != null && otro.getTipoCuerpo().esAgujeroNegro()) {
+            if (otro != null && otro.esSimulado() && otro.esAgujeroNegro()) {
                 double rHorizonte = otro.getRadio();
                 double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
                 double dist = otro.getPosicion().distanciaA(c.getPosicion());

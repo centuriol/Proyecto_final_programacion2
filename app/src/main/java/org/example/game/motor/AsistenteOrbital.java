@@ -14,21 +14,27 @@ public class AsistenteOrbital {
 
     private final double G;
     private final List<EstrategiaCapturaOrbital> estrategiasCaptura;
+    private final CalculadorOrbital calculadorOrbital;
 
-    public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura) {
+    public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura, CalculadorOrbital calculadorOrbital) {
         this.G = G;
+        this.calculadorOrbital = calculadorOrbital != null ? calculadorOrbital : new CalculadorOrbital();
         this.estrategiasCaptura = estrategiasCaptura != null ? estrategiasCaptura : List.of(
                 new CapturaOrbitalMenorPlaneta(),
                 new CapturaOrbitalPlanetaAtractor()
         );
     }
 
+    public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura) {
+        this(G, estrategiasCaptura, new CalculadorOrbital());
+    }
+
     public AsistenteOrbital(double G) {
-        this(G, null);
+        this(G, null, new CalculadorOrbital());
     }
 
     public AsistenteOrbital() {
-        this(ConstantesFisicas.G_ESCALADO, null);
+        this(ConstantesFisicas.G_ESCALADO, null, new CalculadorOrbital());
     }
 
     /**
@@ -52,7 +58,7 @@ public class AsistenteOrbital {
     }
 
     public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
-        if (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA && anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta()) {
+        if (orbitando.esLuna() && anfitrion.esPlaneta()) {
             return Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
         }
         return anfitrion.getRadio() + orbitando.getRadio() + 5.0;
@@ -82,8 +88,7 @@ public class AsistenteOrbital {
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         double limiteEscape;
-        boolean esMenorAlrededorDePlaneta = (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA || orbitando.getTipoCuerpo() == TipoCuerpo.SATELITE) &&
-                anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta();
+        boolean esMenorAlrededorDePlaneta = orbitando.esCuerpoMenor() && anfitrion.esPlaneta();
         if (esMenorAlrededorDePlaneta) {
             limiteEscape = Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0);
         } else {
@@ -139,7 +144,7 @@ public class AsistenteOrbital {
         if (asistenciaOrbital <= 0) return;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo().esMasivo && c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
+            if (c.esMasivo() && c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
                 continue;
             }
             if (c.estaOrbitando()) {
@@ -182,15 +187,14 @@ public class AsistenteOrbital {
 
     public double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
         double d = Math.max(10.0, rOrb);
-        boolean esCuerpoMenorOrbital = (orbitando.getTipoCuerpo() == TipoCuerpo.LUNA || orbitando.getTipoCuerpo() == TipoCuerpo.SATELITE) &&
-                anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta();
+        boolean esCuerpoMenorOrbital = orbitando.esCuerpoMenor() && anfitrion.esPlaneta();
         if (esCuerpoMenorOrbital) {
-            double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
-                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)
+            double factorMasa = (anfitrion.getMasaBase() > 0)
+                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getMasaBase())
                     : 1.0;
             return Math.sqrt(75.0 * factorMasa / d);
         }
-        return CalculadorOrbital.calcularRapidezOrbital(anfitrion.getMasa(), d, G);
+        return calculadorOrbital.calcularRapidezOrbital(anfitrion.getMasa(), d, G);
     }
 
     private CuerpoCeleste encontrarCuerpoDominante(CuerpoCeleste cuerpo, List<CuerpoCeleste> todos) {
@@ -199,7 +203,7 @@ public class AsistenteOrbital {
 
         for (CuerpoCeleste otro : todos) {
             if (otro == cuerpo || !otro.esSimulado()) continue;
-            if (!otro.getTipoCuerpo().esMasivo && otro.getMasa() < TipoCuerpo.ESTRELLA.masaBase * 0.1) continue;
+            if (!otro.esMasivo() && otro.getMasa() < TipoCuerpo.ESTRELLA.masaBase * 0.1) continue;
 
             double dist = cuerpo.getPosicion().distanciaA(otro.getPosicion());
             if (dist < 1.0) continue;

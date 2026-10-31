@@ -23,13 +23,10 @@ public class ReglaColisionEscudo implements ReglaColision {
         boolean bTiene = b.comoDefensor().map(Defensor::tieneEscudo).orElse(false);
         if (!aTiene && !bTiene) return false;
 
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
+        if (a.esMeteorito() || b.esMeteorito()) return true;
 
-        if (ta == TipoCuerpo.METEORITO || tb == TipoCuerpo.METEORITO) return true;
-
-        boolean aEsPlanetaOLuna = ta != null && (ta.esPlaneta() || ta.esLuna());
-        boolean bEsPlanetaOLuna = tb != null && (tb.esPlaneta() || tb.esLuna());
+        boolean aEsPlanetaOLuna = a.esPlaneta() || a.esLuna();
+        boolean bEsPlanetaOLuna = b.esPlaneta() || b.esLuna();
         return aEsPlanetaOLuna && bEsPlanetaOLuna;
     }
 
@@ -40,13 +37,13 @@ public class ReglaColisionEscudo implements ReglaColision {
         boolean aTiene = defA != null && defA.tieneEscudo();
         boolean bTiene = defB != null && defB.tieneEscudo();
 
-        if (a.getTipoCuerpo() == TipoCuerpo.METEORITO && bTiene) {
+        if (a.esMeteorito() && bTiene) {
             defB.absorberGolpeEscudo();
             utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
             ctx.emitirMensaje("El escudo planetario de " + b.getNombre() + " absorbió un impacto de meteorito (" + defB.getGolpesEscudoRestantes() + " golpes restantes).");
             return;
         }
-        if (b.getTipoCuerpo() == TipoCuerpo.METEORITO && aTiene) {
+        if (b.esMeteorito() && aTiene) {
             defA.absorberGolpeEscudo();
             utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.emitirMensaje("El escudo planetario de " + a.getNombre() + " absorbió un impacto de meteorito (" + defA.getGolpesEscudoRestantes() + " golpes restantes).");

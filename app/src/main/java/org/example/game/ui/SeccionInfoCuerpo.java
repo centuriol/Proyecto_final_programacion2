@@ -17,9 +17,15 @@ import org.example.game.render.GestorImagenes;
 /**
  * Secciones visuales reutilizables para ventanas modales de información y configuración de cuerpos celestes (SRP).
  */
-public final class SeccionInfoCuerpo {
+public class SeccionInfoCuerpo {
 
-    private SeccionInfoCuerpo() {}
+    private static final SeccionInfoCuerpo INSTANCIA_POR_DEFECTO = new SeccionInfoCuerpo();
+
+    public SeccionInfoCuerpo() {}
+
+    public static SeccionInfoCuerpo getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
 
     public static VBox inicializarDialogo(Stage stage, String titulo, Window owner) {
         stage.setTitle(titulo);
@@ -141,19 +147,19 @@ public final class SeccionInfoCuerpo {
     }
 
     public static String obtenerNombrePorDefecto(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getNombrePorDefecto() : "Cuerpo";
+        return tipo != null ? org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).nombrePorDefecto() : "Cuerpo";
     }
 
     public static String obtenerIcono(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getIcono() : "[???]";
+        return tipo != null ? org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).icono() : "[???]";
     }
 
     public static String obtenerSubtitulo(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getSubtitulo() : "Objeto Astronómico";
+        return tipo != null ? org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).subtitulo() : "Objeto Astronomico";
     }
 
     public static String obtenerLore(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getLore() : "Cuerpo celeste en el sistema.";
+        return tipo != null ? org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).lore() : "Cuerpo celeste en el sistema.";
     }
 
     public static void poblarListaCostos(VBox contenedor, java.util.Map<org.example.game.jugador.TipoRecurso, Double> costos) {

@@ -174,9 +174,7 @@ public class CivilizacionComponent {
     public void recalcularPoblacionMaxima() {
         // Basado en masa del planeta, tipo de planeta y tecnología
         double factorMasa = planeta.getMasa() / 5.97e24; // Relativo a Tierra
-        double factorTipo = (planeta.getTipoCuerpo() != null)
-                ? planeta.getTipoCuerpo().getFactorCapacidadPoblacion()
-                : 1.0;
+        double factorTipo = planeta.getFactorCapacidadPoblacion();
         poblacionMaxima = ConfiguracionSimulacion.POBLACION_MAXIMA_FACTOR * factorMasa * factorTipo * (1 + nivelTecnologico * 0.2);
     }
 

@@ -80,7 +80,7 @@ public class CalculadorIndicadoresSol {
     private static boolean esSolActivo(CuerpoCeleste cuerpo) {
         return cuerpo != null
                 && cuerpo.esSimulado()
-                && cuerpo.getTipoCuerpo() != null && cuerpo.getTipoCuerpo().esEstrella();
+                && cuerpo.esEstrella();
     }
 
     private static double acotar(double valor, double min, double max) {

@@ -148,28 +148,51 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
     // ===== Capacidades polimorficas e interfaces pequenas (ISP / OCP) =====
 
     public java.util.Optional<Civilizable> comoCivilizable() {
-        return this instanceof Civilizable c ? java.util.Optional.of(c) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
 
     public java.util.Optional<Defensor> comoDefensor() {
-        return this instanceof Defensor d ? java.util.Optional.of(d) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
 
     public java.util.Optional<Transformable> comoTransformable() {
-        return this instanceof Transformable t ? java.util.Optional.of(t) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
 
     public java.util.Optional<Colonizable> comoColonizable() {
-        return this instanceof Colonizable c ? java.util.Optional.of(c) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
 
     public java.util.Optional<Actualizable> comoActualizable() {
-        return this instanceof Actualizable a ? java.util.Optional.of(a) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
 
     public java.util.Optional<Expirable> comoExpirable() {
-        return this instanceof Expirable e ? java.util.Optional.of(e) : java.util.Optional.empty();
+        return java.util.Optional.empty();
     }
+
+    public java.util.Optional<Planeta> comoPlaneta() {
+        return java.util.Optional.empty();
+    }
+
+    public java.util.Optional<AgujeroNegro> comoAgujeroNegro() {
+        return java.util.Optional.empty();
+    }
+
+    public boolean esPlaneta() { return false; }
+    public boolean esPlanetaAgua() { return false; }
+    public boolean esPlanetaLava() { return false; }
+    public boolean esLuna() { return false; }
+    public boolean esSatelite() { return false; }
+    public boolean esMeteorito() { return false; }
+    public boolean esEstrella() { return false; }
+    public boolean esAgujeroNegro() { return false; }
+    public boolean esCuerpoMenor() { return false; }
+    public boolean esAtractorMasivo() { return false; }
+    public boolean esAtractorOrbital() { return false; }
+    public boolean esMasivo() { return false; }
+    public double getFactorCapacidadPoblacion() { return 0.0; }
+    public double getMasaBase() { return tipoCuerpo != null ? tipoCuerpo.masaBase : 1.0; }
 
     /**
      * Indica si el jugador puede recibir un reembolso de recursos al desmantelar este cuerpo.

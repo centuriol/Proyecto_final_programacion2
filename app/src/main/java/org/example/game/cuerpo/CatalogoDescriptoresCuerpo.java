@@ -7,7 +7,7 @@ import java.util.Map;
  * SRP: Catalogo centralizado de descriptores, lore, costos y produccion para los tipos de cuerpos.
  * Todos los costos y tasas de produccion provienen exclusivamente de ConfiguracionEconomia.
  */
-public final class CatalogoDescriptoresCuerpo {
+public class CatalogoDescriptoresCuerpo {
 
     private static final Map<TipoCuerpo, DescriptorTipoCuerpo> DESCRIPTORES = new EnumMap<>(TipoCuerpo.class);
 
@@ -197,9 +197,19 @@ public final class CatalogoDescriptoresCuerpo {
         ));
     }
 
-    private CatalogoDescriptoresCuerpo() {}
+    private static final CatalogoDescriptoresCuerpo INSTANCIA_POR_DEFECTO = new CatalogoDescriptoresCuerpo();
+
+    public CatalogoDescriptoresCuerpo() {}
+
+    public static CatalogoDescriptoresCuerpo getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
+
+    public DescriptorTipoCuerpo descriptor(TipoCuerpo tipo) {
+        return DESCRIPTORES.getOrDefault(tipo, DescriptorTipoCuerpo.DEFECTO);
+    }
 
     public static DescriptorTipoCuerpo obtenerDescriptor(TipoCuerpo tipo) {
-        return DESCRIPTORES.getOrDefault(tipo, DescriptorTipoCuerpo.DEFECTO);
+        return INSTANCIA_POR_DEFECTO.descriptor(tipo);
     }
 }

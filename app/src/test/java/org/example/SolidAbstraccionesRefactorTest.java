@@ -201,5 +201,9 @@ public class SolidAbstraccionesRefactorTest {
         public boolean estaExpirado() {
             return true;
         }
+        @Override
+        public java.util.Optional<Expirable> comoExpirable() {
+            return java.util.Optional.of(this);
+        }
     }
 }

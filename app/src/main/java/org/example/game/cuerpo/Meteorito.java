@@ -144,6 +144,21 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
     }
 
     @Override
+    public java.util.Optional<Actualizable> comoActualizable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public java.util.Optional<Expirable> comoExpirable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public boolean esMeteorito() {
+        return true;
+    }
+
+    @Override
     public String getColorHex() {
         return lanzadoPorJugador ? "#00FF00" : "#808080"; // Verde si jugador, gris si natural
     }

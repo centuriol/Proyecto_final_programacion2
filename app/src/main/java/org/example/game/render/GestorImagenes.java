@@ -116,7 +116,7 @@ public class GestorImagenes implements RepositorioSprites {
         if (iv != null) {
             contenedor.getChildren().add(iv);
         } else if (tipo != null) {
-            javafx.scene.control.Label lbl = new javafx.scene.control.Label(tipo.getIcono());
+            javafx.scene.control.Label lbl = new javafx.scene.control.Label(org.example.game.cuerpo.CatalogoDescriptoresCuerpo.obtenerDescriptor(tipo).icono());
             lbl.setFont(javafx.scene.text.Font.font("Monospace", javafx.scene.text.FontWeight.BOLD, 10));
             lbl.setTextFill(javafx.scene.paint.Color.web(tipo.getColorHexString()));
             contenedor.getChildren().add(lbl);

@@ -27,6 +27,16 @@ public class Luna extends CuerpoCeleste {
     }
 
     @Override
+    public boolean esLuna() {
+        return true;
+    }
+
+    @Override
+    public boolean esCuerpoMenor() {
+        return true;
+    }
+
+    @Override
     public String getColorHex() {
         return TipoCuerpo.LUNA.getColorHexString();
     }

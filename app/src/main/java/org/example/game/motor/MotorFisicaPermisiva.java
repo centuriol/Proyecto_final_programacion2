@@ -146,7 +146,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : todos) {
             if (c.getCuerpoOrbitado() != null && (aEliminar.contains(c.getCuerpoOrbitado()) || !todos.contains(c.getCuerpoOrbitado()))) {
-                if (c.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+                if (c.esSatelite()) {
                     satelitesAEliminar.add(c);
                     c.setSimulado(false);
                     c.setMasa(0);

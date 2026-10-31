@@ -188,7 +188,7 @@ public class RenderizadorPixelArt {
         double r = c.getRadio();
 
         double angulo = 0.0;
-        if (tipo != null && tipo.tieneRotacionAnimada()) {
+        if (!c.esEstrella()) {
             double velAngular = 57.2958 / Math.max(6.0, r);
             double faseInicial = (c.getNombre() != null) ? Math.abs(c.getNombre().hashCode() % 360) : 0;
             angulo = (faseInicial + tiempoAnimacionSegundos * velAngular) % 360.0;

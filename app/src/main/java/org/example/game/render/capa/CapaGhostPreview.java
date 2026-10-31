@@ -48,9 +48,9 @@ public class CapaGhostPreview {
         Image imgGhost = repositorioSprites != null ? repositorioSprites.obtenerImagen(tipo) : null;
         if (imgGhost != null) {
             gc.setGlobalAlpha(0.65);
-            double tamGhost = tipo.getTamanoGhost(r);
+            double tamGhost = calcularTamanoGhost(tipo, r);
             double angulo = 0.0;
-            if (tipo.tieneRotacionAnimada()) {
+            if (tieneRotacionAnimada(tipo)) {
                 double velAngular = 57.2958 / Math.max(6.0, r);
                 angulo = (tiempoAnimacion * velAngular) % 360.0;
             }
@@ -67,7 +67,7 @@ public class CapaGhostPreview {
     }
 
     private void dibujarAreaColapsoYReferencias(GraphicsContext gc, TipoCuerpo tipo, double factorMasa, double x, double y) {
-        double rAtraccion = tipo.getRadioAtraccionPreview(factorMasa);
+        double rAtraccion = calcularRadioAtraccionPreview(tipo, factorMasa);
 
         gc.setStroke(UtilidadRender.colorRgb(255, 255, 255, 0.20));
         gc.setLineWidth(1.0);
@@ -84,6 +84,30 @@ public class CapaGhostPreview {
             }
         }
         gc.setLineDashes(null);
+    }
+
+    private double calcularTamanoGhost(TipoCuerpo tipo, double radio) {
+        return tipo.esEstrella() ? Math.max(32.0, radio * 2.2) : Math.max(16.0, radio * 2.0);
+    }
+
+    private boolean tieneRotacionAnimada(TipoCuerpo tipo) {
+        return !tipo.esEstrella();
+    }
+
+    private double calcularRadioAtraccionPreview(TipoCuerpo tipo, double factorMasa) {
+        if (tipo.esEstrella()) {
+            return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
+        }
+        if (tipo.esPlaneta()) {
+            return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
+        }
+        if (tipo.esLuna()) {
+            return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
+        }
+        if (tipo.esAgujeroNegro()) {
+            return Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
+        }
+        return 30.0;
     }
 
     private void dibujarTagInformacion(GraphicsContext gc, TipoCuerpo tipo, double factorMasa, String previewNombre, double x, double y, double r) {

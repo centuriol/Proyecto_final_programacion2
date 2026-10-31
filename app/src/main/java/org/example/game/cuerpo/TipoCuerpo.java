@@ -264,34 +264,6 @@ public enum TipoCuerpo {
         return permiteAjusteMasa() ? factorMasa : 1.0;
     }
 
-    public double getRadioAtraccionPreview(double factorMasa) {
-        if (esEstrella()) {
-            return Math.max(65.0, 85.0 * Math.sqrt(factorMasa));
-        }
-        if (esPlaneta()) {
-            return Math.max(35.0, 55.0 * Math.sqrt(factorMasa));
-        }
-        if (esLuna()) {
-            return Math.max(25.0, 40.0 * Math.sqrt(factorMasa));
-        }
-        if (esAgujeroNegro()) {
-            return Math.max(90.0, 120.0 * Math.sqrt(factorMasa));
-        }
-        return 30.0;
-    }
-
-    public double getTamanoGhost(double radio) {
-        return esEstrella() ? Math.max(32.0, radio * 2.2) : Math.max(16.0, radio * 2.0);
-    }
-
-    public boolean tieneRotacionAnimada() {
-        return !esEstrella();
-    }
-
-    public boolean tieneAreaAtraccion() {
-        return this != SATELITE && this != METEORITO;
-    }
-
     public double getMasaMin() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MIN; }
     public double getMasaMax() { return masaBase * ConfiguracionSimulacion.MASA_FACTOR_MAX; }
 
@@ -317,25 +289,5 @@ public enum TipoCuerpo {
 
     public double getRadioAtraccionMax() {
         return getDescriptor().radioAtraccionMax();
-    }
-
-    public String getNombrePorDefecto() {
-        return getDescriptor().nombrePorDefecto();
-    }
-
-    public String getIcono() {
-        return getDescriptor().icono();
-    }
-
-    public String getSubtitulo() {
-        return getDescriptor().subtitulo();
-    }
-
-    public String getLore() {
-        return getDescriptor().lore();
-    }
-
-    public String getRutaAudio() {
-        return getDescriptor().rutaAudio();
     }
 }

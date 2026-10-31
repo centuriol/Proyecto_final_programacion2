@@ -20,10 +20,8 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-        return (ta == TipoCuerpo.PLANETA_AGUA && tb == TipoCuerpo.PLANETA_LAVA)
-                || (ta == TipoCuerpo.PLANETA_LAVA && tb == TipoCuerpo.PLANETA_AGUA);
+        return (a.esPlanetaAgua() && b.esPlanetaLava())
+                || (a.esPlanetaLava() && b.esPlanetaAgua());
     }
 
     @Override

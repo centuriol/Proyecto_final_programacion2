@@ -1,8 +1,5 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.Civilizable;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.Meteorito;
-import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.*;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.ConfiguracionColisiones;
 import org.example.game.simulacion.EscaladorAmenazaMeteorito;
@@ -44,34 +41,29 @@ public class ReglaColisionMeteorito implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-        if (ta == TipoCuerpo.SATELITE && tb == TipoCuerpo.SATELITE) return true;
-        return (ta == TipoCuerpo.METEORITO || tb == TipoCuerpo.METEORITO);
+        if (a.esSatelite() && b.esSatelite()) return true;
+        return a.esMeteorito() || b.esMeteorito();
     }
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-
-        if (ta == TipoCuerpo.SATELITE && tb == TipoCuerpo.SATELITE) {
+        if (a.esSatelite() && b.esSatelite()) {
             return;
         }
 
-        if (ta == TipoCuerpo.METEORITO && tb == TipoCuerpo.METEORITO) {
+        if (a.esMeteorito() && b.esMeteorito()) {
             utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
             utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.emitirMensaje("Destrucción mutua de meteoritos por impacto directo.");
             return;
         }
 
-        CuerpoCeleste meteorito = (ta == TipoCuerpo.METEORITO) ? a : b;
+        CuerpoCeleste meteorito = a.esMeteorito() ? a : b;
         CuerpoCeleste objetivo = (meteorito == a) ? b : a;
 
         utilidadColision.desactivarYEliminar(meteorito, ctx.aEliminar());
 
-        if (objetivo.getTipoCuerpo() == TipoCuerpo.SATELITE) {
+        if (objetivo.esSatelite()) {
             ctx.emitirExplosion(meteorito.getPosicion(), meteorito.getRadio() * 2.0);
             ctx.emitirEvento(
                     "El satélite " + objetivo.getNombre() + " interceptó y detuvo a " + meteorito.getNombre() + ".",
@@ -81,7 +73,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
             return;
         }
 
-        if (objetivo.getTipoCuerpo() != null && objetivo.getTipoCuerpo().esPlaneta()) {
+        if (objetivo.esPlaneta()) {
             aplicarImpactoAPlaneta(meteorito, objetivo, ctx);
             return;
         }
@@ -103,9 +95,16 @@ public class ReglaColisionMeteorito implements ReglaColision {
 
     private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
         double masaInicial = planeta.getMasaInicial();
-        double progresoEfectivo = (meteorito instanceof Meteorito met && met.tieneProgresoExplicito())
-                ? ((Meteorito) meteorito).getFactorProgresoOrigen()
-                : proveedorProgreso.getAsDouble();
+        double progresoEfectivo = meteorito.aceptar(new VisitanteCuerpo<>() {
+            @Override public Double visitarEstrella(Estrella estrella) { return proveedorProgreso.getAsDouble(); }
+            @Override public Double visitarPlaneta(Planeta planeta) { return proveedorProgreso.getAsDouble(); }
+            @Override public Double visitarLuna(Luna luna) { return proveedorProgreso.getAsDouble(); }
+            @Override public Double visitarSatelite(Satelite satelite) { return proveedorProgreso.getAsDouble(); }
+            @Override public Double visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return proveedorProgreso.getAsDouble(); }
+            @Override public Double visitarMeteorito(Meteorito met) {
+                return met.tieneProgresoExplicito() ? met.getFactorProgresoOrigen() : proveedorProgreso.getAsDouble();
+            }
+        });
         double factorDano = EscaladorAmenazaMeteorito.calcularFraccionDano(progresoEfectivo);
         double danoMasa = masaInicial * factorDano;
         double nuevaMasa = Math.max(0.0, planeta.getMasa() - danoMasa);

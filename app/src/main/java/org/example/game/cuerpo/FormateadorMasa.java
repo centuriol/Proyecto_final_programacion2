@@ -3,11 +3,17 @@ import java.util.Locale;
 /**
  * SRP: Formatea cantidades de masa física astronómica en unidades legibles (MT).
  */
-public final class FormateadorMasa {
+public class FormateadorMasa {
 
-    private FormateadorMasa() {}
+    private static final FormateadorMasa INSTANCIA_POR_DEFECTO = new FormateadorMasa();
 
-    public static String formatearMasa(double masaKg) {
+    public FormateadorMasa() {}
+
+    public static FormateadorMasa getInstanciaPorDefecto() {
+        return INSTANCIA_POR_DEFECTO;
+    }
+
+    public String formatear(double masaKg) {
         double mt = masaKg / 1e24;
         if (mt >= 1_000_000_000.0) {
             return String.format(Locale.US, "%.2fB MT", mt / 1e9);
@@ -22,5 +28,9 @@ public final class FormateadorMasa {
         } else {
             return String.format(Locale.US, "%.6f MT", mt);
         }
+    }
+
+    public static String formatearMasa(double masaKg) {
+        return INSTANCIA_POR_DEFECTO.formatear(masaKg);
     }
 }

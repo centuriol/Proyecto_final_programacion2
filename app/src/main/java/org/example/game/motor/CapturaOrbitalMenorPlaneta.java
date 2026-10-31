@@ -9,15 +9,15 @@ public class CapturaOrbitalMenorPlaneta implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esMenorOrbital();
-        boolean cjEsMenor = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().esMenorOrbital();
+        boolean ciEsMenor = ci.esCuerpoMenor();
+        boolean cjEsMenor = cj.esCuerpoMenor();
 
         if (ciEsMenor ^ cjEsMenor) {
             CuerpoCeleste menor = ciEsMenor ? ci : cj;
             CuerpoCeleste planeta = ciEsMenor ? cj : ci;
 
-            if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().esPlaneta()) {
-                double radioCaptura = (menor.getTipoCuerpo() == TipoCuerpo.LUNA)
+            if (planeta.esPlaneta()) {
+                double radioCaptura = menor.esLuna()
                         ? Math.max(planeta.getRadioAtraccion() * 2.2, 120.0)
                         : Math.max(planeta.getRadioAtraccion(), 65.0);
 
@@ -29,7 +29,7 @@ public class CapturaOrbitalMenorPlaneta implements EstrategiaCapturaOrbital {
 
     @Override
     public CuerpoCeleste[] ejecutarCaptura(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje, AsistenteOrbital asistente) {
-        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esMenorOrbital();
+        boolean ciEsMenor = ci.esCuerpoMenor();
         CuerpoCeleste menor = ciEsMenor ? ci : cj;
         CuerpoCeleste planeta = ciEsMenor ? cj : ci;
 

@@ -30,6 +30,7 @@ public class VentanaColocacion {
     private final SimulacionSolar simulacion;
     private final Window owner;
     private final Runnable onConfirmado;
+    private final SeccionInfoCuerpo seccionInfo;
 
     private Stage stage;
     private TextField txtNombre;
@@ -39,11 +40,16 @@ public class VentanaColocacion {
     private Label lblEstado;
     private Button btnColocar;
 
-    public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
+    public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado, SeccionInfoCuerpo seccionInfo) {
         this.tipo = tipo;
         this.simulacion = simulacion;
         this.owner = owner;
         this.onConfirmado = onConfirmado;
+        this.seccionInfo = seccionInfo != null ? seccionInfo : new SeccionInfoCuerpo();
+    }
+
+    public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
+        this(tipo, simulacion, owner, onConfirmado, new SeccionInfoCuerpo());
     }
 
     public static void mostrar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {

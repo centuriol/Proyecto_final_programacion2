@@ -26,8 +26,9 @@ public class ServicioReembolso {
         if (cuerpo == null || !cuerpo.permiteReembolso() || cuerpo.getTipoCuerpo() == null) {
             return Collections.emptyMap();
         }
-        double factorMasa = (cuerpo.getTipoCuerpo().masaBase > 0)
-                ? Math.max(0.1, cuerpo.getMasa() / cuerpo.getTipoCuerpo().masaBase)
+        double masaBase = cuerpo.getMasaBase();
+        double factorMasa = (masaBase > 0)
+                ? Math.max(0.1, cuerpo.getMasa() / masaBase)
                 : 1.0;
         Map<TipoRecurso, Double> costosOriginales = InventarioJugador.getCostosEscalados(cuerpo.getTipoCuerpo(), factorMasa);
         if (costosOriginales.isEmpty()) {

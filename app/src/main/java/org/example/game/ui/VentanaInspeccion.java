@@ -26,11 +26,17 @@ public class VentanaInspeccion {
     private final CuerpoCeleste cuerpo;
     private final SimulacionSolar simulacion;
     private final Window owner;
+    private final SeccionInfoCuerpo seccionInfo;
 
-    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
+    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, SeccionInfoCuerpo seccionInfo) {
         this.cuerpo = cuerpo;
         this.simulacion = simulacion;
         this.owner = owner;
+        this.seccionInfo = seccionInfo != null ? seccionInfo : new SeccionInfoCuerpo();
+    }
+
+    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
+        this(cuerpo, simulacion, owner, new SeccionInfoCuerpo());
     }
 
     public static void mostrar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
@@ -146,12 +152,12 @@ public class VentanaInspeccion {
 
         escudoBox.getChildren().addAll(lblEscudoTitulo, lblEstadoEscudo);
 
-        if (simulacion != null && cuerpo instanceof Planeta planeta) {
+        if (simulacion != null && def.puedeRecibirEscudo()) {
             Button btnActivarEscudo = new Button("Activar Escudo");
             btnActivarEscudo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
             btnActivarEscudo.setStyle(TemaUI.CSS_BTN_PRIMARIO);
             btnActivarEscudo.setOnAction(e -> {
-                simulacion.activarEscudo(planeta);
+                simulacion.activarEscudo(cuerpo);
                 stage.close();
             });
             escudoBox.getChildren().add(btnActivarEscudo);

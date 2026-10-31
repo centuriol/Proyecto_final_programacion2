@@ -73,9 +73,11 @@ public class TransformadorCuerpos {
 
     private final List<ReglaTransformacion> reglas = new ArrayList<>();
     private final Map<CuerpoCeleste, ProcesoTransformacion> procesosActivos = new HashMap<>();
+    private final BuscadorOrbitaLibre buscadorOrbitaLibre;
     private Consumer<String> listenerMensaje;
 
-    public TransformadorCuerpos() {
+    public TransformadorCuerpos(BuscadorOrbitaLibre buscadorOrbitaLibre) {
+        this.buscadorOrbitaLibre = buscadorOrbitaLibre != null ? buscadorOrbitaLibre : new BuscadorOrbitaLibre();
         // Regla 1: Planeta de Agua cerca del sol -> Planeta Porro
         reglas.add(new ReglaTransformacion(
                 TipoCuerpo.PLANETA_AGUA,
@@ -93,6 +95,10 @@ public class TransformadorCuerpos {
                 "Planeta Lava",
                 "Proximidad extrema a la estrella. Transformacion: Porro -> Lava"
         ));
+    }
+
+    public TransformadorCuerpos() {
+        this(new BuscadorOrbitaLibre());
     }
 
     public void agregarRegla(ReglaTransformacion regla) {
@@ -136,7 +142,7 @@ public class TransformadorCuerpos {
         // 3. Buscar nuevos planetas candidatos que entren al radio de activacion
         List<CuerpoCeleste> estrellas = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.ESTRELLA && c.esSimulado()) {
+            if (c.esEstrella() && c.esSimulado()) {
                 estrellas.add(c);
             }
         }
@@ -246,11 +252,11 @@ public class TransformadorCuerpos {
      * Si no existe ninguna posicion libre, retorna null.
      */
     public Vector2D encontrarPosicionOrbitalLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
-        return BuscadorOrbitaLibre.encontrarPosicionOrbitalLibre(cuerpo, estrella, radioActivacion, cuerpos);
+        return buscadorOrbitaLibre.buscarPosicionLibre(cuerpo, estrella, radioActivacion, cuerpos);
     }
 
     public boolean posicionEstaLibre(Vector2D pos, CuerpoCeleste cuerpo, List<CuerpoCeleste> cuerpos) {
-        return BuscadorOrbitaLibre.posicionEstaLibre(pos, cuerpo, cuerpos);
+        return buscadorOrbitaLibre.esPosicionLibre(pos, cuerpo, cuerpos);
     }
 
     public void cancelarProceso(CuerpoCeleste cuerpo) {

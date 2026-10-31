@@ -22,6 +22,26 @@ public class Estrella extends CuerpoCeleste {
     }
 
     @Override
+    public boolean esEstrella() {
+        return true;
+    }
+
+    @Override
+    public boolean esAtractorMasivo() {
+        return true;
+    }
+
+    @Override
+    public boolean esAtractorOrbital() {
+        return true;
+    }
+
+    @Override
+    public boolean esMasivo() {
+        return true;
+    }
+
+    @Override
     public String getColorHex() {
         return TipoCuerpo.ESTRELLA.getColorHexString();
     }

@@ -22,18 +22,13 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-        if (ta == TipoCuerpo.ESTRELLA && tb == TipoCuerpo.ESTRELLA) return true;
-        return (ta != null && ta.esAgujeroNegro()) || (tb != null && tb.esAgujeroNegro());
+        if (a.esEstrella() && b.esEstrella()) return true;
+        return a.esAgujeroNegro() || b.esAgujeroNegro();
     }
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
-        TipoCuerpo ta = a.getTipoCuerpo();
-        TipoCuerpo tb = b.getTipoCuerpo();
-
-        if (ta == TipoCuerpo.ESTRELLA && tb == TipoCuerpo.ESTRELLA) {
+        if (a.esEstrella() && b.esEstrella()) {
             double masaTotal = a.getMasa() + b.getMasa();
             Vector2D posCM = (a.getPosicion().multiplicar(a.getMasa()).sumar(b.getPosicion().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
             Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
@@ -48,8 +43,8 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
             return;
         }
 
-        boolean aEsBH = (ta != null && ta.esAgujeroNegro());
-        boolean bEsBH = (tb != null && tb.esAgujeroNegro());
+        boolean aEsBH = a.esAgujeroNegro();
+        boolean bEsBH = b.esAgujeroNegro();
 
         if (aEsBH && bEsBH) {
             CuerpoCeleste mayor = a.getMasa() >= b.getMasa() ? a : b;

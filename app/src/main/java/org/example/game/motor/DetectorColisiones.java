@@ -49,11 +49,11 @@ public class DetectorColisiones {
                                                    Set<CuerpoCeleste> aEliminar,
                                                    List<CuerpoCeleste> aAgregar) {
         for (CuerpoCeleste satelite : simulados) {
-            if (satelite == null || aEliminar.contains(satelite) || satelite.getTipoCuerpo() != TipoCuerpo.SATELITE) {
+            if (satelite == null || aEliminar.contains(satelite) || !satelite.esSatelite()) {
                 continue;
             }
             for (CuerpoCeleste amenaza : simulados) {
-                if (amenaza == null || aEliminar.contains(amenaza) || amenaza.getTipoCuerpo() != TipoCuerpo.METEORITO) {
+                if (amenaza == null || aEliminar.contains(amenaza) || !amenaza.esMeteorito()) {
                     continue;
                 }
                 if (estaEnContactoConEscudoActivo(amenaza, simulados, aEliminar)) {

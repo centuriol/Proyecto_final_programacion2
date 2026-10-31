@@ -14,13 +14,14 @@ public class CapaZonasHabitables {
 
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {
         for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() != null && c.getTipoCuerpo().esEstrella()) {
+            if (c.esEstrella()) {
                 double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
                 double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
 
                 double factorMasa = 1.0;
-                if (c.getTipoCuerpo() != null && c.getTipoCuerpo().masaBase > 0) {
-                    factorMasa = Math.max(0.1, c.getMasa() / c.getTipoCuerpo().masaBase);
+                double masaBase = c.getMasaBase();
+                if (masaBase > 0) {
+                    factorMasa = Math.max(0.1, c.getMasa() / masaBase);
                 }
                 double escala = Math.sqrt(factorMasa);
 

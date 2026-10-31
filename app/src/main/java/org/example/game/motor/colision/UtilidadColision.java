@@ -61,7 +61,7 @@ public class UtilidadColision {
     }
 
     public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
-        if (destruido.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+        if (destruido.esMeteorito()) {
             desactivarYEliminar(destruido, aEliminar);
             return;
         }

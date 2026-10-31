@@ -37,6 +37,21 @@ public class Satelite extends CuerpoCeleste implements Actualizable {
     }
 
     @Override
+    public java.util.Optional<Actualizable> comoActualizable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public boolean esSatelite() {
+        return true;
+    }
+
+    @Override
+    public boolean esCuerpoMenor() {
+        return true;
+    }
+
+    @Override
     public <R> R aceptar(VisitanteCuerpo<R> visitante) {
         return visitante.visitarSatelite(this);
     }

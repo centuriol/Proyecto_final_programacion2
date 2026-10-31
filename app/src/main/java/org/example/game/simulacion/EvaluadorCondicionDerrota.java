@@ -16,13 +16,10 @@ public class EvaluadorCondicionDerrota {
         boolean hayPlanetaOLuna = false;
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado()) {
-                TipoCuerpo t = c.getTipoCuerpo();
-                if (t != null) {
-                    if (t.esAgujeroNegro()) {
-                        hayAgujeroNegro = true;
-                    } else if (t.esPlaneta() || t.esLuna()) {
-                        hayPlanetaOLuna = true;
-                    }
+                if (c.esAgujeroNegro()) {
+                    hayAgujeroNegro = true;
+                } else if (c.esPlaneta() || c.esLuna()) {
+                    hayPlanetaOLuna = true;
                 }
             }
         }

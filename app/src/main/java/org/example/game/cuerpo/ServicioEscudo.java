@@ -29,8 +29,9 @@ public class ServicioEscudo {
     public double calcularCostoEscudo(Planeta planeta) {
         if (planeta == null) return ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA;
         double factorMasa = 1.0;
-        if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().masaBase > 0) {
-            factorMasa = Math.max(0.3, planeta.getMasa() / planeta.getTipoCuerpo().masaBase);
+        double masaBase = planeta.getMasaBase();
+        if (masaBase > 0) {
+            factorMasa = Math.max(0.3, planeta.getMasa() / masaBase);
         }
         return Math.round(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * factorMasa);
     }
@@ -68,7 +69,7 @@ public class ServicioEscudo {
         // Verificar si ya tiene un satélite orbitándolo
         boolean yaTieneSatelite = false;
         for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
-            if (c.getTipoCuerpo() == TipoCuerpo.SATELITE && c.estaOrbitando(planeta)) {
+            if (c.esSatelite() && c.estaOrbitando(planeta)) {
                 yaTieneSatelite = true;
                 break;
             }

@@ -68,9 +68,9 @@ public class GeneradorEventosCosmicos {
 
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado()) {
-                if (c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+                if (c.esMeteorito()) {
                     meteoritosActivos++;
-                } else if (c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta()) {
+                } else if (c.esPlaneta()) {
                     planetas.add(c);
                 }
             }

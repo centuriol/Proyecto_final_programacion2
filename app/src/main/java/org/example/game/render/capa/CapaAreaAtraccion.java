@@ -19,7 +19,7 @@ public class CapaAreaAtraccion {
         for (CuerpoCeleste c : cuerpos) {
             if (!c.esSimulado()) continue;
             TipoCuerpo tipo = c.getTipoCuerpo();
-            if (tipo != null && !tipo.tieneAreaAtraccion()) continue;
+            if (tipo != null && !tieneAreaAtraccion(tipo)) continue;
 
             double rAtraccion = c.getRadioAtraccion();
             if (rAtraccion <= 0) continue;
@@ -27,8 +27,8 @@ public class CapaAreaAtraccion {
             double sx = ConstantesFisicas.fisicaAXJavaFX(c.getPosicionX(), anchoCanvas);
             double sy = ConstantesFisicas.fisicaAYJavaFX(c.getPosicionY(), altoCanvas);
 
-            Color colorArea = (tipo != null && tipo.esEstrella()) ? COLOR_AREA_ESTRELLA
-                    : (tipo != null && tipo.esLuna()) ? COLOR_AREA_LUNA : COLOR_AREA_PLANETA;
+            Color colorArea = c.esEstrella() ? COLOR_AREA_ESTRELLA
+                    : c.esLuna() ? COLOR_AREA_LUNA : COLOR_AREA_PLANETA;
 
             gc.setStroke(colorArea);
             gc.setLineWidth(1.0);
@@ -36,5 +36,9 @@ public class CapaAreaAtraccion {
             gc.strokeOval(sx - rAtraccion, sy - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
             gc.setLineDashes(null);
         }
+    }
+
+    private boolean tieneAreaAtraccion(TipoCuerpo tipo) {
+        return tipo != TipoCuerpo.SATELITE && tipo != TipoCuerpo.METEORITO;
     }
 }

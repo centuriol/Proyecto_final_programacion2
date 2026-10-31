@@ -56,12 +56,12 @@ public class EvaluadorHabitabilidad {
                 continue;
             }
             double dist = planeta.getPosicion().distanciaA(otro.getPosicion());
-            if (otro.getTipoCuerpo() != null && otro.getTipoCuerpo().esEstrella()) {
+            if (otro.esEstrella()) {
                 if (dist < distEstrellaMin) {
                     distEstrellaMin = dist;
                     estrellaMasCercana = otro;
                 }
-            } else if (otro.getTipoCuerpo() != null && otro.getTipoCuerpo().esAgujeroNegro()) {
+            } else if (otro.esAgujeroNegro()) {
                 if (dist < distAgujeroMin) {
                     distAgujeroMin = dist;
                     agujeroMasCercano = otro;

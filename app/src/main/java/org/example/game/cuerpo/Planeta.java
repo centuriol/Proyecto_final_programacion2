@@ -198,4 +198,56 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     public void setTransformadoPorEvento(boolean transformadoPorEvento) {
         this.transformadoPorEvento = transformadoPorEvento;
     }
+
+    @Override
+    public java.util.Optional<Civilizable> comoCivilizable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public java.util.Optional<Defensor> comoDefensor() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public java.util.Optional<Transformable> comoTransformable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public java.util.Optional<Colonizable> comoColonizable() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public java.util.Optional<Planeta> comoPlaneta() {
+        return java.util.Optional.of(this);
+    }
+
+    @Override
+    public boolean esPlaneta() {
+        return true;
+    }
+
+    @Override
+    public boolean esPlanetaAgua() {
+        return subTipo == TipoCuerpo.PLANETA_AGUA;
+    }
+
+    @Override
+    public boolean esPlanetaLava() {
+        return subTipo == TipoCuerpo.PLANETA_LAVA;
+    }
+
+    public boolean esPlanetaRocoso() {
+        return subTipo == TipoCuerpo.PLANETA_ROCOSO;
+    }
+
+    @Override
+    public double getFactorCapacidadPoblacion() {
+        if (esPlanetaRocoso()) return 1.0;
+        if (esPlanetaAgua()) return 0.6;
+        if (esPlanetaLava()) return 0.3;
+        return 0.0;
+    }
 }
