@@ -8,15 +8,15 @@ package org.example.game.cuerpo;
  */
 public interface VisitanteCuerpo<R> {
 
-    R visitarEstrella(Estrella estrella);
+    default R visitarEstrella(Estrella estrella) { return null; }
 
-    R visitarPlaneta(Planeta planeta);
+    default R visitarPlaneta(Planeta planeta) { return null; }
 
-    R visitarLuna(Luna luna);
+    default R visitarLuna(Luna luna) { return null; }
 
-    R visitarSatelite(Satelite satelite);
+    default R visitarSatelite(Satelite satelite) { return null; }
 
-    R visitarMeteorito(Meteorito meteorito);
+    default R visitarMeteorito(Meteorito meteorito) { return null; }
 
-    R visitarAgujeroNegro(AgujeroNegro agujeroNegro);
+    default R visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return null; }
 }

@@ -1,11 +1,15 @@
 package org.example.game.motor.colision;
+
 import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
 import org.example.game.cuerpo.RegistroCapacidades;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.cuerpo.Transformable;
+import org.example.game.cuerpo.VisitanteCuerpo;
 import org.example.game.motor.Vector2D;
+
 /**
  * Regla de reacción hidro-magmática (Easter egg) que fusiona Agua y Lava en Planeta Porro inerte.
+ * Despacho doble polimórfico sin consultar subtipos desde el consumidor (Tarea 3).
  */
 public class ReglaColisionFusionAguaLava implements ReglaColision {
 
@@ -21,8 +25,18 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        return (a.getTipoCuerpo() == TipoCuerpo.PLANETA_AGUA && b.getTipoCuerpo() == TipoCuerpo.PLANETA_LAVA)
-                || (a.getTipoCuerpo() == TipoCuerpo.PLANETA_LAVA && b.getTipoCuerpo() == TipoCuerpo.PLANETA_AGUA);
+        Boolean res = a.aceptar(new VisitanteCuerpo<>() {
+            @Override
+            public Boolean visitarPlaneta(Planeta pA) {
+                return b.aceptar(new VisitanteCuerpo<>() {
+                    @Override
+                    public Boolean visitarPlaneta(Planeta pB) {
+                        return pA.puedeFusionarHidroMagmatica(pB);
+                    }
+                });
+            }
+        });
+        return Boolean.TRUE.equals(res);
     }
 
     @Override

@@ -169,6 +169,15 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
         return subTipo.getColorHexString();
     }
 
+    public boolean puedeFusionarHidroMagmatica(Planeta otro) {
+        if (otro == null) return false;
+        boolean yoAgua = this.subTipo == TipoCuerpo.PLANETA_AGUA;
+        boolean yoLava = this.subTipo == TipoCuerpo.PLANETA_LAVA;
+        boolean otroAgua = otro.subTipo == TipoCuerpo.PLANETA_AGUA;
+        boolean otroLava = otro.subTipo == TipoCuerpo.PLANETA_LAVA;
+        return (yoAgua && otroLava) || (yoLava && otroAgua);
+    }
+
     public TipoCuerpo getSubTipo() {
         return subTipo;
     }

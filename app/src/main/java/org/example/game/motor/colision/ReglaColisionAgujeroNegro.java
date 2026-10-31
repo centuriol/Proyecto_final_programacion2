@@ -1,10 +1,16 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.*;
-import org.example.game.motor.GestorAgujeroNegro;
+
+import org.example.game.cuerpo.AgujeroNegro;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.VisitanteCuerpo;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.MensajeEvento;
+
 /**
  * Regla de colisión para interacción gravitatoria extrema de Agujeros Negros y fusión de estrellas.
+ * Despacho doble polimórfico sin consultar subtipos desde el consumidor (Tarea 3).
  */
 public class ReglaColisionAgujeroNegro implements ReglaColision {
 
@@ -18,39 +24,62 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
         this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
     }
 
-    private boolean esEstrella(CuerpoCeleste c) {
-        if (c == null) return false;
-        return c.aceptar(new VisitanteCuerpo<Boolean>() {
-            @Override public Boolean visitarEstrella(Estrella estrella) { return true; }
-            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
-            @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
-            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
-            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
-        });
-    }
-
-    private boolean esAgujeroNegro(CuerpoCeleste c) {
-        if (c == null) return false;
-        return c.aceptar(new VisitanteCuerpo<Boolean>() {
-            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
-            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
-            @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
-            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
-            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return true; }
-        });
-    }
-
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        if (esEstrella(a) && esEstrella(b)) return true;
-        return esAgujeroNegro(a) || esAgujeroNegro(b);
+        Boolean res = a.aceptar(new VisitanteCuerpo<>() {
+            @Override
+            public Boolean visitarEstrella(Estrella eA) {
+                return b.aceptar(new VisitanteCuerpo<>() {
+                    @Override public Boolean visitarEstrella(Estrella eB) { return true; }
+                    @Override public Boolean visitarAgujeroNegro(AgujeroNegro anB) { return true; }
+                });
+            }
+
+            @Override
+            public Boolean visitarAgujeroNegro(AgujeroNegro anA) {
+                return true;
+            }
+
+            @Override
+            public Boolean visitarPlaneta(org.example.game.cuerpo.Planeta p) {
+                return esAgujero(b);
+            }
+
+            @Override
+            public Boolean visitarLuna(org.example.game.cuerpo.Luna l) {
+                return esAgujero(b);
+            }
+
+            @Override
+            public Boolean visitarSatelite(org.example.game.cuerpo.Satelite s) {
+                return esAgujero(b);
+            }
+
+            @Override
+            public Boolean visitarMeteorito(org.example.game.cuerpo.Meteorito m) {
+                return esAgujero(b);
+            }
+
+            private Boolean esAgujero(CuerpoCeleste otro) {
+                return Boolean.TRUE.equals(otro.aceptar(new VisitanteCuerpo<>() {
+                    @Override public Boolean visitarAgujeroNegro(AgujeroNegro an) { return true; }
+                }));
+            }
+        });
+        return Boolean.TRUE.equals(res);
     }
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
-        if (esEstrella(a) && esEstrella(b)) {
+        boolean ambasEstrellas = Boolean.TRUE.equals(a.aceptar(new VisitanteCuerpo<>() {
+            @Override public Boolean visitarEstrella(Estrella eA) {
+                return Boolean.TRUE.equals(b.aceptar(new VisitanteCuerpo<>() {
+                    @Override public Boolean visitarEstrella(Estrella eB) { return true; }
+                }));
+            }
+        }));
+
+        if (ambasEstrellas) {
             double masaTotal = a.getMasa() + b.getMasa();
             Vector2D posCM = (a.getPosicion().multiplicar(a.getMasa()).sumar(b.getPosicion().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
             Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
@@ -65,8 +94,12 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
             return;
         }
 
-        boolean aEsBH = esAgujeroNegro(a);
-        boolean bEsBH = esAgujeroNegro(b);
+        boolean aEsBH = Boolean.TRUE.equals(a.aceptar(new VisitanteCuerpo<>() {
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro an) { return true; }
+        }));
+        boolean bEsBH = Boolean.TRUE.equals(b.aceptar(new VisitanteCuerpo<>() {
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro an) { return true; }
+        }));
 
         if (aEsBH && bEsBH) {
             CuerpoCeleste mayor = a.getMasa() >= b.getMasa() ? a : b;
