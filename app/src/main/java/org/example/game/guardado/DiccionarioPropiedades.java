@@ -1,5 +1,10 @@
 package org.example.game.guardado;
-import java.io.IOException; import java.io.StringReader; import java.io.StringWriter; import java.util.Arrays; import java.util.Properties; import java.util.stream.Collectors;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.stream.Collectors;
 /**
  * Contenedor tipado de pares clave-valor para lectura y escritura segura de propiedades de partida (SRP).
  */

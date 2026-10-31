@@ -1,5 +1,6 @@
 package org.example.game.cuerpo;
-import org.example.game.civilizacion.CivilizacionComponent; import java.util.List;
+import org.example.game.civilizacion.CivilizacionComponent;
+import java.util.List;
 /**
  * ISP: solo la implementan los cuerpos que pueden albergar y desarrollar civilización.
  */

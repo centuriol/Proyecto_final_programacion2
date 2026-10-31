@@ -1,5 +1,15 @@
 package org.example;
-import javafx.scene.canvas.Canvas; import javafx.scene.input.ScrollEvent; import org.example.game.controlador.ControladorMouse; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.CamaraZoom; import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.input.ScrollEvent;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class CamaraZoomYRuedaMouseTest {
 

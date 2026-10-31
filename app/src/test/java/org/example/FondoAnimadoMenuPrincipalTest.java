@@ -1,5 +1,18 @@
 package org.example;
-import javafx.scene.canvas.Canvas; import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.Planeta; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.CamaraZoom; import org.example.game.render.EscenaFondoMenu; import org.example.game.ui.CapaIndicadoresSol; import org.example.game.ui.PantallaMenuPausa; import org.example.game.ui.PantallaMenuPrincipal; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.canvas.Canvas;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.EscenaFondoMenu;
+import org.example.game.ui.CapaIndicadoresSol;
+import org.example.game.ui.PantallaMenuPausa;
+import org.example.game.ui.PantallaMenuPrincipal;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class FondoAnimadoMenuPrincipalTest {
 

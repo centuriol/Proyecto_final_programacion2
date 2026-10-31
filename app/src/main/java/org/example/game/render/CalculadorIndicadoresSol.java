@@ -1,5 +1,10 @@
 package org.example.game.render;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D; import java.util.ArrayList; import java.util.Collections; import java.util.List;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.Vector2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 /**
  * Calcula la posicion en el borde de la pantalla y el angulo de direccion hacia cada sol
  * que se encuentre fuera del area visible actual.

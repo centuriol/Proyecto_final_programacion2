@@ -1,5 +1,6 @@
 package org.example.game.simulacion;
-import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion;
+import org.example.game.progresion.RamaProgresion;
+import org.example.game.progresion.SistemaProgresion;
 /**
  * SRP: Calcula de forma configurable el factor de progreso efectivo del jugador y escala
  * proporcionalmente la masa, el radio visual y el porcentaje de dano de los meteoritos.

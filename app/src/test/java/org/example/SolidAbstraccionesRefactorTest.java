@@ -1,5 +1,28 @@
 package org.example;
-import javafx.scene.input.KeyCode; import org.example.game.cuerpo.*; import org.example.game.motor.MotorFisica; import org.example.game.controlador.CombinacionTeclas; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.ServicioReembolso; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.MotorFisicaBase; import org.example.game.motor.Vector2D; import org.example.game.render.GestorEstelas; import org.example.game.ui.FormateadorNumero; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.ArrayList; import java.util.Deque; import java.util.List; import java.util.Map; import java.util.concurrent.atomic.AtomicBoolean; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.input.KeyCode;
+import org.example.game.cuerpo.*;
+import org.example.game.motor.MotorFisica;
+import org.example.game.controlador.CombinacionTeclas;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.jugador.ServicioReembolso;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.MotorFisicaBase;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.GestorEstelas;
+import org.example.game.ui.FormateadorNumero;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 public class SolidAbstraccionesRefactorTest {
 

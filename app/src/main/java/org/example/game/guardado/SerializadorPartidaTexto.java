@@ -1,5 +1,11 @@
 package org.example.game.guardado;
-import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.progresion.RamaProgresion; import java.util.ArrayList; import java.util.EnumMap; import java.util.List; import java.util.Map;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.RamaProgresion;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 /**
  * Implementacion textual determinista de SerializadorPartida basada en pares clave-valor estructurados.
  *

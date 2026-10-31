@@ -1,5 +1,12 @@
 package org.example.game.civilizacion;
-import org.example.game.cuerpo.Planeta; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.MensajeEvento; import org.example.game.motor.Vector2D; import org.example.game.cuerpo.CuerpoCeleste; import java.util.ArrayList; import java.util.List; import java.util.function.Consumer;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.motor.Vector2D;
+import org.example.game.cuerpo.CuerpoCeleste;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 /**
  * Componente de civilización para planetas.
  * Gestiona población, estabilidad, nivel tecnológico y eventos.

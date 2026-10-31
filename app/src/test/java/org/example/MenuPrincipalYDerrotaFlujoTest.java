@@ -1,5 +1,20 @@
 package org.example;
-import javafx.scene.layout.BorderPane; import org.example.game.controlador.CoordinadorSesionJuego; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.guardado.*; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.PantallaGameOver; import org.example.game.ui.PantallaMenuPrincipal; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import org.junit.jupiter.api.io.TempDir; import java.nio.file.Path; import java.util.concurrent.atomic.AtomicBoolean; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.layout.BorderPane;
+import org.example.game.controlador.CoordinadorSesionJuego;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.guardado.*;
+import org.example.game.render.CamaraZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.PantallaGameOver;
+import org.example.game.ui.PantallaMenuPrincipal;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class MenuPrincipalYDerrotaFlujoTest {
 

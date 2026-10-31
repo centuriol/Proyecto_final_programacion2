@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import java.util.List; import java.util.Objects;
+import java.util.List;
+import java.util.Objects;
 /**
  * Modelo raiz inmutable de los datos guardados de una partida completa.
  *

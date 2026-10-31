@@ -1,5 +1,13 @@
 package org.example.game.ui;
-import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import java.util.function.BooleanSupplier;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import java.util.function.BooleanSupplier;
 /**
  * Menu modal de pausa invocado con la tecla Escape durante la partida.
  * Ofrece las cuatro acciones requeridas: Continuar, Guardar, Cargar y Salir al menu principal (SRP / DIP).

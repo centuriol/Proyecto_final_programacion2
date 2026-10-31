@@ -1,5 +1,8 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import java.util.List; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import java.util.List;
+import java.util.function.Consumer;
 /**
  * Encapsula la lógica de asistencia orbital, captura gravitacional y estabilización dinámica de órbitas.
  *

@@ -1,5 +1,9 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.simulacion.ConfiguracionSimulacion; import java.util.*; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import java.util.*;
+import java.util.function.Consumer;
 /**
  * Sistema de transformacion gradual de cuerpos celestes basado en proximidad a estrellas.
  *

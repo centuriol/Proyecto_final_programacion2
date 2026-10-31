@@ -1,5 +1,20 @@
 package org.example;
-import org.example.game.civilizacion.EstadoCivilizacion; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.guardado.*; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.progresion.RamaProgresion; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.io.TempDir; import java.nio.file.Files; import java.nio.file.Path; import java.util.ArrayList; import java.util.EnumMap; import java.util.List; import java.util.Map; import java.util.Optional; import static org.junit.jupiter.api.Assertions.*;
+import org.example.game.civilizacion.EstadoCivilizacion;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.guardado.*;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.RamaProgresion;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
 class RepositorioYSerializacionPartidaTest {
 
     @TempDir

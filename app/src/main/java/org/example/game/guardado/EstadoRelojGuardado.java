@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.CamaraZoom;
 /**
  * Datos guardados inmutables del reloj de simulacion, eventos cosmicos y vista de camara (SRP).
  */

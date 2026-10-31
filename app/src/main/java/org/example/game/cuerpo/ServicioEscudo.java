@@ -1,5 +1,11 @@
 package org.example.game.cuerpo;
-import org.example.game.jugador.TipoRecurso; import org.example.game.motor.AsistenteOrbital; import org.example.game.motor.Vector2D; import org.example.game.progresion.ElementoDesbloqueable; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.AsistenteOrbital;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.ElementoDesbloqueable;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Servicio de dominio para la activación y gestión de escudos planetarios y satélites orbitales.
  *

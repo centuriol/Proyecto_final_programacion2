@@ -1,5 +1,10 @@
 package org.example.game.render;
-import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import javafx.scene.paint.Color; import java.util.ArrayList; import java.util.List; import java.util.Random;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 /**
  * Responsable exclusivo de dibujar el fondo espacial, nebulosas procedimentales,
  * grilla opcional y estrellas titilantes.

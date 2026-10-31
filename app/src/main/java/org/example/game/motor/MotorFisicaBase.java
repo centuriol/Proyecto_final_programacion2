@@ -1,5 +1,10 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Expirable; import java.util.ArrayList; import java.util.Iterator; import java.util.List; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Expirable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 /**
  * Clase base abstracta para motores de fisica orbital.
  *
@@ -34,7 +39,9 @@ public abstract class MotorFisicaBase implements MotorFisica, ObservableFisica {
         for (Runnable l : listenersColision) {
             try {
                 l.run();
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                System.err.println("[WARN] Error al ejecutar listener de colision: " + ex.getMessage());
+            }
         }
     }
 

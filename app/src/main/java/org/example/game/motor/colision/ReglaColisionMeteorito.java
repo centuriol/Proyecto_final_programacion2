@@ -1,5 +1,13 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.Civilizable; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Meteorito; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionColisiones; import org.example.game.simulacion.EscaladorAmenazaMeteorito; import org.example.game.simulacion.MensajeEvento; import java.util.function.DoubleSupplier;
+import org.example.game.cuerpo.Civilizable;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Meteorito;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.ConfiguracionColisiones;
+import org.example.game.simulacion.EscaladorAmenazaMeteorito;
+import org.example.game.simulacion.MensajeEvento;
+import java.util.function.DoubleSupplier;
 /**
  * Regla de colision para impactos balisticos de meteoritos con dano escalado segun el progreso
  * del jugador y coexistencia de satelites (SRP / OCP / DIP).
@@ -48,7 +56,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
             return;
         }
 
-        Meteorito meteorito = (ta == TipoCuerpo.METEORITO) ? (Meteorito) a : (Meteorito) b;
+        CuerpoCeleste meteorito = (ta == TipoCuerpo.METEORITO) ? a : b;
         CuerpoCeleste objetivo = (meteorito == a) ? b : a;
 
         UtilidadColision.desactivarYEliminar(meteorito, ctx.aEliminar());
@@ -81,7 +89,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
         ctx.emitirMensaje(meteorito.getNombre() + " colisionó contra " + objetivo.getNombre() + ".");
     }
 
-    private void aplicarImpactoAPlaneta(Meteorito meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
+    private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
         double masaInicial = planeta.getMasaInicial();
         double progresoEfectivo = meteorito.tieneProgresoExplicito()
                 ? meteorito.getFactorProgresoOrigen()

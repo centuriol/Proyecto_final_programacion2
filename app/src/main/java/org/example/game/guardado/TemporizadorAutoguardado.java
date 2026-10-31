@@ -1,5 +1,7 @@
 package org.example.game.guardado;
-import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar; import java.util.Objects;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import java.util.Objects;
 /**
  * Ejecuta el autoguardado periodico de la partida activa sobre las tres ranuras rotativas.
  * Solo avanza cuando la sesion esta activa, sin pausa y sin derrota (SRP / DIP).

@@ -1,5 +1,6 @@
 package org.example.game.render;
-import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.Vector2D;
 /**
  * Encapsula el desplazamiento bidimensional (pan) de la camara en unidades del mundo,
  * acotado a los limites del area del mundo para evitar perderse en el espacio infinito.

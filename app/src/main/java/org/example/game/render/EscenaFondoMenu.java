@@ -1,5 +1,15 @@
 package org.example.game.render;
-import javafx.scene.canvas.GraphicsContext; import javafx.scene.paint.Color; import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.Planeta; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D; import org.example.game.render.cuerpo.RenderizadorEstrella; import org.example.game.render.cuerpo.RenderizadorPlaneta; import java.util.ArrayList; import java.util.List; import java.util.Random;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.cuerpo.RenderizadorEstrella;
+import org.example.game.render.cuerpo.RenderizadorPlaneta;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 /**
  * Escena astronomica animada permanente para el fondo del menu principal:
  * campo de estrellas en deriva y parpadeo continuo, un Sol a la izquierda

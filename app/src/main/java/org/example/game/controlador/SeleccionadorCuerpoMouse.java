@@ -1,5 +1,8 @@
 package org.example.game.controlador;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import java.util.List;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.Vector2D;
+import java.util.List;
 /**
  * Responsable de la detección y selección de cuerpos celestes bajo las coordenadas del ratón (SRP).
  */

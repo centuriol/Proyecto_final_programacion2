@@ -1,5 +1,10 @@
 package org.example.game.cuerpo;
-import org.example.game.motor.CalculadorOrbital; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionSimulacion; import java.util.EnumMap; import java.util.Map; import java.util.concurrent.atomic.AtomicLong;
+import org.example.game.motor.CalculadorOrbital;
+import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 /**
  * Fábrica instanciable y configurable para creación dinámica de cuerpos celestes.
  * Proporciona registro de estrategias CreadorCuerpo y métodos estáticos de conveniencia (OCP / DIP).

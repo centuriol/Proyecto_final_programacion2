@@ -1,5 +1,14 @@
 package org.example.game.controlador;
-import javafx.scene.Node; import org.example.game.guardado.GestorGuardadoPartida; import org.example.game.guardado.TemporizadorAutoguardado; import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.PantallaGameOver; import org.example.game.ui.PantallaMenuPausa; import org.example.game.ui.PantallaMenuPrincipal; import java.nio.file.Path; import java.util.Objects;
+import javafx.scene.Node;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.guardado.TemporizadorAutoguardado;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.PantallaGameOver;
+import org.example.game.ui.PantallaMenuPausa;
+import org.example.game.ui.PantallaMenuPrincipal;
+import java.nio.file.Path;
+import java.util.Objects;
 /**
  * Coordina las transiciones entre el menu principal, la sesion de juego activa,
  * el menu de pausa y la pantalla de derrota.

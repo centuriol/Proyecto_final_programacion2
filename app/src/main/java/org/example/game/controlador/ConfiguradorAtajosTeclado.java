@@ -1,5 +1,11 @@
 package org.example.game.controlador;
-import javafx.scene.input.KeyCode; import org.example.game.controlador.comando.*; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import org.example.game.ui.ControlTiempoWidget;
+import javafx.scene.input.KeyCode;
+import org.example.game.controlador.comando.*;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraInventarioHotbar;
+import org.example.game.ui.ControlTiempoWidget;
 /**
  * Factoria y configurador de atajos predeterminados del juego dividido por áreas funcionales (SRP).
  */

@@ -1,5 +1,10 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.AgujeroNegro; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D; import org.example.game.simulacion.MensajeEvento;
+import org.example.game.cuerpo.AgujeroNegro;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.MensajeEvento;
 /**
  * Regla de colisión para interacción gravitatoria extrema de Agujeros Negros y fusión de estrellas.
  */

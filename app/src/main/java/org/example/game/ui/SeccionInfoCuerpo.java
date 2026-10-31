@@ -1,5 +1,19 @@
 package org.example.game.ui;
-import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.Node; import javafx.scene.Scene; import javafx.scene.control.Label; import javafx.scene.input.KeyCode; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.stage.Modality; import javafx.stage.Stage; import javafx.stage.Window; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.GestorImagenes;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.GestorImagenes;
 /**
  * Secciones visuales reutilizables para ventanas modales de información y configuración de cuerpos celestes (SRP).
  */

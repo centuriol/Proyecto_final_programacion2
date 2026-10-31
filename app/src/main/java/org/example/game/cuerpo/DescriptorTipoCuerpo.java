@@ -1,5 +1,7 @@
 package org.example.game.cuerpo;
-import org.example.game.jugador.TipoRecurso; import java.util.Collections; import java.util.Map;
+import org.example.game.jugador.TipoRecurso;
+import java.util.Collections;
+import java.util.Map;
 /**
  * Descriptor inmutable de metadatos economicos, narrativos y visuales para un TipoCuerpo.
  *

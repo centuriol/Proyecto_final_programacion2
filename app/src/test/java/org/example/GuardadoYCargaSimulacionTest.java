@@ -1,5 +1,24 @@
 package org.example;
-import org.example.game.colonizacion.NaveColonizadora; import org.example.game.controlador.comando.ComandoCargarPartida; import org.example.game.controlador.comando.ComandoGuardarPartida; import org.example.game.cuerpo.*; import org.example.game.guardado.*; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.progresion.RamaProgresion; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraGuardadoWidget; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import org.junit.jupiter.api.io.TempDir; import java.nio.file.Path; import java.util.*; import java.util.concurrent.atomic.AtomicBoolean; import static org.junit.jupiter.api.Assertions.*;
+import org.example.game.colonizacion.NaveColonizadora;
+import org.example.game.controlador.comando.ComandoCargarPartida;
+import org.example.game.controlador.comando.ComandoGuardarPartida;
+import org.example.game.cuerpo.*;
+import org.example.game.guardado.*;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.RamaProgresion;
+import org.example.game.render.CamaraZoom;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraGuardadoWidget;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class GuardadoYCargaSimulacionTest {
 

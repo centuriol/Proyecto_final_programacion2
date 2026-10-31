@@ -1,5 +1,6 @@
 package org.example.game.cuerpo;
-import org.example.game.civilizacion.CivilizacionComponent; import java.util.List;
+import org.example.game.civilizacion.CivilizacionComponent;
+import java.util.List;
 public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, Defensor, Transformable {
     private boolean tieneCivilizacion = false;
     private TipoCuerpo subTipo;

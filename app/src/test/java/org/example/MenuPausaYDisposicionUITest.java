@@ -1,5 +1,23 @@
 package org.example;
-import javafx.scene.Node; import javafx.scene.Parent; import javafx.scene.control.Button; import javafx.scene.input.KeyCode; import javafx.scene.input.KeyEvent; import javafx.scene.layout.StackPane; import org.example.game.guardado.GestorGuardadoPartida; import org.example.game.guardado.RepositorioPartidasArchivo; import org.example.game.ui.PantallaArbolProgresion; import org.example.game.ui.PantallaMenuPausa; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import org.junit.jupiter.api.io.TempDir; import java.nio.file.Path; import java.util.ArrayList; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.StackPane;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.guardado.RepositorioPartidasArchivo;
+import org.example.game.ui.PantallaArbolProgresion;
+import org.example.game.ui.PantallaMenuPausa;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class MenuPausaYDisposicionUITest {
 

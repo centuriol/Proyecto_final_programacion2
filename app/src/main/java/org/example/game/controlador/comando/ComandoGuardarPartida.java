@@ -1,5 +1,7 @@
 package org.example.game.controlador.comando;
-import org.example.game.guardado.GestorGuardadoPartida; import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Comando que ejecuta el guardado rapido de la partida actual (SRP / Patron Command).
  */

@@ -1,5 +1,7 @@
 package org.example.game.guardado;
-import java.nio.file.Path; import java.util.List; import java.util.Optional;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 /**
  * Contrato de persistencia para almacenar, recuperar y consultar partidas guardadas.
  *

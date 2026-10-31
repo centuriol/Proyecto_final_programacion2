@@ -1,5 +1,9 @@
 package org.example.game.controlador;
-import javafx.animation.AnimationTimer; import javafx.scene.canvas.Canvas; import org.example.game.guardado.TemporizadorAutoguardado; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar;
+import javafx.animation.AnimationTimer;
+import javafx.scene.canvas.Canvas;
+import org.example.game.guardado.TemporizadorAutoguardado;
+import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Bucle principal de juego (Game Loop).
  *

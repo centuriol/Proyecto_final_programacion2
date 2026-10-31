@@ -1,5 +1,6 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.simulacion.ConfiguracionColisiones;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.simulacion.ConfiguracionColisiones;
 /**
  * Regla de colapso mutuo en escombros para masas similares (ratio <= 1.3).
  */

@@ -1,5 +1,19 @@
 package org.example.game.guardado;
-import org.example.game.colonizacion.NaveColonizadora; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion; import org.example.game.render.CamaraZoom; import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar; import java.util.ArrayList; import java.util.EnumMap; import java.util.List; import java.util.Map; import java.util.Objects;
+import org.example.game.colonizacion.NaveColonizadora;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.RamaProgresion;
+import org.example.game.progresion.SistemaProgresion;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 /**
  * Convierte el estado vivo de SimulacionSolar y ControlZoom hacia un objeto inmutable
  * DatosPartida y restaura dicho estado sin exponer detalles de archivo ni texto (SRP / DIP).

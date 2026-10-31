@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import org.example.game.civilizacion.EstadoCivilizacion; import java.util.Objects;
+import org.example.game.civilizacion.EstadoCivilizacion;
+import java.util.Objects;
 /**
  * Instantanea inmutable del estado de una civilizacion planetaria para persistencia (SRP).
  */

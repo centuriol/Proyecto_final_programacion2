@@ -1,5 +1,17 @@
 package org.example.game.controlador;
-import javafx.scene.canvas.Canvas; import javafx.scene.input.MouseButton; import javafx.scene.input.MouseEvent; import javafx.scene.input.ScrollEvent; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Planeta; import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import java.util.List; import java.util.function.Consumer;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.CamaraZoom;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraInventarioHotbar;
+import java.util.List;
+import java.util.function.Consumer;
 /**
  * Encapsula la gestión de eventos de mouse y la interacción sobre el canvas de simulación.
  *

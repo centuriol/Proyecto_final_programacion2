@@ -1,5 +1,25 @@
 package org.example;
-import javafx.application.Application; import javafx.application.Platform; import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.geometry.Rectangle2D; import javafx.scene.Scene; import javafx.scene.control.Button; import javafx.scene.input.KeyCode; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.stage.Screen; import javafx.stage.Stage; import org.example.game.controlador.*; import org.example.game.controlador.comando.*; import org.example.game.guardado.GestorGuardadoPartida; import org.example.game.guardado.TemporizadorAutoguardado; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.*;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import org.example.game.controlador.*;
+import org.example.game.controlador.comando.*;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.guardado.TemporizadorAutoguardado;
+import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.*;
 /**
  * Punto de entrada principal de la aplicacion JavaFX "Centuriol".
  * Principios SOLID:
@@ -102,7 +122,9 @@ public class App extends Application {
             Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
             ancho = bounds.getWidth();
             alto = bounds.getHeight();
-        } catch (Exception ignored) {}
+        } catch (Exception ex) {
+            System.err.println("[INFO] Dimensiones por defecto aplicadas en entorno sin pantalla: " + ex.getMessage());
+        }
         return new double[]{ancho, alto};
     }
 

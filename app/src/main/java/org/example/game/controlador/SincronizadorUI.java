@@ -1,5 +1,6 @@
 package org.example.game.controlador;
-import org.example.game.ui.ControlTiempoWidget; import org.example.game.ui.HUDRecursosTop;
+import org.example.game.ui.ControlTiempoWidget;
+import org.example.game.ui.HUDRecursosTop;
 /**
  * SRP: Encapsula la sincronización visual de los componentes de la interfaz de usuario tras cada tick.
  * Elimina callbacks anónimos y funciones sueltas, centralizando la actualización de la UI.

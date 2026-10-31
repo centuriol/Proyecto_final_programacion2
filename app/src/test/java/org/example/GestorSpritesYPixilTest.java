@@ -1,5 +1,15 @@
 package org.example;
-import javafx.scene.image.Image; import javafx.scene.image.ImageView; import javafx.scene.layout.StackPane; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.GestorImagenes; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.io.File; import java.io.FileInputStream; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.GestorImagenes;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.io.File;
+import java.io.FileInputStream;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class GestorSpritesYPixilTest {
 

@@ -1,5 +1,13 @@
 package org.example.game.render.cuerpo;
-import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import javafx.scene.shape.ArcType; import org.example.game.cuerpo.Civilizable; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.RenderizadorCuerpo; import org.example.game.render.RepositorioSprites; import org.example.game.render.UtilidadRender;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.shape.ArcType;
+import org.example.game.cuerpo.Civilizable;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.RenderizadorCuerpo;
+import org.example.game.render.RepositorioSprites;
+import org.example.game.render.UtilidadRender;
 /**
  * Renderizador Pixel Art para planetas (rocoso, agua, lava, gaseoso, helado) (SRP / OCP).
  */

@@ -1,5 +1,10 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.simulacion.MensajeEvento; import java.util.List; import java.util.function.BiConsumer; import java.util.function.Consumer; import java.util.function.DoubleSupplier;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.simulacion.MensajeEvento;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 /**
  * DIP: SistemaSolar y SimulacionSolar dependen de esta interfaz, no de una implementación
  * concreta de física. Se puede cambiar el cálculo sin tocar SistemaSolar ni SimulacionSolar.

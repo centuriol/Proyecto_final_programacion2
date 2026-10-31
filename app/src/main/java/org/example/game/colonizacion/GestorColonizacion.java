@@ -1,5 +1,15 @@
 package org.example.game.colonizacion;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Planeta; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.MensajeEvento; import java.util.ArrayList; import java.util.Collections; import java.util.Iterator; import java.util.List; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.MensajeEvento;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 /**
  * Gestor del subsistema de colonización espacial entre planetas.
  *

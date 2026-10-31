@@ -1,5 +1,7 @@
 package org.example.test;
-import javafx.application.Platform; import org.junit.jupiter.api.extension.BeforeAllCallback; import org.junit.jupiter.api.extension.ExtensionContext;
+import javafx.application.Platform;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 /**
  * Extensión JUnit 5 reutilizable para inicializar el Toolkit de JavaFX una sola vez (DRY / SRP).
  */
@@ -14,7 +16,9 @@ public class JavaFXExtension implements BeforeAllCallback {
                 if (!inicializado) {
                     try {
                         Platform.startup(() -> {});
-                    } catch (IllegalStateException ignored) {}
+                    } catch (IllegalStateException e) {
+                        System.err.println("[INFO] JavaFX Toolkit ya inicializado en el contexto de test: " + e.getMessage());
+                    }
                     inicializado = true;
                 }
             }

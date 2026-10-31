@@ -1,5 +1,16 @@
 package org.example.game.render;
-import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import javafx.scene.paint.Color; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Defensor; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.GestorAgujeroNegro; import org.example.game.motor.Vector2D; import org.example.game.render.capa.*; import org.example.game.render.cuerpo.*; import java.util.*;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.Defensor;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.GestorAgujeroNegro;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.capa.*;
+import org.example.game.render.cuerpo.*;
+import java.util.*;
 /**
  * Renderizador Pixel Art para el juego "Órbita" estilo RimWorld UI.
  * SRP: Orquesta las capas de fondo, zonas, atracción, cuerpos, trayectoria, selección y ghost.

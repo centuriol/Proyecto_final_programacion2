@@ -1,5 +1,7 @@
 package org.example.game.jugador;
-import org.example.game.cuerpo.TipoCuerpo; import java.util.EnumMap; import java.util.Map;
+import org.example.game.cuerpo.TipoCuerpo;
+import java.util.EnumMap;
+import java.util.Map;
 /**
  * Inventario del jugador: almacena recursos y gestiona costos de creación.
  */

@@ -1,5 +1,12 @@
 package org.example.game.guardado;
-import org.example.game.render.ControlZoom; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar; import java.nio.file.Path; import java.util.ArrayList; import java.util.List; import java.util.Objects; import java.util.Optional;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 /**
  * Servicio coordinador de casos de uso para guardar, autoguardar y cargar partidas
  * sobre las tres ranuras rotativas o identificadores explicitos.
@@ -126,8 +133,8 @@ public class GestorGuardadoPartida {
             if (numero >= 1 && numero <= PoliticaRanurasGuardado.TOTAL_RANURAS) {
                 this.ranuraSeleccionada = numero;
             }
-        } catch (NumberFormatException ignored) {
-            // Identificador personalizado distinto de ranura numerada
+        } catch (NumberFormatException e) {
+            System.err.println("[INFO] Ranura personalizada no numerica: " + slot);
         }
     }
 

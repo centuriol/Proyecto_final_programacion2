@@ -1,5 +1,9 @@
 package org.example.game.guardado;
-import org.example.game.jugador.TipoRecurso; import org.example.game.progresion.RamaProgresion; import java.util.Collections; import java.util.EnumMap; import java.util.Map;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.progresion.RamaProgresion;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 /**
  * Datos guardados inmutables de recursos economicos y progresion tecnologica del jugador (SRP).
  */

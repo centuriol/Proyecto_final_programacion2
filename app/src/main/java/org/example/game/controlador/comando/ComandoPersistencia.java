@@ -1,5 +1,9 @@
 package org.example.game.controlador.comando;
-import org.example.game.guardado.ExcepcionPersistenciaPartida; import org.example.game.guardado.GestorGuardadoPartida; import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.guardado.ExcepcionPersistenciaPartida;
+import org.example.game.guardado.GestorGuardadoPartida;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Clase base abstracta para comandos que ejecutan operaciones de persistencia de partida.
  *
@@ -26,8 +30,9 @@ public abstract class ComandoPersistencia implements Comando {
         }
         try {
             ejecutarAccion();
-        } catch (ExcepcionPersistenciaPartida ignored) {
-            // El gestor ya emite la notificacion correspondiente en la simulacion
+        } catch (ExcepcionPersistenciaPartida e) {
+            simulacion.notificarEvento("Error en persistencia: " + e.getMessage(), MensajeEvento.TipoMensaje.PELIGRO);
+            System.err.println("[WARN] Excepcion en comando de persistencia: " + e.getMessage());
         }
     }
 

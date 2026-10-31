@@ -1,5 +1,18 @@
 package org.example.game.ui;
-import javafx.animation.FadeTransition; import javafx.animation.PauseTransition; import javafx.animation.SequentialTransition; import javafx.application.Platform; import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.control.Label; import javafx.scene.layout.VBox; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.util.Duration; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Panel visual de notificaciones de eventos en tiempo real.
  * SRP: Muestra alertas y mensajes importantes en la interfaz de juego.

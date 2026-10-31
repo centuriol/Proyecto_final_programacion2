@@ -1,5 +1,10 @@
 package org.example.game.simulacion;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import java.util.List;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.Vector2D;
+import java.util.List;
 /**
  * Controla la lógica de selección, preview y parámetros para colocación de cuerpos (SRP).
  */

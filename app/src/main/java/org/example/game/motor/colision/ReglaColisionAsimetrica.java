@@ -1,5 +1,7 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.Civilizable; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.simulacion.ConfiguracionColisiones;
+import org.example.game.cuerpo.Civilizable;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.simulacion.ConfiguracionColisiones;
 /**
  * Regla de colisión asimétrica donde el cuerpo menor es destruido y el mayor absorbe una fracción de su masa.
  */

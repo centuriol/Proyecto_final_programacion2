@@ -1,5 +1,10 @@
 package org.example.game.progresion;
-import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionSimulacion; import java.util.EnumMap; import java.util.Map;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import java.util.EnumMap;
+import java.util.Map;
 /**
  * Gestor del árbol de progresión tecnológica dividido en tres ramas independientes:
  * 1. Planetas y Cuerpos celestes (Luna, Porro, Escudo, Lava).

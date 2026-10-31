@@ -1,5 +1,27 @@
 package org.example.game.ui;
-import javafx.application.Platform; import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.Cursor; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.control.ProgressBar; import javafx.scene.control.ScrollPane; import javafx.scene.control.Separator; import javafx.scene.input.KeyCode; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.shape.Circle; import javafx.scene.shape.Line; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import org.example.game.jugador.TipoRecurso; import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar; import java.util.EnumMap; import java.util.Map;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.progresion.RamaProgresion;
+import org.example.game.progresion.SistemaProgresion;
+import org.example.game.simulacion.MensajeEvento;
+import org.example.game.simulacion.SimulacionSolar;
+import java.util.EnumMap;
+import java.util.Map;
 /**
  * Apartado de Árbol de Investigación Científica con nodos en círculos y disposición orbital ajustada a pantalla.
  *

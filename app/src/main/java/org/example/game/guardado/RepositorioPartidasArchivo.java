@@ -1,5 +1,13 @@
 package org.example.game.guardado;
-import java.io.IOException; import java.nio.charset.StandardCharsets; import java.nio.file.Files; import java.nio.file.Path; import java.nio.file.Paths; import java.util.List; import java.util.Objects; import java.util.Optional; import java.util.stream.Stream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 /**
  * Repositorio basado en archivos que escribe y lee partidas en una carpeta dedicada,
  * creandola automaticamente si no existe.

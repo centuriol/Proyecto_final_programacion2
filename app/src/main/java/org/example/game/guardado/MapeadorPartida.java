@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import org.example.game.render.ControlZoom; import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.render.ControlZoom;
+import org.example.game.simulacion.SimulacionSolar;
 /**
  * Contrato de mapeo bidireccional entre el modelo vivo de simulacion y DatosPartida (DIP / ISP).
  */

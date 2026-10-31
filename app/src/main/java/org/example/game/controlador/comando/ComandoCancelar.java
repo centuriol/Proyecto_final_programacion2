@@ -1,5 +1,7 @@
 package org.example.game.controlador.comando;
-import org.example.game.controlador.ControladorMouse; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraInventarioHotbar;
 /**
  * SRP: Encapsula la acción de cancelar el modo colocación actual,
  * deseleccionar ítems en la hotbar y limpiar la selección activa de cuerpos celestes.

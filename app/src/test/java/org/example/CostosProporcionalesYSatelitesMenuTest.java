@@ -1,5 +1,26 @@
 package org.example;
-import javafx.scene.image.Image; import javafx.scene.input.MouseButton; import javafx.scene.input.MouseEvent; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.render.GestorImagenes; import org.example.game.simulacion.ConfiguracionEconomia; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.CampoSatelitesMenu; import org.example.game.ui.PantallaMenuPrincipal; import org.example.game.ui.SateliteDecorativoMenu; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.List; import java.util.Map; import java.util.Optional; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.GestorImagenes;
+import org.example.game.simulacion.ConfiguracionEconomia;
+import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.CampoSatelitesMenu;
+import org.example.game.ui.PantallaMenuPrincipal;
+import org.example.game.ui.SateliteDecorativoMenu;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class CostosProporcionalesYSatelitesMenuTest {
 

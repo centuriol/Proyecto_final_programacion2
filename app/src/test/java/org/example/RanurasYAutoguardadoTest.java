@@ -1,5 +1,19 @@
 package org.example;
-import javafx.scene.canvas.Canvas; import org.example.game.controlador.BucleJuego; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.guardado.*; import org.example.game.render.CamaraZoom; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import org.junit.jupiter.api.io.TempDir; import java.nio.file.Path; import java.util.List; import java.util.concurrent.atomic.AtomicLong; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.canvas.Canvas;
+import org.example.game.controlador.BucleJuego;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.guardado.*;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class RanurasYAutoguardadoTest {
 

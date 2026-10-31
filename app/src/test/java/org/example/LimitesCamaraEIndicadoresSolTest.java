@@ -1,5 +1,18 @@
 package org.example;
-import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.Planeta; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.ConstantesFisicas; import org.example.game.render.CalculadorIndicadoresSol; import org.example.game.render.CamaraZoom; import org.example.game.render.DesplazamientoCamara; import org.example.game.render.IndicadorSolBorde; import org.example.game.ui.CapaIndicadoresSol; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.render.CalculadorIndicadoresSol;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.DesplazamientoCamara;
+import org.example.game.render.IndicadorSolBorde;
+import org.example.game.ui.CapaIndicadoresSol;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class LimitesCamaraEIndicadoresSolTest {
 

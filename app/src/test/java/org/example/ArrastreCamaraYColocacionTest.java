@@ -1,5 +1,26 @@
 package org.example;
-import javafx.scene.canvas.Canvas; import javafx.scene.input.MouseButton; import javafx.scene.input.MouseEvent; import org.example.game.controlador.ControladorMouse; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.Planeta; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.Collections; import java.util.concurrent.atomic.AtomicReference; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.CamaraZoom;
+import org.example.game.render.RenderizadorPixelArt;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraInventarioHotbar;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class ArrastreCamaraYColocacionTest {
 

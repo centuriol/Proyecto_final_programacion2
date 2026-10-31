@@ -1,5 +1,8 @@
 package org.example.game.guardado;
-import java.time.Instant; import java.time.ZoneId; import java.time.format.DateTimeFormatter; import java.util.Objects;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 /**
  * Representa el estado e informacion descriptiva de una ranura fija de guardado (SRP).
  */

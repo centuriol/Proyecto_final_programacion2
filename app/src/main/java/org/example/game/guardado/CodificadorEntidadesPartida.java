@@ -1,5 +1,7 @@
 package org.example.game.guardado;
-import org.example.game.civilizacion.EstadoCivilizacion; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D;
+import org.example.game.civilizacion.EstadoCivilizacion;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.Vector2D;
 /**
  * Codifica y decodifica las entidades individuales (cuerpos celestes y naves colonizadoras)
  * dentro de un DiccionarioPropiedades empleando prefijos configurables (SRP).

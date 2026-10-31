@@ -1,5 +1,11 @@
 package org.example.game.ui;
-import javafx.geometry.Pos; import javafx.scene.control.Button; import javafx.scene.control.Tooltip; import javafx.scene.layout.HBox; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import org.example.game.controlador.comando.Comando;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.example.game.controlador.comando.Comando;
 /**
  * Barra compacta de controles para guardar y cargar partida en la interfaz superior (SRP / DIP).
  */

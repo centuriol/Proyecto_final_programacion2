@@ -1,5 +1,8 @@
 package org.example.game.cuerpo;
-import org.example.game.civilizacion.CivilizacionComponent; import org.example.game.motor.CuerpoFisico; import org.example.game.motor.Vector2D; import java.util.List;
+import org.example.game.civilizacion.CivilizacionComponent;
+import org.example.game.motor.CuerpoFisico;
+import org.example.game.motor.Vector2D;
+import java.util.List;
 /**
  * SRP: guarda datos básicos (nombre, masa, posición, velocidad, fuerza).
  * OCP: getColorHex()/getRadio() son abstractos -> cada subclase nueva
@@ -273,6 +276,20 @@ public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
      */
     public void actualizarEstado(double dt) {
         // Implementado por subclases dinamicas
+    }
+
+    /**
+     * Factor de progreso asignado al origen balistico del cuerpo celeste.
+     */
+    public double getFactorProgresoOrigen() {
+        return -1.0;
+    }
+
+    /**
+     * Indica si el cuerpo posee un progreso de amenaza explicito.
+     */
+    public boolean tieneProgresoExplicito() {
+        return false;
     }
 
     // ===== Métodos abstractos para vista y despacho polimórfico =====

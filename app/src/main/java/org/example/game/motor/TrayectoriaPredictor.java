@@ -1,5 +1,7 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import java.util.ArrayList; import java.util.List;
+import org.example.game.cuerpo.CuerpoCeleste;
+import java.util.ArrayList;
+import java.util.List;
 /**
  * Predictor de trayectorias orbitales en tiempo real.
  * SRP: Realiza integración rápida hacia el futuro para mostrar la línea de trayectoria prevista

@@ -1,5 +1,23 @@
 package org.example.game.ui;
-import javafx.animation.AnimationTimer; import javafx.application.Platform; import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.input.MouseButton; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import org.example.game.guardado.InfoRanuraGuardado; import org.example.game.guardado.PoliticaRanurasGuardado; import org.example.game.render.EscenaFondoMenu; import java.util.ArrayList; import java.util.Collections; import java.util.List; import java.util.function.IntConsumer; import java.util.function.Supplier;
+import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.example.game.guardado.InfoRanuraGuardado;
+import org.example.game.guardado.PoliticaRanurasGuardado;
+import org.example.game.render.EscenaFondoMenu;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 /**
  * Primera pantalla de Centuriol con fondo espacial animado permanente, un Sol a la izquierda,
  * un Planeta Porro a la derecha y las tres opciones principales:

@@ -1,5 +1,15 @@
 package org.example.game.ui;
-import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.scene.text.TextAlignment; import org.example.game.simulacion.SimulacionSolar; import java.util.function.BooleanSupplier;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
+import org.example.game.simulacion.SimulacionSolar;
+import java.util.function.BooleanSupplier;
 /**
  * Pantalla superpuesta de derrota con dos opciones:
  * volver al ultimo guardado o volver al menu principal (SRP / DIP).

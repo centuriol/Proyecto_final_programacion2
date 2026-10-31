@@ -1,5 +1,9 @@
 package org.example.game.simulacion;
-import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.Luna; import org.example.game.cuerpo.Planeta; import org.example.game.motor.Vector2D;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.Luna;
+import org.example.game.cuerpo.Planeta;
+import org.example.game.motor.Vector2D;
 /**
  * Generador de presets y configuraciones iniciales de cuerpos celestes (SRP).
  */

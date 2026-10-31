@@ -1,5 +1,9 @@
 package org.example.game.guardado;
-import org.example.game.civilizacion.CivilizacionComponent; import org.example.game.cuerpo.*; import java.util.IdentityHashMap; import java.util.List; import java.util.Map;
+import org.example.game.civilizacion.CivilizacionComponent;
+import org.example.game.cuerpo.*;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 /**
  * Visitante polimorfico que extrae DatosCuerpo de cualquier subclase de CuerpoCeleste
  * sin emplear condicionales instanceof (OCP / SRP).

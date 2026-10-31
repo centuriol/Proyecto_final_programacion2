@@ -1,5 +1,7 @@
 package org.example.game.cuerpo;
-import org.example.game.motor.MotorFisica; import java.util.ArrayList; import java.util.List;
+import org.example.game.motor.MotorFisica;
+import java.util.ArrayList;
+import java.util.List;
 /**
  * SRP: solo administra la lista de cuerpos y dispara los pasos de física.
  * DIP: recibe MotorFisica por constructor, no crea uno propio.

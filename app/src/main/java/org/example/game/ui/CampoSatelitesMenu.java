@@ -1,5 +1,13 @@
 package org.example.game.ui;
-import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import javafx.scene.paint.Color; import org.example.game.motor.Vector2D; import org.example.game.render.GestorImagenes; import org.example.game.render.RepositorioSprites; import java.util.ArrayList; import java.util.Collections; import java.util.List;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.GestorImagenes;
+import org.example.game.render.RepositorioSprites;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 /**
  * SRP / DIP: Conjunto decorativo exclusivo del menu principal compuesto por cinco satelites
  * a la izquierda y cinco a la derecha. Renderiza cada satelite con su sprite pixel art girando

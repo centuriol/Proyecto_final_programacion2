@@ -1,5 +1,21 @@
 package org.example.game.simulacion;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.SistemaSolar; import org.example.game.motor.MotorFisica; import org.example.game.colonizacion.GestorColonizacion; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.efectos.GestorEfectos; import org.example.game.jugador.InventarioJugador; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.MotorFisicaPermisiva; import org.example.game.motor.TrayectoriaPredictor; import org.example.game.motor.Vector2D; import org.example.game.progresion.SistemaProgresion; import org.example.game.motor.TransformadorCuerpos; import java.util.ArrayList; import java.util.List; import java.util.Optional;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.SistemaSolar;
+import org.example.game.motor.MotorFisica;
+import org.example.game.colonizacion.GestorColonizacion;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.efectos.GestorEfectos;
+import org.example.game.jugador.InventarioJugador;
+import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.MotorFisicaPermisiva;
+import org.example.game.motor.TrayectoriaPredictor;
+import org.example.game.motor.Vector2D;
+import org.example.game.progresion.SistemaProgresion;
+import org.example.game.motor.TransformadorCuerpos;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 /**
  * Orquestador principal de la simulación "Órbita".
  * SRP: Coordina el avance de la simulación delegando en componentes especializados (reloj, bus, colocación, física, presets).

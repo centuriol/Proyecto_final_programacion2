@@ -1,5 +1,6 @@
 package org.example.game.controlador.comando;
-import org.example.game.cuerpo.TipoCuerpo; import org.example.game.ui.BarraInventarioHotbar;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.ui.BarraInventarioHotbar;
 /**
  * SRP: Encapsula la acción de seleccionar un tipo de cuerpo celeste en la barra de acceso rápido (hotbar).
  */

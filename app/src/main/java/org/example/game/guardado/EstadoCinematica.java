@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import org.example.game.motor.Vector2D; import java.util.Objects;
+import org.example.game.motor.Vector2D;
+import java.util.Objects;
 /**
  * Instantanea inmutable del estado cinematico y orbital de un cuerpo celeste (SRP).
  */

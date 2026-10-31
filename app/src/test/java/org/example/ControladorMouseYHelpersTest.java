@@ -1,5 +1,25 @@
 package org.example;
-import javafx.scene.input.MouseButton; import javafx.scene.input.MouseEvent; import javafx.scene.input.ScrollEvent; import javafx.scene.layout.HBox; import javafx.scene.layout.Priority; import org.example.game.controlador.ControladorMouse; import org.example.game.controlador.ProveedorEstadoInteraccion; import org.example.game.controlador.SincronizadorUI; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Estrella; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import org.example.game.ui.ControlTiempoWidget; import org.example.game.ui.EspaciadorUI; import org.example.game.ui.HUDRecursosTop; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.controlador.ProveedorEstadoInteraccion;
+import org.example.game.controlador.SincronizadorUI;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Estrella;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.game.ui.BarraInventarioHotbar;
+import org.example.game.ui.ControlTiempoWidget;
+import org.example.game.ui.EspaciadorUI;
+import org.example.game.ui.HUDRecursosTop;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class ControladorMouseYHelpersTest {
 

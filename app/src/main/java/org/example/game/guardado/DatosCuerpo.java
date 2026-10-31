@@ -1,5 +1,6 @@
 package org.example.game.guardado;
-import org.example.game.cuerpo.TipoCuerpo; import java.util.Objects;
+import org.example.game.cuerpo.TipoCuerpo;
+import java.util.Objects;
 /**
  * Datos guardados inmutables de un cuerpo celeste individual (SRP).
  */

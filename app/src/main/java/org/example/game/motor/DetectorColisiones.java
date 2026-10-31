@@ -1,5 +1,9 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.simulacion.ConfiguracionColisiones; import java.util.List; import java.util.Set;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.ConfiguracionColisiones;
+import java.util.List;
+import java.util.Set;
 /**
  * Responsable de la detección de contactos físicos y derivación al resolvedor de colisiones (SRP).
  */

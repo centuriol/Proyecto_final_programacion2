@@ -1,5 +1,10 @@
 package org.example.game.guardado;
-import java.util.ArrayList; import java.util.Comparator; import java.util.List; import java.util.Objects; import java.util.Optional; import java.util.function.LongSupplier;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.LongSupplier;
 /**
  * Politica de gestion de las tres ranuras de guardado de Centuriol.
  * Ocupa primero las ranuras vacias y, cuando las tres estan ocupadas,

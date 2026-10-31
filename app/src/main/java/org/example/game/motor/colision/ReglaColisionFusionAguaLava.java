@@ -1,5 +1,8 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.cuerpo.Transformable; import org.example.game.motor.Vector2D;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.Transformable;
+import org.example.game.motor.Vector2D;
 /**
  * Regla de reacción hidro-magmática (Easter egg) que fusiona Agua y Lava en Planeta Porro inerte.
  */

@@ -1,5 +1,6 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
 /**
  * Regla para desintegración de escombros y satélites en la corona estelar.
  */

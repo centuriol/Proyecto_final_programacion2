@@ -1,5 +1,12 @@
 package org.example.game.simulacion;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Meteorito; import org.example.game.cuerpo.TipoCuerpo; import java.util.ArrayList; import java.util.List; import java.util.Random; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Meteorito;
+import org.example.game.cuerpo.TipoCuerpo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Consumer;
 /**
  * Gestor de generacion de eventos cosmicos periodicos escalados segun el progreso del jugador.
  *

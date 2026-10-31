@@ -1,5 +1,8 @@
 package org.example.game.cuerpo;
-import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionEconomia; import java.util.EnumMap; import java.util.Map;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.simulacion.ConfiguracionEconomia;
+import java.util.EnumMap;
+import java.util.Map;
 /**
  * SRP: Catalogo centralizado de descriptores, lore, costos y produccion para los tipos de cuerpos.
  * Todos los costos y tasas de produccion provienen exclusivamente de ConfiguracionEconomia.

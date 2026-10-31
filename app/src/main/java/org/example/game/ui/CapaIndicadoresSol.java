@@ -1,5 +1,20 @@
 package org.example.game.ui;
-import javafx.scene.Cursor; import javafx.scene.control.Button; import javafx.scene.control.ContentDisplay; import javafx.scene.layout.Pane; import javafx.scene.paint.Color; import javafx.scene.shape.Polygon; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.render.CalculadorIndicadoresSol; import org.example.game.render.ControlZoom; import org.example.game.render.IndicadorSolBorde; import java.util.ArrayList; import java.util.Collections; import java.util.List; import java.util.Objects;
+import javafx.scene.Cursor;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.render.CalculadorIndicadoresSol;
+import org.example.game.render.ControlZoom;
+import org.example.game.render.IndicadorSolBorde;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 /**
  * Capa visual superpuesta que muestra un indicador interactivo en el borde de la pantalla
  * por cada sol fuera de vista y permite viajar hasta el con un clic.

@@ -1,5 +1,6 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
 /**
  * Regla de intercepción y amortiguación mediante escudos planetarios (OCP / Polimorfismo).
  */

@@ -1,5 +1,13 @@
 package org.example.game.motor;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.simulacion.MensajeEvento; import java.util.ArrayList; import java.util.LinkedHashSet; import java.util.List; import java.util.Set; import java.util.function.BiConsumer; import java.util.function.Consumer;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.simulacion.MensajeEvento;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 /**
  * Motor de física newtoniana asistida / permisiva para un gameplay amigable y satisfactorio.
  *

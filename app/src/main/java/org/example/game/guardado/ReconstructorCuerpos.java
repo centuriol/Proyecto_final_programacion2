@@ -1,5 +1,12 @@
 package org.example.game.guardado;
-import org.example.game.civilizacion.CivilizacionComponent; import org.example.game.cuerpo.*; import org.example.game.simulacion.MensajeEvento; import java.util.ArrayList; import java.util.EnumMap; import java.util.List; import java.util.Map; import java.util.function.Consumer;
+import org.example.game.civilizacion.CivilizacionComponent;
+import org.example.game.cuerpo.*;
+import org.example.game.simulacion.MensajeEvento;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 /**
  * Reconstruye instancias polimorficas de CuerpoCeleste y sus relaciones orbitales
  * a partir de DatosCuerpo mediante un registro extensible por TipoCuerpo (OCP / SRP).
@@ -128,8 +135,8 @@ public class ReconstructorCuerpos {
         if (guion > 0 && guion < nombre.length() - 1) {
             try {
                 CuerpoCelesteFactory.getInstancia().asegurarContadorMinimo(Long.parseLong(nombre.substring(guion + 1)));
-            } catch (NumberFormatException ignored) {
-                // Nombre personalizado sin sufijo numerico de fabrica
+            } catch (NumberFormatException e) {
+                System.err.println("[DEBUG] Nombre de cuerpo sin id numerico estandar: " + nombre);
             }
         }
     }

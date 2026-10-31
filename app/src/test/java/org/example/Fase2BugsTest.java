@@ -1,5 +1,23 @@
 package org.example;
-import javafx.scene.input.MouseButton; import javafx.scene.input.MouseEvent; import org.example.game.civilizacion.CivilizacionComponent; import org.example.game.controlador.ControladorMouse; import org.example.game.cuerpo.*; import org.example.game.jugador.Recurso; import org.example.game.jugador.ServicioReembolso; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.MotorFisicaPermisiva; import org.example.game.motor.Vector2D; import org.example.game.render.CamaraZoom; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.List; import java.util.Optional; import static org.junit.jupiter.api.Assertions.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import org.example.game.civilizacion.CivilizacionComponent;
+import org.example.game.controlador.ControladorMouse;
+import org.example.game.cuerpo.*;
+import org.example.game.jugador.Recurso;
+import org.example.game.jugador.ServicioReembolso;
+import org.example.game.jugador.TipoRecurso;
+import org.example.game.motor.MotorFisicaPermisiva;
+import org.example.game.motor.Vector2D;
+import org.example.game.render.CamaraZoom;
+import org.example.game.simulacion.SimulacionSolar;
+import org.example.test.JavaFXExtension;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 public class Fase2BugsTest {
 

@@ -1,5 +1,6 @@
 package org.example.game.render;
-import org.example.game.cuerpo.CuerpoCeleste; import java.util.Objects;
+import org.example.game.cuerpo.CuerpoCeleste;
+import java.util.Objects;
 /**
  * Datos inmutables de proyeccion en el borde de la pantalla para un sol fuera de vista (SRP).
  */

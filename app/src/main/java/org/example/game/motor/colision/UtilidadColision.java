@@ -1,5 +1,14 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.Civilizable; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Meteorito; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.CuerpoFisico; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionColisiones; import java.util.List; import java.util.Set;
+import org.example.game.cuerpo.Civilizable;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.cuerpo.CuerpoCelesteFactory;
+import org.example.game.cuerpo.Meteorito;
+import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.motor.CuerpoFisico;
+import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.ConfiguracionColisiones;
+import java.util.List;
+import java.util.Set;
 /**
  * SRP: Métodos cinemáticos y destructivos compartidos para la resolución de colisiones.
  */

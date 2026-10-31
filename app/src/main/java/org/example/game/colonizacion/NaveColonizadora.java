@@ -1,5 +1,7 @@
 package org.example.game.colonizacion;
-import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionSimulacion;
+import org.example.game.cuerpo.CuerpoCeleste;
+import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.ConfiguracionSimulacion;
 /**
  * Entidad ligera que representa una nave colonizadora en tránsito.
  * NO es un CuerpoCeleste, no entra al motor físico gravitatorio.
