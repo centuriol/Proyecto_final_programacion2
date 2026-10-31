@@ -1,13 +1,5 @@
 package org.example.game.motor;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.Expirable;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Consumer;
-
+import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Expirable; import java.util.ArrayList; import java.util.Iterator; import java.util.List; import java.util.function.Consumer;
 /**
  * Clase base abstracta para motores de fisica orbital.
  *
@@ -50,7 +42,7 @@ public abstract class MotorFisicaBase implements MotorFisica, ObservableFisica {
         Iterator<CuerpoCeleste> it = cuerpos.iterator();
         while (it.hasNext()) {
             CuerpoCeleste c = it.next();
-            if (c instanceof Expirable exp && exp.estaExpirado()) {
+            if (c.estaExpirado()) {
                 it.remove();
                 continue;
             }

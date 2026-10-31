@@ -1,5 +1,4 @@
 package org.example.game.cuerpo;
-
 /**
  * Entidades que ejecutan lógica autónoma cada tick de simulación (ISP).
  */

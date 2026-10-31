@@ -1,13 +1,5 @@
 package org.example.game.render.capa;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.shape.StrokeLineCap;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.Vector2D;
-import org.example.game.render.UtilidadRender;
-
-import java.util.List;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.shape.StrokeLineCap; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import org.example.game.render.UtilidadRender; import java.util.List;
 /**
  * Capa de renderizado para trayectorias proyectadas y predicciones de órbita (SRP).
  */

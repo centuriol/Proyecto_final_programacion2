@@ -1,7 +1,5 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.TipoCuerpo;
-
 /**
  * Interfaz para cuerpos que participan en la simulación física.
  * Define las propiedades dinámicas necesarias para la integración numérica:

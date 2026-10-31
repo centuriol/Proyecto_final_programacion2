@@ -1,15 +1,5 @@
 package org.example;
-
-import org.example.game.cuerpo.*;
-import org.example.game.motor.Vector2D;
-import org.example.game.motor.colision.*;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.example.game.cuerpo.*; import org.example.game.motor.Vector2D; import org.example.game.motor.colision.*; import org.junit.jupiter.api.DisplayName; import org.junit.jupiter.api.Test; import java.util.*; import static org.junit.jupiter.api.Assertions.*;
 public class ReglasColisionTest {
 
     @Test

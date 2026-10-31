@@ -1,29 +1,5 @@
 package org.example.game.ui;
-
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.progresion.RamaProgresion;
-import org.example.game.progresion.SistemaProgresion;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.simulacion.MensajeEvento;
-import org.example.game.simulacion.SimulacionSolar;
-
+import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.Scene; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.control.ScrollPane; import javafx.scene.control.Separator; import javafx.scene.input.KeyCode; import javafx.scene.layout.HBox; import javafx.scene.layout.Priority; import javafx.scene.layout.VBox; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.stage.Modality; import javafx.stage.Stage; import javafx.stage.Window; import org.example.game.jugador.TipoRecurso; import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar;
 /**
  * Pantalla dedicada del Árbol de Investigación y Progresión Científica.
  * Dividido en tres ramas independientes:

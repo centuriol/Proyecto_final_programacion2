@@ -1,17 +1,5 @@
 package org.example.game.render;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.Vector2D;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.paint.Color; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import java.util.ArrayDeque; import java.util.Deque; import java.util.HashMap; import java.util.List; import java.util.Map;
 /**
  * Gestiona el historial y dibujo de estelas orbitales de los cuerpos celestes.
  *

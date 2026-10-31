@@ -1,13 +1,5 @@
 package org.example.game.civilizacion;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.Planeta;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.CalculadorOrbital;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-
-import java.util.List;
-
+import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Planeta; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.CalculadorOrbital; import org.example.game.simulacion.ConfiguracionSimulacion; import java.util.List;
 /**
  * SRP: Evalúa las condiciones astrofísicas de habitabilidad alrededor de un planeta.
  */

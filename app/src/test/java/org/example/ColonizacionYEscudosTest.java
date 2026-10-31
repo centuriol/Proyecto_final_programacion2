@@ -1,21 +1,5 @@
 package org.example;
-
-import org.example.game.civilizacion.CivilizacionComponent;
-import org.example.game.colonizacion.NaveColonizadora;
-import org.example.game.cuerpo.*;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.motor.Vector2D;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.example.game.civilizacion.CivilizacionComponent; import org.example.game.colonizacion.NaveColonizadora; import org.example.game.cuerpo.*; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class ColonizacionYEscudosTest {
 
@@ -198,9 +182,9 @@ class ColonizacionYEscudosTest {
         double costoColosal = ServicioEscudo.calcularCostoEscudo(planetaColosal);
 
         assertTrue(costoChico < costoNormal);
-        assertEquals(50.0, costoNormal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA, costoNormal, 1e-6);
         assertTrue(costoGrande > costoNormal);
         assertTrue(costoColosal > costoGrande);
-        assertEquals(250.0, costoColosal, 1e-6);
+        assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * 5.0, costoColosal, 1e-6);
     }
 }

@@ -1,11 +1,5 @@
 package org.example.game.controlador;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.Vector2D;
-
-import java.util.List;
-
+import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import java.util.List;
 /**
  * Responsable de la detección y selección de cuerpos celestes bajo las coordenadas del ratón (SRP).
  */
@@ -20,6 +14,9 @@ public class SeleccionadorCuerpoMouse {
         double menorDistancia = Double.MAX_VALUE;
 
         for (CuerpoCeleste c : cuerpos) {
+            if (c == null || !c.esSimulado() || !c.esInteractuablePorUsuario()) {
+                continue;
+            }
             double d = clickPos.distanciaA(c.getPosicion());
             double radioTolerancia = Math.max(28.0, c.getRadio() + 10.0);
             if (d <= radioTolerancia && d < menorDistancia) {

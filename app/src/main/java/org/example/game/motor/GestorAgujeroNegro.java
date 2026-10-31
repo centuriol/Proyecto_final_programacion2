@@ -1,13 +1,5 @@
 package org.example.game.motor;
-
-import org.example.game.cuerpo.AgujeroNegro;
-import org.example.game.cuerpo.CuerpoCeleste;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
+import org.example.game.cuerpo.AgujeroNegro; import org.example.game.cuerpo.CuerpoCeleste; import java.util.ArrayList; import java.util.List; import java.util.Set; import java.util.function.Consumer;
 /**
  * Gestor del campo gravitacional extremo y absorción en el horizonte de sucesos de los agujeros negros.
  *
@@ -23,18 +15,16 @@ public class GestorAgujeroNegro {
     public void procesar(List<CuerpoCeleste> cuerpos, Set<CuerpoCeleste> aEliminar, Consumer<String> emisorMensajes) {
         if (cuerpos == null || cuerpos.isEmpty()) return;
 
-        List<AgujeroNegro> agujeros = new ArrayList<>();
+        List<CuerpoCeleste> agujeros = new ArrayList<>();
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado() && c.getTipoCuerpo() != null && c.getTipoCuerpo().esAgujeroNegro()) {
-                if (c instanceof AgujeroNegro an) {
-                    agujeros.add(an);
-                }
+                agujeros.add(c);
             }
         }
 
         if (agujeros.isEmpty()) return;
 
-        for (AgujeroNegro bh : agujeros) {
+        for (CuerpoCeleste bh : agujeros) {
             double rHorizonte = bh.getRadio();
             double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
 

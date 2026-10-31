@@ -1,15 +1,5 @@
 package org.example.game.render;
-
-import javafx.geometry.Pos;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import org.example.game.cuerpo.TipoCuerpo;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
+import javafx.geometry.Pos; import javafx.scene.image.Image; import javafx.scene.image.ImageView; import javafx.scene.layout.StackPane; import org.example.game.cuerpo.TipoCuerpo; import java.io.*; import java.nio.charset.StandardCharsets; import java.util.*;
 /**
  * Gestor centralizado de imágenes y sprites Pixel Art del juego.
  *

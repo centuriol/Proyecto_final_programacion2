@@ -1,10 +1,5 @@
 package org.example.game.simulacion;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
-
+import java.util.ArrayList; import java.util.List; import java.util.concurrent.CopyOnWriteArrayList; import java.util.function.Consumer;
 /**
  * Bus de eventos desacoplado para notificaciones de simulación y sincronización con UI (SRP / Observer).
  */

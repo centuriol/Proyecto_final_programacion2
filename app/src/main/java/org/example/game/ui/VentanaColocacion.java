@@ -1,23 +1,5 @@
 package org.example.game.ui;
-
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.jugador.InventarioJugador;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.simulacion.SimulacionSolar;
-
-import java.util.Map;
-
+import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.Scene; import javafx.scene.control.*; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import javafx.stage.Stage; import javafx.stage.Window; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.SimulacionSolar; import java.util.Map;
 /**
  * Ventana modal para configurar y colocar un nuevo cuerpo celeste en la simulación (SRP).
  */

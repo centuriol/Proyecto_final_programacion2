@@ -1,7 +1,5 @@
 package org.example.game.motor;
-
 import org.example.game.cuerpo.CuerpoCeleste;
-
 /**
  * SRP: Centraliza el cálculo de velocidades y órbitas keplerianas circulares e ideales.
  */

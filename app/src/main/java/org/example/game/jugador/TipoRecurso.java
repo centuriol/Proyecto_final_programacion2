@@ -1,5 +1,4 @@
 package org.example.game.jugador;
-
 /**
  * Tipos de recursos que el jugador acumula y gasta para crear cuerpos.
  */

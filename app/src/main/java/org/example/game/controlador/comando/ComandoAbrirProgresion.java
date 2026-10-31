@@ -1,9 +1,5 @@
 package org.example.game.controlador.comando;
-
-import javafx.stage.Window;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.game.ui.VentanaProgresion;
-
+import javafx.stage.Window; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.VentanaProgresion;
 /**
  * Comando para abrir la pantalla del árbol de investigación tecnológica por ciencia.
  *

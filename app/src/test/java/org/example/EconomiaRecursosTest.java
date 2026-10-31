@@ -1,17 +1,5 @@
 package org.example;
-
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.jugador.InventarioJugador;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.example.game.cuerpo.TipoCuerpo; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class EconomiaRecursosTest {
 
@@ -24,24 +12,32 @@ class EconomiaRecursosTest {
 
     @Test
     void testInventarioRecursosIniciales() {
-        assertEquals(400.0, inventario.getRecurso(TipoRecurso.MINERALES));
-        assertEquals(200.0, inventario.getRecurso(TipoRecurso.ENERGIA));
+        double factorInicial = ConfiguracionSimulacion.MASA_FACTOR_MIN;
+        double minEsperado = InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES, factorInicial)
+                + InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES, factorInicial);
+        double eneEsperada = InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA, factorInicial)
+                + InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA, factorInicial);
+
+        assertEquals(minEsperado, inventario.getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(eneEsperada, inventario.getRecurso(TipoRecurso.ENERGIA), 1e-6);
         assertEquals(0.0, inventario.getRecurso(TipoRecurso.CIENCIA));
         assertEquals(0.0, inventario.getRecurso(TipoRecurso.POBLACION));
 
-        assertTrue(inventario.puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
-        assertTrue(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+        assertTrue(inventario.puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
+        assertTrue(inventario.puedeCrear(TipoCuerpo.PLANETA_AGUA, factorInicial));
 
-        assertTrue(inventario.gastarParaCrear(TipoCuerpo.ESTRELLA, 1.0));
-        assertTrue(inventario.gastarParaCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+        assertTrue(inventario.gastarParaCrear(TipoCuerpo.ESTRELLA, factorInicial));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, factorInicial));
+        assertTrue(inventario.gastarParaCrear(TipoCuerpo.PLANETA_AGUA, factorInicial));
 
-        assertEquals(0.0, inventario.getRecurso(TipoRecurso.MINERALES));
-        assertEquals(0.0, inventario.getRecurso(TipoRecurso.ENERGIA));
-        assertEquals(0.0, inventario.getRecurso(TipoRecurso.CIENCIA));
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(0.0, inventario.getRecurso(TipoRecurso.CIENCIA), 1e-6);
 
-        assertFalse(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
-        assertFalse(inventario.puedeCrear(TipoCuerpo.LUNA, 1.0));
-        assertFalse(inventario.puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.PLANETA_AGUA, factorInicial));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.LUNA, factorInicial));
+        assertFalse(inventario.puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
     }
 
     @Test
@@ -61,6 +57,8 @@ class EconomiaRecursosTest {
         assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * 8.0, costosTierra4x.get(TipoRecurso.MINERALES), 1e-6);
         assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA * 8.0, costosTierra4x.get(TipoRecurso.ENERGIA), 1e-6);
 
+        inventario.agregarRecurso(TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_PLANETA_MINERALES);
+        inventario.agregarRecurso(TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA);
         double minAntes = inventario.getRecurso(TipoRecurso.MINERALES);
         double eneAntes = inventario.getRecurso(TipoRecurso.ENERGIA);
         assertTrue(inventario.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
@@ -105,23 +103,23 @@ class EconomiaRecursosTest {
         assertEquals(1, prodLuna.size());
 
         var costoAgua = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_AGUA);
-        assertEquals(50.0, costoAgua.get(TipoRecurso.MINERALES));
-        assertEquals(25.0, costoAgua.get(TipoRecurso.ENERGIA));
+        assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES, costoAgua.get(TipoRecurso.MINERALES));
+        assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA, costoAgua.get(TipoRecurso.ENERGIA));
         var prodAgua = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_AGUA);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
         assertFalse(prodAgua.containsKey(TipoRecurso.POBLACION));
 
         var costoLava = InventarioJugador.getCostosBase(TipoCuerpo.PLANETA_LAVA);
-        assertEquals(150.0, costoLava.get(TipoRecurso.MINERALES));
-        assertEquals(75.0, costoLava.get(TipoRecurso.ENERGIA));
+        assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_LAVA_MINERALES, costoLava.get(TipoRecurso.MINERALES));
+        assertEquals(ConfiguracionSimulacion.COSTO_PLANETA_LAVA_ENERGIA, costoLava.get(TipoRecurso.ENERGIA));
         var prodLava = InventarioJugador.getProduccionBasePorTick(TipoCuerpo.PLANETA_LAVA);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES, prodLava.get(TipoRecurso.MINERALES), 1e-6);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA, prodLava.get(TipoRecurso.CIENCIA), 1e-6);
         assertFalse(prodLava.containsKey(TipoRecurso.POBLACION));
 
-        assertEquals(0.10, prodEstrella.get(TipoRecurso.ENERGIA), 1e-6);
-        assertEquals(0.04, prodEstrella.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA, prodEstrella.get(TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES, prodEstrella.get(TipoRecurso.MINERALES), 1e-6);
     }
 
     @Test
@@ -144,38 +142,41 @@ class EconomiaRecursosTest {
     @Test
     void testRechazoPorRecursosInsuficientesAlAumentarMasa() {
         InventarioJugador inv = new InventarioJugador();
-        assertTrue(inv.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
+        assertTrue(inv.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, ConfiguracionSimulacion.MASA_FACTOR_MIN));
         assertFalse(inv.puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 10.0));
     }
 
     @Test
     void testPresupuestoInicialAlcanzaSoloParaUnSolYUnPlaneta() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
-        sim.getProgresion().desbloquearTodo();
+        double factorInicial = ConfiguracionSimulacion.MASA_FACTOR_MIN;
         assertTrue(sim.getSistemaSolar().getCuerpos().isEmpty());
 
-        sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, 1.0, "SolInicial");
+        sim.entrarModoColocacion(TipoCuerpo.ESTRELLA, factorInicial, "SolInicial");
         sim.actualizarPosicionPreview(960, 540);
         sim.confirmarColocacionAutoOrbita();
 
         assertEquals(1, sim.getSistemaSolar().getCuerpos().size());
-        assertEquals(100.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES));
-        assertEquals(50.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA));
-        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA));
+        double minRestanteEsperado = InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES, factorInicial);
+        double eneRestanteEsperada = InventarioJugador.calcularCostoEscalado(ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA, factorInicial);
+        assertEquals(minRestanteEsperado, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(eneRestanteEsperada, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
 
-        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_ROCOSO, factorInicial));
 
-        sim.entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PlanetaInicial");
+        sim.entrarModoColocacion(TipoCuerpo.PLANETA_AGUA, factorInicial, "PlanetaAguaInicial");
         sim.actualizarPosicionPreview(1120, 540);
         sim.confirmarColocacionAutoOrbita();
 
         assertEquals(2, sim.getSistemaSolar().getCuerpos().size());
-        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES));
-        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA));
-        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA));
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(0.0, sim.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6);
 
-        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_ROCOSO, 1.0));
-        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.LUNA, 1.0));
-        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, 1.0));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.PLANETA_AGUA, factorInicial));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.LUNA, factorInicial));
+        assertFalse(sim.getInventario().puedeCrear(TipoCuerpo.ESTRELLA, factorInicial));
     }
 }

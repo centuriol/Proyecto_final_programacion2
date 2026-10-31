@@ -1,24 +1,5 @@
 package org.example.game.simulacion;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.SistemaSolar;
-import org.example.game.motor.MotorFisica;
-import org.example.game.colonizacion.GestorColonizacion;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
-import org.example.game.efectos.GestorEfectos;
-import org.example.game.jugador.InventarioJugador;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.MotorFisicaPermisiva;
-import org.example.game.motor.TrayectoriaPredictor;
-import org.example.game.motor.Vector2D;
-import org.example.game.progresion.SistemaProgresion;
-import org.example.game.motor.TransformadorCuerpos;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.SistemaSolar; import org.example.game.motor.MotorFisica; import org.example.game.colonizacion.GestorColonizacion; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.efectos.GestorEfectos; import org.example.game.jugador.InventarioJugador; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.MotorFisicaPermisiva; import org.example.game.motor.TrayectoriaPredictor; import org.example.game.motor.Vector2D; import org.example.game.progresion.SistemaProgresion; import org.example.game.motor.TransformadorCuerpos; import java.util.ArrayList; import java.util.List; import java.util.Optional;
 /**
  * Orquestador principal de la simulación "Órbita".
  * SRP: Coordina el avance de la simulación delegando en componentes especializados (reloj, bus, colocación, física, presets).
@@ -116,13 +97,12 @@ public class SimulacionSolar {
 
     private void configurarNotificadores() {
         this.transformadorCuerpos.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-        if (this.motorFisica instanceof org.example.game.motor.ObservableFisica obs) {
-            obs.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-            obs.agregarListenerColision(busEventos::notificarCambioEstado);
-        }
-        if (this.motorFisica instanceof MotorFisicaPermisiva mfp) {
-            mfp.setListenerNotificacion(this::notificarEvento);
-            mfp.setListenerExplosion(this.gestorEfectos::agregarExplosion);
+        if (this.motorFisica != null) {
+            this.motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
+            this.motorFisica.agregarListenerColision(busEventos::notificarCambioEstado);
+            this.motorFisica.setListenerNotificacion(this::notificarEvento);
+            this.motorFisica.setListenerExplosion(this.gestorEfectos::agregarExplosion);
+            this.motorFisica.setProveedorProgreso(() -> EscaladorAmenazaMeteorito.calcularFactorProgreso(this.progresion));
         }
     }
 
@@ -166,9 +146,10 @@ public class SimulacionSolar {
         // 5. Efectos visuales
         gestorEfectos.actualizar();
 
-        // 6. Eventos cósmicos
+        // 6. Eventos cósmicos escalados según el progreso tecnológico / masa desbloqueada
+        double factorProgreso = EscaladorAmenazaMeteorito.calcularFactorProgreso(progresion);
         generadorEventosCosmicos.actualizarEventosCosmicos(
-                sistemaSolar.getCuerpos(), anchoMundo, altoMundo, this::agregarCuerpo, this::notificarEvento, tickActual
+                sistemaSolar.getCuerpos(), anchoMundo, altoMundo, this::agregarCuerpo, this::notificarEvento, tickActual, factorProgreso
         );
 
         // 7. Condición de derrota
@@ -188,11 +169,11 @@ public class SimulacionSolar {
     private void actualizarCivilizaciones() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>(sistemaSolar.getCuerpos());
         for (CuerpoCeleste c : cuerpos) {
-            if (c instanceof org.example.game.cuerpo.Civilizable civ && civ.tieneCivilizacion()) {
-                if (civ.getCivilizacion() != null && civ.getCivilizacion().getEmisorEventos() == null) {
-                    civ.getCivilizacion().setEmisorEventos(this::notificarEvento);
+            if (c.tieneCivilizacion()) {
+                if (c.getCivilizacion() != null && c.getCivilizacion().getEmisorEventos() == null) {
+                    c.getCivilizacion().setEmisorEventos(this::notificarEvento);
                 }
-                civ.actualizarCivilizacion(cuerpos);
+                c.actualizarCivilizacion(cuerpos);
             }
         }
     }
@@ -222,46 +203,48 @@ public class SimulacionSolar {
     }
 
     public Optional<CuerpoCeleste> spawnCuerpo(TipoCuerpo tipo, String nombrePersonalizado, double x, double y, double factorMasa, Vector2D velocidadInicial) {
-        if (tipo == TipoCuerpo.SATELITE) {
-            factorMasa = 1.0;
-        }
-        if (!progresion.estaDesbloqueado(tipo)) {
-            notificarEvento("Cuerpo bloqueado: " + (tipo != null ? tipo.nombre : "Desconocido") + ". Desbloquéalo con ciencia.", MensajeEvento.TipoMensaje.ADVERTENCIA);
+        double factorEfectivo = (tipo == TipoCuerpo.SATELITE) ? 1.0 : factorMasa;
+        if (!validarRequisitosColocacion(tipo, factorEfectivo)) {
             return Optional.empty();
         }
 
-        if (tipo != null && tipo.esPlaneta()) {
-            int actual = getCantidadPlanetasActuales();
-            int maximo = progresion != null ? progresion.getLimitePlanetas() : ConfiguracionSimulacion.PLANETAS_INICIALES_MAX;
-            if (actual >= maximo) {
-                notificarEvento("Límite de planetas alcanzado (" + actual + "/" + maximo + "). Amplía la capacidad en el Árbol de Investigación [P].", MensajeEvento.TipoMensaje.ADVERTENCIA);
-                return Optional.empty();
-            }
-        }
-
-        if (tipo != TipoCuerpo.SATELITE && factorMasa > progresion.getLimiteMasaActual() + 1e-6) {
-            notificarEvento("Límite de masa excedido (" + String.format("%.1fx", factorMasa) + " > " + String.format("%.1fx", progresion.getLimiteMasaActual()) + ").", MensajeEvento.TipoMensaje.ADVERTENCIA);
-            return Optional.empty();
-        }
-
-        if (!inventario.puedeCrear(tipo, factorMasa)) {
-            notificarEvento("Recursos insuficientes para " + tipo.nombre, MensajeEvento.TipoMensaje.ADVERTENCIA);
-            return Optional.empty();
-        }
-
-        CuerpoCeleste cuerpo = CuerpoCelesteFactory.crearCuerpo(tipo, x, y, factorMasa, velocidadInicial);
+        CuerpoCeleste cuerpo = CuerpoCelesteFactory.crearCuerpo(tipo, x, y, factorEfectivo, velocidadInicial);
         if (cuerpo == null) return Optional.empty();
 
         if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {
             cuerpo.setNombre(nombrePersonalizado.trim());
         }
-        if (inventario.gastarParaCrear(tipo, factorMasa)) {
+        if (inventario.gastarParaCrear(tipo, factorEfectivo)) {
             agregarCuerpo(cuerpo);
             salirModoColocacion();
             notificarEvento("Cuerpo colocado: " + cuerpo.getNombre() + " (" + tipo.nombre + ")", MensajeEvento.TipoMensaje.INFO);
             return Optional.of(cuerpo);
         }
         return Optional.empty();
+    }
+
+    private boolean validarRequisitosColocacion(TipoCuerpo tipo, double factorMasa) {
+        if (!progresion.estaDesbloqueado(tipo)) {
+            notificarEvento("Cuerpo bloqueado: " + (tipo != null ? tipo.nombre : "Desconocido") + ". Desbloquéalo con ciencia.", MensajeEvento.TipoMensaje.ADVERTENCIA);
+            return false;
+        }
+        if (tipo != null && tipo.esPlaneta()) {
+            int actual = getCantidadPlanetasActuales();
+            int maximo = progresion != null ? progresion.getLimitePlanetas() : ConfiguracionSimulacion.PLANETAS_INICIALES_MAX;
+            if (actual >= maximo) {
+                notificarEvento("Límite de planetas alcanzado (" + actual + "/" + maximo + "). Amplía la capacidad en el Árbol de Investigación [P].", MensajeEvento.TipoMensaje.ADVERTENCIA);
+                return false;
+            }
+        }
+        if (tipo != TipoCuerpo.SATELITE && factorMasa > progresion.getLimiteMasaActual() + 1e-6) {
+            notificarEvento("Límite de masa excedido (" + String.format("%.1fx", factorMasa) + " > " + String.format("%.1fx", progresion.getLimiteMasaActual()) + ").", MensajeEvento.TipoMensaje.ADVERTENCIA);
+            return false;
+        }
+        if (!inventario.puedeCrear(tipo, factorMasa)) {
+            notificarEvento("Recursos insuficientes para " + tipo.nombre, MensajeEvento.TipoMensaje.ADVERTENCIA);
+            return false;
+        }
+        return true;
     }
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
@@ -273,8 +256,8 @@ public class SimulacionSolar {
         if (cuerpo == null) return;
         cuerpo.setSimulado(false);
         cuerpo.setMasa(0);
-        if (cuerpo instanceof org.example.game.cuerpo.Civilizable civ && civ.getCivilizacion() != null) {
-            civ.getCivilizacion().destruir();
+        if (cuerpo.getCivilizacion() != null) {
+            cuerpo.getCivilizacion().destruir();
         }
         sistemaSolar.getCuerpos().remove(cuerpo);
 
@@ -475,6 +458,15 @@ public class SimulacionSolar {
     public RelojSimulacion getReloj() { return reloj; }
     public BusEventos getBusEventos() { return busEventos; }
     public ControladorColocacion getControladorColocacion() { return controladorColocacion; }
+    public GeneradorEventosCosmicos getGeneradorEventosCosmicos() { return generadorEventosCosmicos; }
+
+    public void sincronizarTrasCarga() {
+        this.gameOverDisparado = estaPerdida();
+        salirModoColocacion();
+        gestorEfectos.limpiar();
+        busEventos.notificarCambioEstado();
+        notificarListenersUI();
+    }
 
     public void setDimensionesMundo(double ancho, double alto) {
         if (ancho > 0 && alto > 0) {

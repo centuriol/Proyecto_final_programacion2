@@ -1,17 +1,5 @@
 package org.example;
-
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.render.RenderizadorPixelArt;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.game.ui.BarraInventarioHotbar;
-import org.example.game.ui.ResizableCanvas;
-import org.example.game.ui.VentanaDescripcionCuerpo;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import org.example.game.ui.ResizableCanvas; import org.example.game.ui.VentanaDescripcionCuerpo; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class RenderizadorAnimacionYFondoTest {
 

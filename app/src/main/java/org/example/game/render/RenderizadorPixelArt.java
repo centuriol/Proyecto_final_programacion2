@@ -1,19 +1,5 @@
 package org.example.game.render;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.Defensor;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.GestorAgujeroNegro;
-import org.example.game.motor.Vector2D;
-import org.example.game.render.capa.*;
-import org.example.game.render.cuerpo.*;
-
-import java.util.*;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import javafx.scene.paint.Color; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.Defensor; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.GestorAgujeroNegro; import org.example.game.motor.Vector2D; import org.example.game.render.capa.*; import org.example.game.render.cuerpo.*; import java.util.*;
 /**
  * Renderizador Pixel Art para el juego "Órbita" estilo RimWorld UI.
  * SRP: Orquesta las capas de fondo, zonas, atracción, cuerpos, trayectoria, selección y ghost.
@@ -125,23 +111,25 @@ public class RenderizadorPixelArt {
                                Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
                                CuerpoCeleste cuerpoSeleccionado) {
 
-        double zoom = camaraZoom.getNivelZoom();
-        if (!camaraZoom.esZoomNeutro()) {
-            gc.save();
-            double cx = anchoCanvas / 2.0;
-            double cy = altoCanvas / 2.0;
-            gc.translate(cx * (1.0 - zoom), cy * (1.0 - zoom));
-            gc.scale(zoom, zoom);
-        }
-
         renderizadorFondo.dibujarFondo(gc, anchoCanvas, altoCanvas, tick);
-
-        if (mostrarGrilla) {
-            renderizadorFondo.dibujarGrilla(gc, anchoCanvas, altoCanvas);
-        }
 
         if (repositorioSprites.obtenerImagenFondo() == null) {
             renderizadorFondo.dibujarEstrellasFondo(gc, tick);
+        }
+
+        double zoom = camaraZoom.getNivelZoom();
+        boolean vistaTransformada = !camaraZoom.esVistaNeutra();
+        if (vistaTransformada) {
+            gc.save();
+            gc.translate(
+                    camaraZoom.calcularTraslacionX(anchoCanvas),
+                    camaraZoom.calcularTraslacionY(altoCanvas)
+            );
+            gc.scale(zoom, zoom);
+        }
+
+        if (mostrarGrilla) {
+            renderizadorFondo.dibujarGrilla(gc, anchoCanvas, altoCanvas, camaraZoom);
         }
 
         if (mostrarZonasHabitables) {
@@ -177,7 +165,7 @@ public class RenderizadorPixelArt {
                     tiempoAnimacionSegundos, anchoCanvas, altoCanvas);
         }
 
-        if (!camaraZoom.esZoomNeutro()) {
+        if (vistaTransformada) {
             gc.restore();
         }
     }
@@ -216,7 +204,7 @@ public class RenderizadorPixelArt {
 
         gc.restore();
 
-        if (c instanceof Defensor d && d.tieneEscudo()) {
+        if (c.tieneEscudo()) {
             dibujarCupulaEscudo(gc, x, y, r, tick);
         }
 
@@ -265,6 +253,10 @@ public class RenderizadorPixelArt {
 
     public void actualizarEstelas(List<CuerpoCeleste> cuerpos) {
         gestorEstelas.actualizar(cuerpos);
+    }
+
+    public void limpiarEstelas() {
+        gestorEstelas.limpiar();
     }
 
     public void toggleGrilla() { mostrarGrilla = !mostrarGrilla; }

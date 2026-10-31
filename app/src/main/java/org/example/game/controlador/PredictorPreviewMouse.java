@@ -1,12 +1,5 @@
 package org.example.game.controlador;
-
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.Vector2D;
-import org.example.game.simulacion.SimulacionSolar;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.Vector2D; import org.example.game.simulacion.SimulacionSolar; import java.util.ArrayList; import java.util.List;
 /**
  * Responsable de la predicción y cálculo throttled de trayectorias preview para el cursor del mouse (SRP).
  */

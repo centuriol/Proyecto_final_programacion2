@@ -1,9 +1,5 @@
 package org.example.game.motor;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-
-import java.util.List;
-
+import org.example.game.cuerpo.CuerpoCeleste; import java.util.List;
 /**
  * Responsable de la integración numérica del movimiento de los cuerpos celestes (SRP).
  */

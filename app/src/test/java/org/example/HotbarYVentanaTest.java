@@ -1,21 +1,5 @@
 package org.example;
-
-import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.game.ui.BarraInventarioHotbar;
-import org.example.game.ui.VentanaDescripcionCuerpo;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import javafx.scene.Node; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.layout.GridPane; import javafx.scene.layout.StackPane; import javafx.scene.layout.VBox; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.simulacion.SimulacionSolar; import org.example.game.ui.BarraInventarioHotbar; import org.example.game.ui.VentanaDescripcionCuerpo; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class HotbarYVentanaTest {
 

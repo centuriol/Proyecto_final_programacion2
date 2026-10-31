@@ -1,13 +1,5 @@
 package org.example.game.render.cuerpo;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.render.RenderizadorCuerpo;
-import org.example.game.render.RepositorioSprites;
-import org.example.game.render.UtilidadRender;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.image.Image; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.render.RenderizadorCuerpo; import org.example.game.render.RepositorioSprites; import org.example.game.render.UtilidadRender;
 /**
  * Renderizador Pixel Art para lunas y satélites naturales (SRP / OCP).
  */

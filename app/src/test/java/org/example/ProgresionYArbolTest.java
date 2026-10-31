@@ -1,21 +1,5 @@
 package org.example;
-
-import org.example.game.cuerpo.*;
-import org.example.game.jugador.InventarioJugador;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.motor.Vector2D;
-import org.example.game.progresion.ElementoDesbloqueable;
-import org.example.game.progresion.RamaProgresion;
-import org.example.game.progresion.SistemaProgresion;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-import org.example.game.simulacion.SimulacionSolar;
-import org.example.test.JavaFXExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.example.game.cuerpo.*; import org.example.game.jugador.InventarioJugador; import org.example.game.jugador.TipoRecurso; import org.example.game.motor.Vector2D; import org.example.game.progresion.ElementoDesbloqueable; import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion; import org.example.game.simulacion.ConfiguracionSimulacion; import org.example.game.simulacion.SimulacionSolar; import org.example.test.JavaFXExtension; import org.junit.jupiter.api.BeforeEach; import org.junit.jupiter.api.Test; import org.junit.jupiter.api.extension.ExtendWith; import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class ProgresionYArbolTest {
 
@@ -46,38 +30,38 @@ class ProgresionYArbolTest {
         assertFalse(prog.estaDesbloqueado(TipoCuerpo.PLANETA_LAVA));
         assertFalse(prog.tieneEscudoDesbloqueado());
 
-        assertEquals(100.0, prog.getCostoSiguiente(RamaProgresion.PLANETAS));
-        assertEquals(100.0, prog.getCostoSiguiente(RamaProgresion.MASA));
-        assertEquals(100.0, prog.getCostoSiguiente(RamaProgresion.CANTIDAD_PLANETAS));
+        assertEquals(ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA, prog.getCostoSiguiente(RamaProgresion.PLANETAS));
+        assertEquals(ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA, prog.getCostoSiguiente(RamaProgresion.MASA));
+        assertEquals(ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA, prog.getCostoSiguiente(RamaProgresion.CANTIDAD_PLANETAS));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 100.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA);
         assertTrue(prog.investigar(RamaProgresion.MASA, inv));
         assertEquals(1, prog.getNivel(RamaProgresion.MASA));
         assertEquals(0.6, prog.getLimiteMasaActual(), 1e-6);
-        assertEquals(500.0, prog.getCostoSiguiente(RamaProgresion.MASA));
+        assertEquals(ConfiguracionSimulacion.COSTO_DESBLOQUEO_PORRO, prog.getCostoSiguiente(RamaProgresion.MASA));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 100.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA);
         assertTrue(prog.investigar(RamaProgresion.CANTIDAD_PLANETAS, inv));
         assertEquals(1, prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS));
         assertEquals(4, prog.getLimitePlanetas());
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 100.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.estaDesbloqueado(TipoCuerpo.LUNA));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 500.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_PORRO);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.estaDesbloqueado(TipoCuerpo.PLANETA_ROCOSO));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 1500.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_SATELITE);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.estaDesbloqueado(TipoCuerpo.SATELITE));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 3500.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_ESCUDO);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.tieneEscudoDesbloqueado());
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 8000.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LAVA);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.estaDesbloqueado(TipoCuerpo.PLANETA_LAVA));
         assertTrue(prog.esNivelMaximo(RamaProgresion.PLANETAS));
@@ -98,7 +82,7 @@ class ProgresionYArbolTest {
         assertFalse(simulacion.spawnCuerpo(TipoCuerpo.PLANETA_AGUA, 400, 0, 0.3, Vector2D.cero()).isPresent());
         assertEquals(3, simulacion.getCantidadPlanetasActuales());
 
-        simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, 100.0);
+        simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA);
         assertTrue(simulacion.getProgresion().investigar(RamaProgresion.CANTIDAD_PLANETAS, simulacion.getInventario()));
         assertEquals(4, simulacion.getProgresion().getLimitePlanetas());
 
@@ -139,8 +123,9 @@ class ProgresionYArbolTest {
         simulacion.reiniciar();
         assertFalse(simulacion.estaPerdida());
         assertTrue(simulacion.getSistemaSolar().getCuerpos().isEmpty());
-        assertEquals(400.0, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES));
-        assertEquals(200.0, simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA));
+        InventarioJugador base = new InventarioJugador();
+        assertEquals(base.getRecurso(TipoRecurso.MINERALES), simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(base.getRecurso(TipoRecurso.ENERGIA), simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
         assertEquals(0.0, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA));
     }
 
@@ -152,11 +137,12 @@ class ProgresionYArbolTest {
         assertFalse(prog.estaDesbloqueado(TipoCuerpo.SATELITE));
         assertFalse(prog.estaDesbloqueado(ElementoDesbloqueable.SATELITE));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 600.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA,
+                ConfiguracionSimulacion.COSTO_DESBLOQUEO_LUNA + ConfiguracionSimulacion.COSTO_DESBLOQUEO_PORRO);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
 
-        inv.agregarRecurso(TipoRecurso.CIENCIA, 1500.0);
+        inv.agregarRecurso(TipoRecurso.CIENCIA, ConfiguracionSimulacion.COSTO_DESBLOQUEO_SATELITE);
         assertTrue(prog.investigar(RamaProgresion.PLANETAS, inv));
         assertTrue(prog.estaDesbloqueado(TipoCuerpo.SATELITE));
         assertTrue(prog.estaDesbloqueado(ElementoDesbloqueable.SATELITE));
@@ -187,8 +173,8 @@ class ProgresionYArbolTest {
         assertTrue(prodAgua.containsKey(TipoRecurso.MINERALES));
         assertTrue(prodAgua.containsKey(TipoRecurso.CIENCIA));
         assertTrue(prodAgua.containsKey(TipoRecurso.ENERGIA));
-        assertTrue(prodAgua.get(TipoRecurso.MINERALES) >= 0.035);
-        assertTrue(prodAgua.get(TipoRecurso.CIENCIA) >= 0.025);
-        assertTrue(prodAgua.get(TipoRecurso.ENERGIA) >= 0.02);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES, prodAgua.get(TipoRecurso.MINERALES), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA, prodAgua.get(TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_ENERGIA, prodAgua.get(TipoRecurso.ENERGIA), 1e-6);
     }
 }

@@ -1,5 +1,4 @@
 package org.example.game.cuerpo;
-
 /**
  * Cuerpos celestes con capacidades de defensa o escudo activo (ISP).
  */

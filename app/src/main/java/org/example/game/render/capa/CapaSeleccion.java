@@ -1,11 +1,5 @@
 package org.example.game.render.capa;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.render.UtilidadRender;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.paint.Color; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.motor.ConstantesFisicas; import org.example.game.render.UtilidadRender;
 /**
  * Capa de renderizado para el indicador de selección y enfoque sobre cuerpos celestes (SRP).
  */

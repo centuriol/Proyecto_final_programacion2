@@ -1,7 +1,5 @@
 package org.example.game.ui;
-
 import java.util.Locale;
-
 /**
  * Utilidad reutilizable para dar formato a numeros grandes en la interfaz de usuario.
  *

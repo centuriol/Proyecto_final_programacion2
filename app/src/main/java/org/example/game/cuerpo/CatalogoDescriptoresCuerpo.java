@@ -1,39 +1,24 @@
 package org.example.game.cuerpo;
-
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-
-import java.util.EnumMap;
-import java.util.Map;
-
+import org.example.game.jugador.TipoRecurso; import org.example.game.simulacion.ConfiguracionEconomia; import java.util.EnumMap; import java.util.Map;
 /**
- * SRP: Catálogo centralizado de descriptores, lore, costos y producción para los tipos de cuerpos.
+ * SRP: Catalogo centralizado de descriptores, lore, costos y produccion para los tipos de cuerpos.
+ * Todos los costos y tasas de produccion provienen exclusivamente de ConfiguracionEconomia.
  */
 public final class CatalogoDescriptoresCuerpo {
 
     private static final Map<TipoCuerpo, DescriptorTipoCuerpo> DESCRIPTORES = new EnumMap<>(TipoCuerpo.class);
 
     static {
-        Map<TipoRecurso, Double> costosPlanetaBase = Map.of(
-                TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_PLANETA_MINERALES,
-                TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA
-        );
-        Map<TipoRecurso, Double> prodPlanetaBase = Map.of(
-                TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_PLANETA_MINERALES,
-                TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_CIENCIA,
-                TipoRecurso.POBLACION, ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION
-        );
-
         // Sol
         DESCRIPTORES.put(TipoCuerpo.ESTRELLA, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_ESTRELLA_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_ESTRELLA_ENERGIA
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_ESTRELLA_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_ESTRELLA_ENERGIA
                 ),
                 Map.of(
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA,
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES,
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_ESTRELLA_CIENCIA
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.PRODUCCION_ESTRELLA_ENERGIA,
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_ESTRELLA_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_ESTRELLA_CIENCIA
                 ),
                 65.0, 85.0,
                 "Sol", "[SOL]",
@@ -42,10 +27,35 @@ public final class CatalogoDescriptoresCuerpo {
                 "audio/sol.mp3"
         ));
 
+        // Planeta de Agua
+        DESCRIPTORES.put(TipoCuerpo.PLANETA_AGUA, new DescriptorTipoCuerpo(
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_PLANETA_AGUA_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_PLANETA_AGUA_ENERGIA
+                ),
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.PRODUCCION_PLANETA_AGUA_ENERGIA
+                ),
+                35.0, 55.0,
+                "Planeta de Agua", "[AGU]",
+                "Planeta de Agua • Oceano Global Rico en Recursos y Ciencia",
+                "Planeta de Agua: Un mundo oceanico cubierto en su totalidad por vastos mares hidrotermales. Aporta minerales, energia geotermica inicial y valiosos datos cientificos marinos para sustentar el desarrollo temprano del sistema solar.",
+                "audio/planeta_agua.mp3"
+        ));
+
         // Planeta Porro
         DESCRIPTORES.put(TipoCuerpo.PLANETA_ROCOSO, new DescriptorTipoCuerpo(
-                costosPlanetaBase,
-                prodPlanetaBase,
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_PLANETA_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_PLANETA_ENERGIA
+                ),
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_PLANETA_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_PLANETA_CIENCIA,
+                        TipoRecurso.POBLACION, ConfiguracionEconomia.PRODUCCION_PLANETA_POBLACION
+                ),
                 35.0, 55.0,
                 "Planeta Porro", "[POR]",
                 "Planeta Porro • Fuente de Poblacion y Ciencia",
@@ -53,74 +63,67 @@ public final class CatalogoDescriptoresCuerpo {
                 "audio/planeta_porro.mp3"
         ));
 
-        // Planeta de Agua
-        DESCRIPTORES.put(TipoCuerpo.PLANETA_AGUA, new DescriptorTipoCuerpo(
-                Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_PLANETA_AGUA_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_PLANETA_AGUA_ENERGIA
-                ),
-                Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_MINERALES,
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_CIENCIA,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_ENERGIA
-                ),
-                35.0, 55.0,
-                "Planeta de Agua", "[AGU]",
-                "Planeta de Agua • Océano Global Rico en Recursos y Ciencia",
-                "Planeta de Agua: Un mundo oceánico cubierto en su totalidad por vastos mares hidrotermales. Aporta minerales, energía geotérmica inicial y valiosos datos científicos marinos para sustentar el desarrollo temprano del sistema solar.",
-                "audio/planeta_agua.mp3"
-        ));
-
         // Planeta Lava
         DESCRIPTORES.put(TipoCuerpo.PLANETA_LAVA, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_PLANETA_LAVA_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_PLANETA_LAVA_ENERGIA
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_PLANETA_LAVA_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_PLANETA_LAVA_ENERGIA
                 ),
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_MINERALES,
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_PLANETA_LAVA_CIENCIA
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_PLANETA_LAVA_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_PLANETA_LAVA_CIENCIA
                 ),
                 35.0, 55.0,
                 "Planeta Lava", "[LAV]",
                 "Planeta Lava • Mundo Volcanico de Extraccion Intensiva",
-                "Planeta Lava: Un cuerpo planetario sumergido en una actividad magmatica extrema con rios de roca fundida y erupciones continuas. Exige una importante inversion inicial (150 de mineral y 75 de energia) debido a las condiciones termicas extremas, pero genera un altisimo rendimiento cientifico y una abundante extraccion de minerales pesados expulsados del manto, siendo completamente incompatible con el asentamiento de poblacion.",
+                "Planeta Lava: Un cuerpo planetario sumergido en una actividad magmatica extrema con rios de roca fundida y erupciones continuas. Exige una elevada inversion de recursos debido a las condiciones termicas extremas, pero genera un altisimo rendimiento cientifico y una abundante extraccion de minerales pesados expulsados del manto, siendo completamente incompatible con el asentamiento de poblacion.",
                 "audio/planeta_lava.mp3"
         ));
 
         // Gigante Gaseoso
         DESCRIPTORES.put(TipoCuerpo.PLANETA_GASEOSO, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_PLANETA_MINERALES * 2,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_PLANETA_ENERGIA * 2
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_PLANETA_GASEOSO_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_PLANETA_GASEOSO_ENERGIA
                 ),
-                prodPlanetaBase,
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.PRODUCCION_PLANETA_GASEOSO_ENERGIA
+                ),
                 35.0, 55.0,
                 "Joviano", "[GAS]",
-                "Cuerpo Planetario • Fuente de Poblacion y Ciencia",
-                "Un mundo geologicamente diferenciado provisto de corteza densa, atmosfera y capas ricas en compuestos pesados. Alberga biomas y condiciones idoneas para el desarrollo de vida organizada. A medida que su poblacion colonizadora prolifera, se establecen academias de ciencia para la investigacion e industrias mineras que extraen minerales valiosos para la expansion.",
+                "Gigante Gaseoso • Coloso Atmosferico de Alta Extraccion",
+                "Gigante Gaseoso: Un mundo masivo de profundas bandas atmosfericas, tormentas ciclonicas perpetuas y nucleo sometido a presiones extremas. Carece de superficie solida habitable, pero concentra enormes reservas de isotopos energeticos, compuestos minerales pesados y fenomenos fisicos de alto valor cientifico.",
                 null
         ));
 
         // Planeta Helado
         DESCRIPTORES.put(TipoCuerpo.PLANETA_HELADO, new DescriptorTipoCuerpo(
-                costosPlanetaBase,
-                prodPlanetaBase,
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_PLANETA_HELADO_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_PLANETA_HELADO_ENERGIA
+                ),
+                Map.of(
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_MINERALES,
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.PRODUCCION_PLANETA_HELADO_ENERGIA
+                ),
                 35.0, 55.0,
                 "Boreas", "[HEL]",
-                "Cuerpo Planetario • Fuente de Poblacion y Ciencia",
-                "Un mundo geologicamente diferenciado provisto de corteza densa, atmosfera y capas ricas en compuestos pesados. Alberga biomas y condiciones idoneas para el desarrollo de vida organizada. A medida que su poblacion colonizadora prolifera, se establecen academias de ciencia para la investigacion e industrias mineras que extraen minerales valiosos para la expansion.",
+                "Planeta Helado • Mundo Criogenico de Investigacion",
+                "Planeta Helado: Un cuerpo planetario cubierto por glaciares perpetuos y oceanos subsuperficiales sellados bajo kilometros de hielo. Aporta extraccion mineral criogenica, observacion cientifica y aprovechamiento termico de sus fisuras internas.",
                 null
         ));
 
         // Luna
         DESCRIPTORES.put(TipoCuerpo.LUNA, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_LUNA_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_LUNA_ENERGIA
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_LUNA_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_LUNA_ENERGIA
                 ),
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.PRODUCCION_LUNA_MINERALES
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.PRODUCCION_LUNA_MINERALES
                 ),
                 25.0, 40.0,
                 "Luna", "[LUN]",
@@ -132,31 +135,28 @@ public final class CatalogoDescriptoresCuerpo {
         // Satelite
         DESCRIPTORES.put(TipoCuerpo.SATELITE, new DescriptorTipoCuerpo(
                 Map.of(
-                        TipoRecurso.MINERALES, ConfiguracionSimulacion.COSTO_SATELITE_MINERALES,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.COSTO_SATELITE_ENERGIA
+                        TipoRecurso.MINERALES, ConfiguracionEconomia.COSTO_SATELITE_MINERALES,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.COSTO_SATELITE_ENERGIA
                 ),
                 Map.of(
-                        TipoRecurso.CIENCIA, ConfiguracionSimulacion.PRODUCCION_SATELITE_CIENCIA,
-                        TipoRecurso.ENERGIA, ConfiguracionSimulacion.PRODUCCION_SATELITE_ENERGIA
+                        TipoRecurso.CIENCIA, ConfiguracionEconomia.PRODUCCION_SATELITE_CIENCIA,
+                        TipoRecurso.ENERGIA, ConfiguracionEconomia.PRODUCCION_SATELITE_ENERGIA
                 ),
                 18.0, 30.0,
                 "Satélite", "[SAT]",
                 "Satélite Artificial • Generador Científico y Energético",
-                "Satélite Científico: Sonda orbital artificial no tripulada de masa fija (1.0 t). Equipada con paneles fotovoltaicos y sensores de investigación que generan ciencia continua y un suministro modesto de energía. Su estructura estandarizada no admite modificar su masa.",
+                "Satélite Científico: Sonda orbital artificial no tripulada de masa fija (1.0 t). Equipada con paneles fotovoltaicos y sensores de investigación que generan ciencia continua, un suministro constante de energía y defensa activa frente a meteoritos.",
                 null
         ));
 
-        // Meteorito
+        // Meteorito (no colocable ni reembolsable por el jugador)
         DESCRIPTORES.put(TipoCuerpo.METEORITO, new DescriptorTipoCuerpo(
-                Map.of(
-                        TipoRecurso.MINERALES, 10.0,
-                        TipoRecurso.ENERGIA, 5.0
-                ),
+                Map.of(),
                 Map.of(),
                 20.0, 35.0,
                 "Bolido", "[MET]",
                 "Objeto Astronomico",
-                "Cuerpo celeste en el sistema.",
+                "Cuerpo celeste errante en el sistema.",
                 null
         ));
 

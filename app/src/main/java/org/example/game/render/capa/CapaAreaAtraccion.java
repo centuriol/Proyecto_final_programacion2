@@ -1,14 +1,5 @@
 package org.example.game.render.capa;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.render.UtilidadRender;
-
-import java.util.List;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.paint.Color; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.ConstantesFisicas; import org.example.game.render.UtilidadRender; import java.util.List;
 /**
  * Capa de renderizado para radios y áreas de atracción gravitacional de cuerpos (SRP).
  */

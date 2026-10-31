@@ -1,30 +1,5 @@
 package org.example.game.ui;
-
-import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Cursor;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import org.example.game.jugador.TipoRecurso;
-import org.example.game.progresion.RamaProgresion;
-import org.example.game.progresion.SistemaProgresion;
-import org.example.game.simulacion.MensajeEvento;
-import org.example.game.simulacion.SimulacionSolar;
-
-import java.util.EnumMap;
-import java.util.Map;
-
+import javafx.application.Platform; import javafx.geometry.Insets; import javafx.geometry.Pos; import javafx.scene.Cursor; import javafx.scene.control.Button; import javafx.scene.control.Label; import javafx.scene.control.ProgressBar; import javafx.scene.control.ScrollPane; import javafx.scene.control.Separator; import javafx.scene.input.KeyCode; import javafx.scene.layout.*; import javafx.scene.paint.Color; import javafx.scene.shape.Circle; import javafx.scene.shape.Line; import javafx.scene.text.Font; import javafx.scene.text.FontWeight; import org.example.game.jugador.TipoRecurso; import org.example.game.progresion.RamaProgresion; import org.example.game.progresion.SistemaProgresion; import org.example.game.simulacion.MensajeEvento; import org.example.game.simulacion.SimulacionSolar; import java.util.EnumMap; import java.util.Map;
 /**
  * Apartado de Árbol de Investigación Científica con nodos en círculos y disposición orbital ajustada a pantalla.
  *
@@ -40,6 +15,7 @@ public class PantallaArbolProgresion extends StackPane {
     private final Label lblCienciaPill;
     private final Label lblPlanetasPill;
     private final Label lblMasaPill;
+    private final Button btnCerrar;
     private final Pane arbolCanvas;
     private Runnable listenerSimulacion;
 
@@ -64,27 +40,27 @@ public class PantallaArbolProgresion extends StackPane {
     public record NodoArbol(int nivel, String tag, String nombre, String desc, double costo) {}
 
     private static final NodoArbol[] NODOS_PLANETAS = new NodoArbol[] {
-            new NodoArbol(1, "[LUN]", "Luna", "Satélite rocoso natural. Proporciona una extracción continua y segura de minerales sin perturbar biosferas.", 100.0),
-            new NodoArbol(2, "[POR]", "Planeta Porro", "Mundo templado habitable con civilización, crecimiento demográfico, colonización y academias científicas.", 500.0),
-            new NodoArbol(3, "[SAT]", "Satélite", "Sonda orbital artificial no tripulada de masa fija (1.0 t). Genera ciencia pasiva continua (+0.08/t) y energía (+0.03/t).", 1500.0),
-            new NodoArbol(4, "[ESC]", "Escudo", "Cúpula de defensa planetaria que absorbe impactos de meteoritos destructivos y despliega satélites protectores.", 3500.0),
-            new NodoArbol(5, "[LAV]", "Planeta Lava", "Mundo magmático extremo de altísima extracción mineral (+0.09/t) y datos térmicos intensivos (+0.06/t).", 8000.0)
+            new NodoArbol(1, "[LUN]", "Luna", "Satélite rocoso natural. Proporciona una extracción continua y segura de minerales sin perturbar biosferas.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1),
+            new NodoArbol(2, "[POR]", "Planeta Porro", "Mundo templado habitable con civilización, crecimiento demográfico, colonización y academias científicas.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2),
+            new NodoArbol(3, "[SAT]", "Satélite", "Sonda orbital defensiva y científica de masa fija (1.0 t). Intercepta meteoritos entrantes y genera ciencia y energía.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3),
+            new NodoArbol(4, "[ESC]", "Escudo", "Cúpula de defensa planetaria que absorbe impactos destructivos adicionales.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4),
+            new NodoArbol(5, "[LAV]", "Planeta Lava", "Mundo magmático extremo de altísima extracción mineral y datos térmicos intensivos.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5)
     };
 
     private static final NodoArbol[] NODOS_MASA = new NodoArbol[] {
-            new NodoArbol(1, "0.6x", "Masa x0.6", "Habilita planetas con densidad intermedia y órbitas más estables ante perturbaciones gravitacionales.", 100.0),
-            new NodoArbol(2, "1.0x", "Masa x1.0", "Masa estándar completa (1.0x) equivalente a la Tierra y Sol base, incrementando la producción proporcional.", 500.0),
-            new NodoArbol(3, "2.0x", "Masa x2.0", "Cuerpos de doble densidad con pozos de gravedad más profundos que retienen satélites con mayor fuerza.", 1500.0),
-            new NodoArbol(4, "5.0x", "Masa x5.0", "Colosos celestes masivos de alto rendimiento industrial y amplias zonas de influencia gravitatoria.", 3500.0),
-            new NodoArbol(5, "10.0x", "Masa x10.0", "Límite superior absoluto de masa para astros ultra-masivos capaces de deformar el espacio circundante.", 8000.0)
+            new NodoArbol(1, "0.6x", "Masa x0.6", "Habilita planetas con densidad intermedia y órbitas más estables ante perturbaciones gravitacionales.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1),
+            new NodoArbol(2, "1.0x", "Masa x1.0", "Masa estándar completa (1.0x) equivalente a la Tierra y Sol base, incrementando la producción proporcional.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2),
+            new NodoArbol(3, "2.0x", "Masa x2.0", "Cuerpos de doble densidad con pozos de gravedad más profundos que retienen satélites con mayor fuerza.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3),
+            new NodoArbol(4, "5.0x", "Masa x5.0", "Colosos celestes masivos de alto rendimiento industrial y amplias zonas de influencia gravitatoria.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4),
+            new NodoArbol(5, "10.0x", "Masa x10.0", "Límite superior absoluto de masa para astros ultra-masivos capaces de deformar el espacio circundante.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5)
     };
 
     private static final NodoArbol[] NODOS_CANTIDAD = new NodoArbol[] {
-            new NodoArbol(1, "4 PLAN", "Capacidad (4)", "Amplía la infraestructura del sistema solar para albergar hasta 4 planetas en coexistencia orbital simultánea.", 100.0),
-            new NodoArbol(2, "5 PLAN", "Capacidad (5)", "Permite coordinar trayectorias seguras para sostener hasta 5 planetas activos en el sistema solar.", 500.0),
-            new NodoArbol(3, "6 PLAN", "Capacidad (6)", "Expansión orbital avanzada para alojar 6 planetas con órbitas concéntricas sin colapsos mutuos.", 1500.0),
-            new NodoArbol(4, "8 PLAN", "Capacidad (8)", "Soporte de navegación multi-planetaria para albergar hasta 8 planetas simultáneos en el mapa.", 3500.0),
-            new NodoArbol(5, "12 PLAN", "Gran Sistema (12)", "Capacidad máxima de civilización interestelar: permite hasta 12 mundos girando en armonía cósmica.", 8000.0)
+            new NodoArbol(1, "4 PLAN", "Capacidad (4)", "Amplía la infraestructura del sistema solar para albergar hasta 4 planetas en coexistencia orbital simultánea.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_1),
+            new NodoArbol(2, "5 PLAN", "Capacidad (5)", "Permite coordinar trayectorias seguras para sostener hasta 5 planetas activos en el sistema solar.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_2),
+            new NodoArbol(3, "6 PLAN", "Capacidad (6)", "Expansión orbital avanzada para alojar 6 planetas con órbitas concéntricas sin colapsos mutuos.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_3),
+            new NodoArbol(4, "8 PLAN", "Capacidad (8)", "Soporte de navegación multi-planetaria para albergar hasta 8 planetas simultáneos en el mapa.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_4),
+            new NodoArbol(5, "12 PLAN", "Gran Sistema (12)", "Capacidad máxima de civilización interestelar: permite hasta 12 mundos girando en armonía cósmica.", org.example.game.simulacion.ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5)
     };
 
     public PantallaArbolProgresion(SimulacionSolar simulacion, Runnable onCerrarCallback) {
@@ -117,24 +93,8 @@ public class PantallaArbolProgresion extends StackPane {
         // ===== Barra Superior =====
         BorderPane topBar = new BorderPane();
 
-        HBox cabeceraIzq = new HBox(12);
-        cabeceraIzq.setAlignment(Pos.CENTER_LEFT);
-
-        HBox navTabs = new HBox(6);
-        navTabs.setAlignment(Pos.CENTER_LEFT);
-
-        Button btnTabSim = new Button("[SIMULADOR]");
-        btnTabSim.setFont(Font.font("Monospace", FontWeight.BOLD, 10.5));
-        btnTabSim.setStyle("-fx-background-color: #1a1c26; -fx-text-fill: #8c92a4; -fx-border-color: #2b2d3a; -fx-border-width: 1px; -fx-background-radius: 4px; -fx-padding: 4 10 4 10; -fx-cursor: hand;");
-        btnTabSim.setOnAction(e -> ocultar());
-
-        Button btnTabTree = new Button("[ÁRBOL DE INVESTIGACIÓN]");
-        btnTabTree.setFont(Font.font("Monospace", FontWeight.BOLD, 10.5));
-        btnTabTree.setStyle("-fx-background-color: #172a38; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-padding: 4 10 4 10;");
-
-        navTabs.getChildren().addAll(btnTabSim, btnTabTree);
-
         VBox titulosBox = new VBox(1);
+        titulosBox.setAlignment(Pos.CENTER_LEFT);
         Label lblTitulo = new Label("ÁRBOL DE INVESTIGACIÓN CIENTÍFICA");
         lblTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 15));
         lblTitulo.setTextFill(Color.web("#e8e4d8"));
@@ -143,9 +103,7 @@ public class PantallaArbolProgresion extends StackPane {
         lblSubtitulo.setFont(Font.font("Monospace", FontWeight.NORMAL, 9.5));
         lblSubtitulo.setTextFill(Color.web("#8c92a4"));
         titulosBox.getChildren().addAll(lblTitulo, lblSubtitulo);
-
-        cabeceraIzq.getChildren().addAll(navTabs, new Separator(javafx.geometry.Orientation.VERTICAL), titulosBox);
-        topBar.setLeft(cabeceraIzq);
+        topBar.setLeft(titulosBox);
 
         HBox controlesDer = new HBox(8);
         controlesDer.setAlignment(Pos.CENTER_RIGHT);
@@ -165,12 +123,12 @@ public class PantallaArbolProgresion extends StackPane {
         lblMasaPill.setPadding(new Insets(4, 9, 4, 9));
         lblMasaPill.setStyle("-fx-background-color: #261a38; -fx-text-fill: #d2a8ff; -fx-border-color: #d2a8ff; -fx-border-width: 1px; -fx-background-radius: 4px;");
 
-        Button btnVolver = new Button("Volver [ESC / P]");
-        btnVolver.setFont(Font.font("Monospace", FontWeight.BOLD, 10.5));
-        btnVolver.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.2px; -fx-cursor: hand; -fx-padding: 4 12 4 12;");
-        btnVolver.setOnAction(e -> ocultar());
+        btnCerrar = new Button("X");
+        btnCerrar.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
+        btnCerrar.setStyle("-fx-background-color: #26161c; -fx-text-fill: #ff6b6b; -fx-border-color: #ff6b6b; -fx-border-width: 1.2px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand; -fx-padding: 4 10 4 10;");
+        btnCerrar.setOnAction(e -> ocultar());
 
-        controlesDer.getChildren().addAll(lblCienciaPill, lblPlanetasPill, lblMasaPill, btnVolver);
+        controlesDer.getChildren().addAll(lblCienciaPill, lblPlanetasPill, lblMasaPill, btnCerrar);
         topBar.setRight(controlesDer);
 
         // ===== Área Central (Lienzo Orbital + Panel de Inspección Lateral) =====
@@ -306,6 +264,10 @@ public class PantallaArbolProgresion extends StackPane {
         if (onCerrarCallback != null) {
             onCerrarCallback.run();
         }
+    }
+
+    public Button getBtnCerrar() {
+        return btnCerrar;
     }
 
     private void actualizarPills() {

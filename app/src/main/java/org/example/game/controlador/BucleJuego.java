@@ -1,10 +1,5 @@
 package org.example.game.controlador;
-
-import javafx.animation.AnimationTimer;
-import javafx.scene.canvas.Canvas;
-import org.example.game.render.RenderizadorPixelArt;
-import org.example.game.simulacion.SimulacionSolar;
-
+import javafx.animation.AnimationTimer; import javafx.scene.canvas.Canvas; import org.example.game.guardado.TemporizadorAutoguardado; import org.example.game.render.RenderizadorPixelArt; import org.example.game.simulacion.SimulacionSolar;
 /**
  * Bucle principal de juego (Game Loop).
  *
@@ -18,6 +13,8 @@ public class BucleJuego extends AnimationTimer {
     private final RenderizadorPixelArt renderizador;
     private final Canvas canvas;
     private final ProveedorEstadoInteraccion proveedorEstado;
+    private final TemporizadorAutoguardado autoguardado;
+    private Runnable listenerFrame;
 
     private long lastTickTime = 0;
     private double tickAcumulado = 0;
@@ -26,10 +23,19 @@ public class BucleJuego extends AnimationTimer {
                       RenderizadorPixelArt renderizador,
                       Canvas canvas,
                       ProveedorEstadoInteraccion proveedorEstado) {
+        this(simulacion, renderizador, canvas, proveedorEstado, null);
+    }
+
+    public BucleJuego(SimulacionSolar simulacion,
+                      RenderizadorPixelArt renderizador,
+                      Canvas canvas,
+                      ProveedorEstadoInteraccion proveedorEstado,
+                      TemporizadorAutoguardado autoguardado) {
         this.simulacion = simulacion;
         this.renderizador = renderizador;
         this.canvas = canvas;
         this.proveedorEstado = proveedorEstado;
+        this.autoguardado = autoguardado;
     }
 
     @Override
@@ -43,10 +49,20 @@ public class BucleJuego extends AnimationTimer {
         lastTickTime = now;
 
         actualizarTicksFisicos(deltaTime);
+        if (autoguardado != null) {
+            autoguardado.actualizar(Math.min(deltaTime, 1.0));
+        }
         simulacion.notificarListenersUI();
         sincronizarDimensiones();
         actualizarAnimaciones(deltaTime);
         renderizarFrame();
+        if (listenerFrame != null) {
+            listenerFrame.run();
+        }
+    }
+
+    public void setListenerFrame(Runnable listenerFrame) {
+        this.listenerFrame = listenerFrame;
     }
 
     private void actualizarTicksFisicos(double deltaTime) {

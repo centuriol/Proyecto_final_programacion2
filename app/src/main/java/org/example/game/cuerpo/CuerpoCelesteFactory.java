@@ -1,13 +1,5 @@
 package org.example.game.cuerpo;
-
-import org.example.game.motor.CalculadorOrbital;
-import org.example.game.motor.Vector2D;
-import org.example.game.simulacion.ConfiguracionSimulacion;
-
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
+import org.example.game.motor.CalculadorOrbital; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionSimulacion; import java.util.EnumMap; import java.util.Map; import java.util.concurrent.atomic.AtomicLong;
 /**
  * Fábrica instanciable y configurable para creación dinámica de cuerpos celestes.
  * Proporciona registro de estrategias CreadorCuerpo y métodos estáticos de conveniencia (OCP / DIP).
@@ -77,6 +69,12 @@ public class CuerpoCelesteFactory {
         contadorId.set(0);
     }
 
+    public void asegurarContadorMinimo(long minimo) {
+        if (minimo > 0) {
+            contadorId.updateAndGet(actual -> Math.max(actual, minimo));
+        }
+    }
+
     // ===== Métodos Estáticos Delegados =====
 
     public static void registrarCreador(TipoCuerpo tipo, CreadorCuerpo creador) {
@@ -133,8 +131,7 @@ public class CuerpoCelesteFactory {
         double vOrbital = CalculadorOrbital.calcularRapidezOrbital(central.getMasa(), distancia);
         Vector2D vel = new Vector2D(0, -vOrbital);
         TipoCuerpo tipoPlaneta = (tipo != null && tipo.esPlaneta()) ? tipo : TipoCuerpo.PLANETA_ROCOSO;
-        CuerpoCeleste c = crearCuerpo(tipoPlaneta, x, y, factorMasa, vel);
-        return (c instanceof Planeta p) ? p : crearPlanetaRocoso(x, y, factorMasa, vel);
+        return crearPlaneta(tipoPlaneta, x, y, factorMasa, vel);
     }
 
     // ===== Estrellas =====
@@ -203,6 +200,18 @@ public class CuerpoCelesteFactory {
     }
 
     public static Meteorito crearMeteoritoHaciaObjetivo(double anchoMundo, double altoMundo, CuerpoCeleste objetivo) {
+        return crearMeteoritoHaciaObjetivo(
+                anchoMundo,
+                altoMundo,
+                objetivo,
+                org.example.game.simulacion.ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL
+        );
+    }
+
+    public static Meteorito crearMeteoritoHaciaObjetivo(double anchoMundo,
+                                                        double altoMundo,
+                                                        CuerpoCeleste objetivo,
+                                                        double factorProgreso) {
         double semiAncho = Math.max(400.0, anchoMundo / 2.0);
         double semiAlto = Math.max(300.0, altoMundo / 2.0);
 
@@ -231,20 +240,23 @@ public class CuerpoCelesteFactory {
         double velMag = ConfiguracionSimulacion.VELOCIDAD_METEORITO_PX_TICK;
         Vector2D vel = (dir.magnitud() > 1e-3 ? dir.normalizar() : new Vector2D(1, 0)).multiplicar(velMag);
         double ticksVida = Math.max(1200.0, (semiAncho + semiAlto) * 3.0 / Math.max(1.0, velMag));
+        double masaEscalada = org.example.game.simulacion.EscaladorAmenazaMeteorito.calcularMasaPorProgreso(factorProgreso);
 
-        return new Meteorito(
+        Meteorito meteorito = new Meteorito(
                 INSTANCIA_GLOBAL.generarNombre("Meteorito"),
-                TipoCuerpo.METEORITO.masaBase * (0.8 + Math.random() * 0.4),
+                masaEscalada,
                 posInicio.x(), posInicio.y(),
                 vel, ticksVida, false, objetivo
         );
+        meteorito.setFactorProgresoOrigen(factorProgreso);
+        return meteorito;
     }
 
     public static Meteorito crearMeteoritoJugadorFisica(double x, double y, Vector2D vel) {
         vel = new Vector2D(vel.x(), -vel.y());
         return new Meteorito(
                 INSTANCIA_GLOBAL.generarNombre("Meteorito"),
-                TipoCuerpo.METEORITO.masaBase * 0.1,
+                org.example.game.simulacion.ConfiguracionColisiones.MASA_MINIMA_METEORITO,
                 x, y, vel, 2000, true
         );
     }

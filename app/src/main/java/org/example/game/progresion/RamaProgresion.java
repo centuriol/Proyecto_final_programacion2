@@ -1,5 +1,4 @@
 package org.example.game.progresion;
-
 /**
  * Las tres ramas de desarrollo científico del árbol tecnológico.
  *

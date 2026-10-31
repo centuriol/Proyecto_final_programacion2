@@ -1,9 +1,5 @@
 package org.example.game.cuerpo;
-
-import org.example.game.civilizacion.CivilizacionComponent;
-
-import java.util.List;
-
+import org.example.game.civilizacion.CivilizacionComponent; import java.util.List;
 public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, Defensor, Transformable {
     private boolean tieneCivilizacion = false;
     private TipoCuerpo subTipo;
@@ -104,6 +100,29 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
                 this.tieneCivilizacion = false;
             }
         }
+    }
+
+    @Override
+    public <R> R aceptar(VisitanteCuerpo<R> visitante) {
+        return visitante.visitarPlaneta(this);
+    }
+
+    public void restaurarAtributosPlaneta(boolean transformado, int escudo, boolean poseeComponenteCivilizacion) {
+        this.transformadoPorEvento = transformado;
+        this.golpesEscudo = Math.max(0, escudo);
+        if (!poseeComponenteCivilizacion) {
+            this.civilizacion = null;
+            this.tieneCivilizacion = false;
+        } else {
+            if (this.civilizacion == null) {
+                this.civilizacion = new CivilizacionComponent(this);
+            }
+            this.tieneCivilizacion = this.civilizacion.estaViva();
+        }
+    }
+
+    public void sincronizarFlagCivilizacion() {
+        this.tieneCivilizacion = this.civilizacion != null && this.civilizacion.estaViva();
     }
 
     @Override

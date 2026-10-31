@@ -1,17 +1,5 @@
 package org.example.game.motor.colision;
-
-import org.example.game.cuerpo.Civilizable;
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
-import org.example.game.cuerpo.Meteorito;
-import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.CuerpoFisico;
-import org.example.game.motor.Vector2D;
-import org.example.game.simulacion.ConfiguracionColisiones;
-
-import java.util.List;
-import java.util.Set;
-
+import org.example.game.cuerpo.Civilizable; import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.cuerpo.CuerpoCelesteFactory; import org.example.game.cuerpo.Meteorito; import org.example.game.cuerpo.TipoCuerpo; import org.example.game.motor.CuerpoFisico; import org.example.game.motor.Vector2D; import org.example.game.simulacion.ConfiguracionColisiones; import java.util.List; import java.util.Set;
 /**
  * SRP: Métodos cinemáticos y destructivos compartidos para la resolución de colisiones.
  */
@@ -36,8 +24,8 @@ public final class UtilidadColision {
     }
 
     public static void destruirCivilizacionSiExiste(CuerpoCeleste objetivo) {
-        if (objetivo instanceof Civilizable civ && civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-            civ.getCivilizacion().destruir();
+        if (objetivo != null && objetivo.tieneCivilizacion() && objetivo.getCivilizacion() != null) {
+            objetivo.getCivilizacion().destruir();
         }
     }
 
@@ -59,17 +47,23 @@ public final class UtilidadColision {
             return;
         }
 
-        double masaTotalFragmentos = destruido.getMasa() * (1.0 - ConfiguracionColisiones.FRACCION_MASA_DISIPADA);
+        double masaNeta = destruido.getMasa() * (1.0 - ConfiguracionColisiones.FRACCION_MASA_DISIPADA);
         desactivarYEliminar(destruido, aEliminar);
 
-        if (masaTotalFragmentos <= 0) return;
+        if (masaNeta <= 0) return;
 
-        int numFragmentos = ConfiguracionColisiones.FRAGMENTOS_POR_COLAPSO;
-        if (aAgregar.size() >= 20) {
+        double topeMasaFragmento = ConfiguracionColisiones.MASA_MAXIMA_METEORITO;
+        int requeridosPorTope = (int) Math.ceil(masaNeta / topeMasaFragmento);
+        int numFragmentos = Math.max(
+                ConfiguracionColisiones.FRAGMENTOS_POR_COLAPSO,
+                Math.min(ConfiguracionColisiones.MAX_FRAGMENTOS_POR_COLAPSO, requeridosPorTope)
+        );
+        if (aAgregar.size() >= 24) {
             numFragmentos = 1;
         }
 
-        double masaPorFragmento = masaTotalFragmentos / numFragmentos;
+        double masaRepartible = Math.min(masaNeta, numFragmentos * topeMasaFragmento);
+        double masaPorFragmento = Math.min(topeMasaFragmento, masaRepartible / numFragmentos);
         for (int i = 0; i < numFragmentos; i++) {
             Meteorito fragmento = CuerpoCelesteFactory.crearFragmentoEscombro(
                     destruido.getPosicionX(), destruido.getPosicionY(),

@@ -1,14 +1,5 @@
 package org.example.game.efectos;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import org.example.game.motor.ConstantesFisicas;
-import org.example.game.motor.Vector2D;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import javafx.scene.canvas.GraphicsContext; import javafx.scene.paint.Color; import org.example.game.motor.ConstantesFisicas; import org.example.game.motor.Vector2D; import java.util.ArrayList; import java.util.Iterator; import java.util.List;
 /**
  * Gestor de efectos visuales (anillos y partículas de explosión que se desvanecen en ~40 frames).
  * SRP: Responsable exclusivo de registrar y dibujar efectos transitorios visuales.

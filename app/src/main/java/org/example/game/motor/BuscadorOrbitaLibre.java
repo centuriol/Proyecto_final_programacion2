@@ -1,10 +1,5 @@
 package org.example.game.motor;
-
-import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.simulacion.ConfiguracionTransformacion;
-
-import java.util.List;
-
+import org.example.game.cuerpo.CuerpoCeleste; import org.example.game.simulacion.ConfiguracionTransformacion; import java.util.List;
 /**
  * SRP: Algoritmo de exploración y búsqueda de órbitas seguras libres de solapamiento.
  */
