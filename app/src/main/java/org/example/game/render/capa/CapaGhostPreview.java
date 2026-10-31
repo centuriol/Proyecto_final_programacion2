@@ -3,7 +3,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.RepositorioSprites;
 import org.example.game.render.UtilidadRender;
@@ -13,12 +14,18 @@ import org.example.game.render.UtilidadRender;
 public class CapaGhostPreview {
 
     private final RepositorioSprites repositorioSprites;
+    private final ConversorCoordenadas conversor;
     private static final Color COLOR_ACENTO_CYAN = UtilidadRender.colorWeb("#5be3ff");
     private static final Color COLOR_TEXTO_ETIQUETA = UtilidadRender.colorWeb("#e8e4d8");
     private static final Color COLOR_VERDE_EXITO = UtilidadRender.colorWeb("#50fa7b");
 
     public CapaGhostPreview(RepositorioSprites repositorioSprites) {
+        this(repositorioSprites, new TransformadorCoordenadas());
+    }
+
+    public CapaGhostPreview(RepositorioSprites repositorioSprites, ConversorCoordenadas conversor) {
         this.repositorioSprites = repositorioSprites;
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa,
@@ -26,8 +33,8 @@ public class CapaGhostPreview {
                         double anchoCanvas, double altoCanvas) {
         if (posFisica == null || tipo == null) return;
 
-        double x = ConstantesFisicas.fisicaAXJavaFX(posFisica.x(), anchoCanvas);
-        double y = ConstantesFisicas.fisicaAYJavaFX(posFisica.y(), altoCanvas);
+        double x = conversor.fisicaAXJavaFX(posFisica.x(), anchoCanvas);
+        double y = conversor.fisicaAYJavaFX(posFisica.y(), altoCanvas);
         double r = Math.max(8.0, Math.min(35.0, 15.0 * factorMasa));
 
         double pulso = 1.0 + 0.15 * Math.sin(tick * 0.25);

@@ -40,11 +40,11 @@ public class EscenaFondoMenu {
     private double desplazamientoEstrellas = 0.0;
 
     public EscenaFondoMenu() {
-        this(GestorImagenes.getInstancia());
+        this(new GestorImagenes());
     }
 
     public EscenaFondoMenu(RepositorioSprites repositorioSprites) {
-        RepositorioSprites sprites = repositorioSprites != null ? repositorioSprites : GestorImagenes.getInstancia();
+        RepositorioSprites sprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         this.renderizadorSol = new RenderizadorEstrella(sprites);
         this.renderizadorPlaneta = new RenderizadorPlaneta(sprites);
         this.solIzquierdo = new Estrella("Sol", TipoCuerpo.ESTRELLA.masaBase * 6.5, 0.0, 0.0);

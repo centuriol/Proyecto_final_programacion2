@@ -53,6 +53,7 @@ public class App extends Application {
     private CoordinadorSesionJuego coordinadorSesion;
     private PantallaArbolProgresion pantallaArbol;
     private PantallaMenuPausa pantallaMenuPausa;
+    private final VisualizadorDescripcion visualizadorDescripcion = new VentanaDescripcionCuerpo();
     private PantallaMenuPrincipal pantallaMenuPrincipal;
     private PantallaGameOver pantallaGameOver;
 
@@ -169,7 +170,7 @@ public class App extends Application {
                 hotbar,
                 cuerpo -> {
                     if (stage != null) {
-                        VentanaDescripcionCuerpo.mostrarParaInspeccionar(cuerpo, simulacion, stage, controladorMouse);
+                        visualizadorDescripcion.abrirParaInspeccionar(cuerpo, simulacion, stage, controladorMouse);
                     }
                 },
                 ancho,

@@ -53,7 +53,7 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
 
     @Test
     void testMeteoritoAcotaMasaYRadioNuncaSuperaAlSol() {
-        Estrella solMinimo = CuerpoCelesteFactory.crearEstrella(0, 0, ConfiguracionSimulacion.MASA_FACTOR_MIN);
+        Estrella solMinimo = new CuerpoCelesteFactory().crearEstrella(0, 0, ConfiguracionSimulacion.MASA_FACTOR_MIN);
         Meteorito gigante = new Meteorito("AsteroideEnorme", 1.0e35, 0, 0, Vector2D.cero(), 600, false);
 
         assertEquals(ConfiguracionColisiones.MASA_MAXIMA_METEORITO, gigante.getMasa(), 1e-6);
@@ -72,7 +72,7 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
 
     @Test
     void testEscombrosDePlanetasDestruidosRepartenMasaRespetandoTopes() {
-        Planeta coloso = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 10.0, new Vector2D(2.0, -1.0));
+        Planeta coloso = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 10.0, new Vector2D(2.0, -1.0));
         Set<CuerpoCeleste> aEliminar = new HashSet<>();
         List<CuerpoCeleste> escombros = new ArrayList<>();
 
@@ -116,14 +116,15 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
         sim.limpiarCuerpos();
 
-        Meteorito meteorito = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
+        Meteorito meteorito = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
         sim.agregarCuerpo(meteorito);
         assertFalse(meteorito.esInteractuablePorUsuario());
         assertFalse(meteorito.permiteReembolso());
 
         SeleccionadorCuerpoMouse seleccionador = new SeleccionadorCuerpoMouse();
-        double centroX = ConstantesFisicas.fisicaAXJavaFX(0, 1280);
-        double centroY = ConstantesFisicas.fisicaAYJavaFX(0, 720);
+        org.example.game.motor.ConversorCoordenadas conversor = new org.example.game.motor.TransformadorCoordenadas();
+        double centroX = conversor.fisicaAXJavaFX(0, 1280);
+        double centroY = conversor.fisicaAYJavaFX(0, 720);
         assertNull(seleccionador.encontrarCuerpo(centroX, centroY, 1280, 720, sim.getSistemaSolar().getCuerpos()));
 
         AtomicBoolean inspeccionDisparada = new AtomicBoolean(false);
@@ -151,8 +152,8 @@ class CorreccionesMeteoritosAutoguardadoEconomiaTest {
     @Test
     void testSateliteInterceptaYDetieneMeteoritoSinDestruirseNiPerderOrbita() {
         MotorFisicaPermisiva motor = new MotorFisicaPermisiva(2000);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 0.3, Vector2D.cero());
-        Satelite satelite = CuerpoCelesteFactory.crearSatelite(28, 0, 1.0, new Vector2D(0, 1.5));
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 0.3, Vector2D.cero());
+        Satelite satelite = new CuerpoCelesteFactory().crearSatelite(28, 0, 1.0, new Vector2D(0, 1.5));
         satelite.setCuerpoOrbitado(planeta);
 
         // Meteorito acercandose al planeta dentro del rango defensivo del satelite

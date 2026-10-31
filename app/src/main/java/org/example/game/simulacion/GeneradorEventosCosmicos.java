@@ -18,13 +18,19 @@ public class GeneradorEventosCosmicos {
 
     private int ticksHastaSiguiente;
     private final Random random = new Random();
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
     public GeneradorEventosCosmicos() {
-        this.ticksHastaSiguiente = ConfiguracionColisiones.TICKS_GRACIA_INICIAL_METEORITOS;
+        this(ConfiguracionColisiones.TICKS_GRACIA_INICIAL_METEORITOS, new org.example.game.cuerpo.CuerpoCelesteFactory());
     }
 
     public GeneradorEventosCosmicos(int ticksIniciales) {
+        this(ticksIniciales, new org.example.game.cuerpo.CuerpoCelesteFactory());
+    }
+
+    public GeneradorEventosCosmicos(int ticksIniciales, org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
         this.ticksHastaSiguiente = ticksIniciales;
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
     }
 
     private int calcularSiguienteIntervalo() {
@@ -86,7 +92,7 @@ public class GeneradorEventosCosmicos {
 
             if (meteoritosActivos < ConfiguracionColisiones.MAX_METEORITOS_EVENTO_ACTIVOS) {
                 CuerpoCeleste objetivo = planetas.get(random.nextInt(planetas.size()));
-                Meteorito m = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo, factorProgreso);
+                Meteorito m = fabricaCuerpos.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo, factorProgreso);
 
                 if (agregadorCuerpo != null) {
                     agregadorCuerpo.accept(m);

@@ -113,7 +113,7 @@ class CostosProporcionalesYSatelitesMenuTest {
 
     @Test
     void testSpritePixelArtSateliteExisteYCargaSinError() {
-        Image sprite = GestorImagenes.getImagenPorNombre(CampoSatelitesMenu.NOMBRE_SPRITE_SATELITE);
+        Image sprite = new GestorImagenes().obtenerImagenPorNombre(CampoSatelitesMenu.NOMBRE_SPRITE_SATELITE);
         assertNotNull(sprite, "El sprite pixel art satelite.png debe existir y cargarse");
         assertFalse(sprite.isError(), "El sprite satelite.png no debe presentar errores de decodificacion");
         assertTrue(sprite.getWidth() > 0 && sprite.getHeight() > 0);

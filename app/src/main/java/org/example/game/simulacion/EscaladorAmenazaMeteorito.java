@@ -1,20 +1,17 @@
 package org.example.game.simulacion;
+
 import org.example.game.progresion.RamaProgresion;
 import org.example.game.progresion.SistemaProgresion;
+
 /**
  * SRP: Calcula de forma configurable el factor de progreso efectivo del jugador y escala
- * proporcionalmente la masa, el radio visual y el porcentaje de dano de los meteoritos.
+ * proporcionalmente la masa, el radio visual y el porcentaje de daño de los meteoritos.
  */
-public class EscaladorAmenazaMeteorito {
-
-    private static final EscaladorAmenazaMeteorito INSTANCIA_POR_DEFECTO = new EscaladorAmenazaMeteorito();
+public class EscaladorAmenazaMeteorito implements CalculadorAmenazaMeteorito {
 
     public EscaladorAmenazaMeteorito() {}
 
-    public static EscaladorAmenazaMeteorito getInstanciaPorDefecto() {
-        return INSTANCIA_POR_DEFECTO;
-    }
-
+    @Override
     public double factorProgreso(SistemaProgresion progresion) {
         if (progresion == null) {
             return ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL;
@@ -28,6 +25,7 @@ public class EscaladorAmenazaMeteorito {
         return Math.max(progresion.getLimiteMasaActual(), factorPorArbol);
     }
 
+    @Override
     public double fraccionDano(double factorProgreso) {
         return interpolarPorProgreso(
                 factorProgreso,
@@ -37,6 +35,7 @@ public class EscaladorAmenazaMeteorito {
         );
     }
 
+    @Override
     public double radioPorProgreso(double factorProgreso) {
         return interpolarPorProgreso(
                 factorProgreso,
@@ -46,6 +45,7 @@ public class EscaladorAmenazaMeteorito {
         );
     }
 
+    @Override
     public double masaPorProgreso(double factorProgreso) {
         double logMasa = interpolarPorProgreso(
                 factorProgreso,
@@ -56,6 +56,7 @@ public class EscaladorAmenazaMeteorito {
         return Math.min(ConfiguracionColisiones.MASA_MAXIMA_METEORITO, Math.pow(10.0, logMasa));
     }
 
+    @Override
     public double radioDesdeMasa(double masa) {
         if (!Double.isFinite(masa) || masa <= ConfiguracionColisiones.MASA_MINIMA_METEORITO) {
             return ConfiguracionColisiones.RADIO_MINIMO_METEORITO;
@@ -75,27 +76,7 @@ public class EscaladorAmenazaMeteorito {
                 + t * (ConfiguracionColisiones.RADIO_MAXIMO_METEORITO - ConfiguracionColisiones.RADIO_METEORITO_PROGRESO_BAJO);
     }
 
-    public static double calcularFactorProgreso(SistemaProgresion progresion) {
-        return INSTANCIA_POR_DEFECTO.factorProgreso(progresion);
-    }
-
-    public static double calcularFraccionDano(double factorProgreso) {
-        return INSTANCIA_POR_DEFECTO.fraccionDano(factorProgreso);
-    }
-
-    public static double calcularRadioPorProgreso(double factorProgreso) {
-        return INSTANCIA_POR_DEFECTO.radioPorProgreso(factorProgreso);
-    }
-
-    public static double calcularMasaPorProgreso(double factorProgreso) {
-        return INSTANCIA_POR_DEFECTO.masaPorProgreso(factorProgreso);
-    }
-
-    public static double calcularRadioDesdeMasa(double masa) {
-        return INSTANCIA_POR_DEFECTO.radioDesdeMasa(masa);
-    }
-
-    private static double interpolarPorProgreso(double progreso, double valInicial, double valBajo, double valAlto) {
+    private double interpolarPorProgreso(double progreso, double valInicial, double valBajo, double valAlto) {
         double pIni = ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL;
         double pBajo = ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_BAJO;
         double pAlto = ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO;

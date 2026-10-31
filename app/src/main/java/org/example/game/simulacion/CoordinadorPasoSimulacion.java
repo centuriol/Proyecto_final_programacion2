@@ -28,7 +28,7 @@ public class CoordinadorPasoSimulacion {
     private final GestorEfectos gestorEfectos;
     private final GeneradorEventosCosmicos generadorEventosCosmicos;
     private final SistemaProgresion progresion;
-    private final EscaladorAmenazaMeteorito escaladorAmenaza;
+    private final CalculadorAmenazaMeteorito escaladorAmenaza;
 
     public CoordinadorPasoSimulacion(MotorFisica motorFisica,
                                      SistemaSolar sistemaSolar,
@@ -39,7 +39,7 @@ public class CoordinadorPasoSimulacion {
                                      GestorEfectos gestorEfectos,
                                      GeneradorEventosCosmicos generadorEventosCosmicos,
                                      SistemaProgresion progresion,
-                                     EscaladorAmenazaMeteorito escaladorAmenaza) {
+                                     CalculadorAmenazaMeteorito escaladorAmenaza) {
         this.motorFisica = motorFisica;
         this.sistemaSolar = sistemaSolar;
         this.transformadorCuerpos = transformadorCuerpos;

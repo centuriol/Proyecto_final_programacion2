@@ -12,7 +12,7 @@ class EasterEggFusionYRadiosTest {
 
     @Test
     void testPlanetaTransformadoNoDesarrollaCivilizacion() {
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         planeta.transformarA(TipoCuerpo.PLANETA_ROCOSO);
 
         assertTrue(planeta.isTransformadoPorEvento());
@@ -27,7 +27,7 @@ class EasterEggFusionYRadiosTest {
         double minInicial = simulacion.getInventario().getRecurso(TipoRecurso.MINERALES);
         double cieInicial = simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA);
 
-        Planeta porroTransformado = CuerpoCelesteFactory.crearPlanetaRocoso(500, 500, 1.0, Vector2D.cero());
+        Planeta porroTransformado = new CuerpoCelesteFactory().crearPlanetaRocoso(500, 500, 1.0, Vector2D.cero());
         porroTransformado.transformarA(TipoCuerpo.PLANETA_ROCOSO);
         simulacion.agregarCuerpo(porroTransformado);
 
@@ -50,8 +50,8 @@ class EasterEggFusionYRadiosTest {
     @Test
     void testEasterEggColisionAguaYLavaFormaPlanetaPorroInerte() {
         ResolvedorColisiones resolvedor = new ResolvedorColisiones();
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(100, 100, 1.0, new Vector2D(5, 0));
-        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(105, 100, 2.0, new Vector2D(-2, 0));
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(100, 100, 1.0, new Vector2D(5, 0));
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(105, 100, 2.0, new Vector2D(-2, 0));
 
         double masaTotalEsperada = agua.getMasa() + lava.getMasa();
         Vector2D momentoEsperado = agua.getVelocidad().multiplicar(agua.getMasa()).sumar(lava.getVelocidad().multiplicar(lava.getMasa()));
@@ -96,8 +96,8 @@ class EasterEggFusionYRadiosTest {
     @Test
     void testEasterEggColisionAguaYLavaMasasIgualesNoColapsaEnEscombros() {
         ResolvedorColisiones resolvedor = new ResolvedorColisiones();
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(200, 200, 1.0, Vector2D.cero());
-        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(202, 200, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(200, 200, 1.0, Vector2D.cero());
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(202, 200, 1.0, Vector2D.cero());
 
         Set<CuerpoCeleste> aEliminar = new HashSet<>();
         List<CuerpoCeleste> aAgregar = new ArrayList<>();
@@ -116,8 +116,8 @@ class EasterEggFusionYRadiosTest {
     @Test
     void testEasterEggColisionAguaYLavaEnSimulacionReal() {
         simulacion.limpiarCuerpos();
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(100, 200, 1.0, Vector2D.cero());
-        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(110, 200, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(100, 200, 1.0, Vector2D.cero());
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(110, 200, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(agua);
         simulacion.agregarCuerpo(lava);
 

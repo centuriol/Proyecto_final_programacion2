@@ -23,11 +23,11 @@ public class CampoSatelitesMenu {
     private final List<SateliteDecorativoMenu> satelites = new ArrayList<>(TOTAL_SATELITES);
 
     public CampoSatelitesMenu() {
-        this(GestorImagenes.getInstancia());
+        this(new GestorImagenes());
     }
 
     public CampoSatelitesMenu(RepositorioSprites repositorioSprites) {
-        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : GestorImagenes.getInstancia();
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         double[][] izquierda = {
                 {0.10, 0.16, 46.0}, {0.23, 0.30, -38.0}, {0.07, 0.50, 54.0}, {0.24, 0.70, -42.0}, {0.11, 0.84, 50.0}
         };

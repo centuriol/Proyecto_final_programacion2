@@ -138,7 +138,7 @@ class MenuPrincipalYDerrotaFlujoTest {
 
         // Provocar derrota dejando un agujero negro sin planetas ni lunas
         simulacion.limpiarCuerpos();
-        simulacion.agregarCuerpo(CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0));
+        simulacion.agregarCuerpo(new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0));
         simulacion.avanzarTick();
 
         assertTrue(simulacion.estaPerdida());
@@ -163,7 +163,7 @@ class MenuPrincipalYDerrotaFlujoTest {
     void testAlPerderOpcionVolverAlMenuRegresaAPantallaPrincipal() {
         menuPrincipal.getBtnIniciarPartida().fire();
         simulacion.limpiarCuerpos();
-        simulacion.agregarCuerpo(CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0));
+        simulacion.agregarCuerpo(new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0));
         simulacion.avanzarTick();
 
         assertTrue(pantallaGameOver.isVisible());
@@ -180,7 +180,7 @@ class MenuPrincipalYDerrotaFlujoTest {
     void testAlPerderSinGuardadosPreviosInformaEstadoYMantieneOpciones() {
         menuPrincipal.getBtnIniciarPartida().fire();
         simulacion.limpiarCuerpos();
-        simulacion.agregarCuerpo(CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0));
+        simulacion.agregarCuerpo(new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0));
         simulacion.avanzarTick();
 
         assertTrue(pantallaGameOver.isVisible());

@@ -13,8 +13,8 @@ class ColisionesFisicaTest {
     @Test
     void testColisionColapsoMutuoMasasIguales() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.1, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.1, Vector2D.cero());
         cuerpos.add(p1);
         cuerpos.add(p2);
 
@@ -36,8 +36,8 @@ class ColisionesFisicaTest {
     @Test
     void testColisionAsimetricaMasasDistintas() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta mayor = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
-        Planeta menor = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Planeta mayor = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
+        Planeta menor = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(mayor);
         cuerpos.add(menor);
 
@@ -66,8 +66,8 @@ class ColisionesFisicaTest {
     @Test
     void testColisionAbsorcionTotalProporcionExtrema() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(sol);
         cuerpos.add(planeta);
 
@@ -85,8 +85,8 @@ class ColisionesFisicaTest {
     @Test
     void testColisionMeteoritosDestruccionMutua() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Meteorito m1 = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
-        Meteorito m2 = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(2, 0, Vector2D.cero());
+        Meteorito m1 = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
+        Meteorito m2 = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(2, 0, Vector2D.cero());
         cuerpos.add(m1);
         cuerpos.add(m2);
 
@@ -98,9 +98,9 @@ class ColisionesFisicaTest {
     @Test
     void testEscudoPlanetarioNoColapsaPlaneta() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         p1.activarEscudo(1);
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
         cuerpos.add(p1);
         cuerpos.add(p2);
 
@@ -118,12 +118,12 @@ class ColisionesFisicaTest {
         simulacion.getProgresion().desbloquearTodo();
         simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 200.0);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
         simulacion.activarEscudo(planeta);
         assertTrue(planeta.tieneEscudo());
 
-        Meteorito meteorito = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());
+        Meteorito meteorito = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());
         simulacion.agregarCuerpo(meteorito);
 
         simulacion.avanzarTick();
@@ -135,8 +135,8 @@ class ColisionesFisicaTest {
     @Test
     void testAtraccionColapsoPlaneta5xYPlaneta2x() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p5x = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
-        Planeta p2x = CuerpoCelesteFactory.crearPlanetaRocoso(70, 0, 2.0, Vector2D.cero());
+        Planeta p5x = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Planeta p2x = new CuerpoCelesteFactory().crearPlanetaRocoso(70, 0, 2.0, Vector2D.cero());
         cuerpos.add(p5x);
         cuerpos.add(p2x);
 

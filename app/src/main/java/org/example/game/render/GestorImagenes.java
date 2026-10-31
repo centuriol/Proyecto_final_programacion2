@@ -1,12 +1,15 @@
 package org.example.game.render;
+
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import org.example.game.cuerpo.TipoCuerpo;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
 /**
  * Gestor centralizado de imágenes y sprites Pixel Art del juego.
  *
@@ -16,8 +19,6 @@ import java.util.*;
  * - OCP: Registro extensible de nuevos mapeos sprite/tipo.
  */
 public class GestorImagenes implements RepositorioSprites {
-
-    private static final GestorImagenes INSTANCIA = new GestorImagenes();
 
     private final Map<String, Image> cacheImagenes = new HashMap<>();
     private final Set<String> recursosFallidos = new HashSet<>();
@@ -41,10 +42,7 @@ public class GestorImagenes implements RepositorioSprites {
         mapeoCuerpos.put(TipoCuerpo.PLANETA_LAVA, "planeta lava");
     }
 
-    public static GestorImagenes getInstancia() {
-        return INSTANCIA;
-    }
-
+    @Override
     public void precargar() {
         for (String nombre : mapeoCuerpos.values()) {
             obtenerImagenPorNombre(nombre);
@@ -124,7 +122,8 @@ public class GestorImagenes implements RepositorioSprites {
         return contenedor;
     }
 
-    public void setNombreFondoActivoInstancia(String nombre) {
+    @Override
+    public void setNombreFondoActivo(String nombre) {
         if (nombre != null && !nombre.isBlank()) {
             this.nombreFondoActivo = nombre.trim();
         }
@@ -151,23 +150,11 @@ public class GestorImagenes implements RepositorioSprites {
         return fondo;
     }
 
-    public void limpiarCacheInstancia() {
+    @Override
+    public void limpiarCache() {
         cacheImagenes.clear();
         recursosFallidos.clear();
     }
-
-    // ===== Métodos Estáticos para Compatibilidad (Delegación a INSTANCIA) =====
-
-    public static void precargarImagenes() { INSTANCIA.precargar(); }
-    public static Image getImagen(TipoCuerpo tipo) { return INSTANCIA.obtenerImagen(tipo); }
-    public static boolean tieneImagen(TipoCuerpo tipo) { return INSTANCIA.tieneSprite(tipo); }
-    public static void registrarMapeo(TipoCuerpo tipo, String nombreRecurso) { INSTANCIA.asociarMapeo(tipo, nombreRecurso); }
-    public static Image getImagenPorNombre(String nombre) { return INSTANCIA.obtenerImagenPorNombre(nombre); }
-    public static ImageView crearImageView(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearVistaIcono(tipo, ancho, alto); }
-    public static StackPane crearContenedorIcono(TipoCuerpo tipo, double ancho, double alto) { return INSTANCIA.crearContenedorSprite(tipo, ancho, alto); }
-    public static void setNombreFondoActivo(String nombre) { INSTANCIA.setNombreFondoActivoInstancia(nombre); }
-    public static Image getImagenFondo() { return INSTANCIA.obtenerImagenFondo(); }
-    public static void limpiarCache() { INSTANCIA.limpiarCacheInstancia(); }
 
     private Image cargarImagen(String nombre) {
         String baseNombre = nombre;
@@ -235,7 +222,8 @@ public class GestorImagenes implements RepositorioSprites {
         return null;
     }
 
-    public static Image decodificarPixil(InputStream is) {
+    @Override
+    public Image decodificarPixil(InputStream is) {
         try {
             String contenido = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             int idx = contenido.indexOf("base64,");

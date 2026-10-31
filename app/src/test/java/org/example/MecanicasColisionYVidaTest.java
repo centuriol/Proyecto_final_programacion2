@@ -14,12 +14,12 @@ class MecanicasColisionYVidaTest {
 
     @Test
     void testRadioCapturaEscalaConRadioAtraccionDeEstrella() {
-        Estrella estrella1 = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Estrella estrellaGrande = CuerpoCelesteFactory.crearEstrella(0, 0, 4.0);
+        Estrella estrella1 = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Estrella estrellaGrande = new CuerpoCelesteFactory().crearEstrella(0, 0, 4.0);
 
         assertTrue(estrellaGrande.getRadioAtraccion() > estrella1.getRadioAtraccion());
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(0, 300, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 300, 1.0, Vector2D.cero());
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
         cuerpos.add(estrella1);
         cuerpos.add(planeta);
@@ -34,8 +34,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testColisionAsimetricaMayorGanaPorcentajeDeMasa() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta mayor = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
-        Planeta menor = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Planeta mayor = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 4.0, Vector2D.cero());
+        Planeta menor = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(mayor);
         cuerpos.add(menor);
 
@@ -59,8 +59,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testColisionSimetricaAmbosColapsan() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
         cuerpos.add(p1);
         cuerpos.add(p2);
 
@@ -74,7 +74,7 @@ class MecanicasColisionYVidaTest {
 
     @Test
     void testPoblacionEnCeroTrasEliminacionManual() {
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
         planeta.desarrollarCivilizacion();
         assertTrue(planeta.tieneCivilizacion());
         assertTrue(planeta.getCivilizacion().getPoblacion() > 0);
@@ -90,8 +90,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testPoblacionEnCeroTrasColisionAsimetrica() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta mayor = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
-        Planeta menor = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        Planeta mayor = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Planeta menor = new CuerpoCelesteFactory().crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
         menor.desarrollarCivilizacion();
         assertTrue(menor.tieneCivilizacion());
 
@@ -107,8 +107,8 @@ class MecanicasColisionYVidaTest {
     @Test
     void testPoblacionEnCeroTrasAbsorcionPorAgujeroNegro() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 2.0);
-        Planeta victima = CuerpoCelesteFactory.crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 2.0);
+        Planeta victima = new CuerpoCelesteFactory().crearPlanetaRocoso(5, 0, 1.0, Vector2D.cero());
         victima.desarrollarCivilizacion();
         assertTrue(victima.tieneCivilizacion());
 

@@ -27,7 +27,7 @@ class CivilizacionSinergiaTest {
         SimulacionSolar simulacion = new SimulacionSolar(1920, 1080);
         simulacion.limpiarCuerpos();
 
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         simulacion.agregarCuerpo(sol);
 
         double eneAntes = simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA);
@@ -43,7 +43,7 @@ class CivilizacionSinergiaTest {
         assertEquals(pobAntes, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6);
 
         simulacion.limpiarCuerpos();
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planeta);
 
         eneAntes = simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA);
@@ -59,7 +59,7 @@ class CivilizacionSinergiaTest {
         assertEquals(pobAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_POBLACION, simulacion.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-3);
 
         simulacion.limpiarCuerpos();
-        Luna luna = CuerpoCelesteFactory.crearLuna(0, 0, 1.0, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLuna(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(luna);
 
         eneAntes = simulacion.getInventario().getRecurso(TipoRecurso.ENERGIA);
@@ -90,7 +90,7 @@ class CivilizacionSinergiaTest {
         simulacion.avanzarTick();
         assertEquals(mineralesAntes, simulacion.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6);
 
-        Luna luna = CuerpoCelesteFactory.crearLuna(0, 0, 1.0, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLuna(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(luna);
         simulacion.avanzarTick();
         double mineralesDespues = simulacion.getInventario().getRecurso(TipoRecurso.MINERALES);
@@ -105,7 +105,7 @@ class CivilizacionSinergiaTest {
 
     @Test
     void testMultiplicadorProduccionDinamicaCivilizacion() {
-        Planeta p = CuerpoCelesteFactory.crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
+        Planeta p = new CuerpoCelesteFactory().crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
         p.desarrollarCivilizacion();
         var civ = p.getCivilizacion();
 
@@ -127,7 +127,7 @@ class CivilizacionSinergiaTest {
         SimulacionSolar simulacion = new SimulacionSolar(1920, 1080);
         simulacion.limpiarCuerpos();
 
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
         p1.desarrollarCivilizacion();
         simulacion.agregarCuerpo(p1);
 
@@ -135,7 +135,7 @@ class CivilizacionSinergiaTest {
         simulacion.avanzarTick();
         double delta1 = simulacion.getInventario().getRecurso(TipoRecurso.MINERALES) - minAntes1;
 
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(250, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(250, 0, 1.0, Vector2D.cero());
         p2.desarrollarCivilizacion();
         simulacion.agregarCuerpo(p2);
 
@@ -149,8 +149,8 @@ class CivilizacionSinergiaTest {
     @Test
     void testPlanetaOrbitaSolComoLaLuna() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaPersonalizado("tierra1", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaPersonalizado("tierra1", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
         cuerpos.add(sol);
         cuerpos.add(planeta);
 
@@ -172,9 +172,9 @@ class CivilizacionSinergiaTest {
     @Test
     void testPlanetaEnOrbitaDelSolNoDecaeNiEsAbsorbidoALargoPlazo() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta tierra = CuerpoCelesteFactory.crearPlanetaPersonalizado("tierra", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
-        Planeta marte = CuerpoCelesteFactory.crearPlanetaPersonalizado("marte", TipoCuerpo.PLANETA_ROCOSO.masaBase, 280, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta tierra = new CuerpoCelesteFactory().crearPlanetaPersonalizado("tierra", TipoCuerpo.PLANETA_ROCOSO.masaBase, 160, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        Planeta marte = new CuerpoCelesteFactory().crearPlanetaPersonalizado("marte", TipoCuerpo.PLANETA_ROCOSO.masaBase, 280, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
         cuerpos.add(sol);
         cuerpos.add(tierra);
         cuerpos.add(marte);
@@ -203,7 +203,7 @@ class CivilizacionSinergiaTest {
         sim.getProgresion().desbloquearTodo();
         sim.limpiarCuerpos();
 
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         sim.agregarCuerpo(sol);
 
         sim.getInventario().agregarRecurso(TipoRecurso.MINERALES, 5000);

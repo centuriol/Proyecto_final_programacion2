@@ -63,7 +63,7 @@ class ControladorMouseYHelpersTest {
 
     @Test
     void testControladorMouseSeleccionYLimpieza() {
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         simulacion.getSistemaSolar().agregarCuerpo(sol);
 
         controladorMouse.seleccionarCuerpoBajoCursor(960, 540);

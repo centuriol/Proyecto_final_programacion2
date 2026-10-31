@@ -1,16 +1,30 @@
 package org.example.game.controlador;
+
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
+
 import java.util.List;
+
 /**
  * Responsable de la detección y selección de cuerpos celestes bajo las coordenadas del ratón (SRP).
  */
 public class SeleccionadorCuerpoMouse {
 
+    private final ConversorCoordenadas conversor;
+
+    public SeleccionadorCuerpoMouse() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public SeleccionadorCuerpoMouse(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
+
     public CuerpoCeleste encontrarCuerpo(double mouseX, double mouseY, double anchoMundo, double altoMundo, List<CuerpoCeleste> cuerpos) {
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(mouseX, anchoMundo);
-        double yFisica = ConstantesFisicas.javaFXAFisica(mouseY, altoMundo);
+        double xFisica = conversor.javaFXAFisicaX(mouseX, anchoMundo);
+        double yFisica = conversor.javaFXAFisica(mouseY, altoMundo);
         Vector2D clickPos = new Vector2D(xFisica, yFisica);
 
         CuerpoCeleste masCercano = null;

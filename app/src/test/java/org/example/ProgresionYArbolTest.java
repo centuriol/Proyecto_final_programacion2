@@ -115,7 +115,7 @@ class ProgresionYArbolTest {
     @Test
     void testSolProduceCienciaInicial() {
         simulacion.getProgresion().desbloquearTodo();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         simulacion.agregarCuerpo(sol);
 
         assertEquals(0.0, simulacion.getInventario().getRecurso(TipoRecurso.CIENCIA));
@@ -128,7 +128,7 @@ class ProgresionYArbolTest {
     @Test
     void testGameOverYReinicioCompleto() {
         simulacion.getProgresion().desbloquearTodo();
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0);
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0);
         simulacion.agregarCuerpo(bh);
 
         assertTrue(simulacion.estaPerdida());

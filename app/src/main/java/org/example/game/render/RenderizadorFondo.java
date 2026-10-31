@@ -21,6 +21,7 @@ public class RenderizadorFondo {
     private static final Color COLOR_NEBULOSA_2 = Color.rgb(15, 45, 65, 0.18);
 
     private Image imagenFondo;
+    private final RepositorioSprites repositorioSprites;
     private double desplazamientoFondoX = 0.0;
     private double velocidadBaseFondo = 1.0;
 
@@ -41,7 +42,12 @@ public class RenderizadorFondo {
     }
 
     public RenderizadorFondo(double ancho, double alto) {
-        this.imagenFondo = GestorImagenes.getImagenFondo();
+        this(ancho, alto, new GestorImagenes());
+    }
+
+    public RenderizadorFondo(double ancho, double alto, RepositorioSprites repositorioSprites) {
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
+        this.imagenFondo = this.repositorioSprites.obtenerImagenFondo();
         generarEstrellasFondo(ancho, alto);
     }
 
@@ -152,7 +158,7 @@ public class RenderizadorFondo {
 
     public Image getImagenFondo() {
         if (imagenFondo == null) {
-            imagenFondo = GestorImagenes.getImagenFondo();
+            imagenFondo = repositorioSprites.obtenerImagenFondo();
         }
         return imagenFondo;
     }

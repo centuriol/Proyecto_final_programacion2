@@ -78,17 +78,18 @@ class RenderizadorAnimacionYFondoTest {
         assertEquals("Planeta de Agua", TipoCuerpo.PLANETA_AGUA.nombre);
         assertEquals("Planeta Lava", TipoCuerpo.PLANETA_LAVA.nombre);
 
-        assertEquals("Sol", VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.ESTRELLA));
-        assertEquals("Planeta Porro", VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.PLANETA_ROCOSO));
-        assertEquals("Luna", VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.LUNA));
-        assertEquals("Planeta de Agua", VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.PLANETA_AGUA));
-        assertEquals("Planeta Lava", VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.PLANETA_LAVA));
+        org.example.game.ui.VisualizadorDescripcion ventana = new VentanaDescripcionCuerpo();
+        assertEquals("Sol", ventana.nombrePorDefecto(TipoCuerpo.ESTRELLA));
+        assertEquals("Planeta Porro", ventana.nombrePorDefecto(TipoCuerpo.PLANETA_ROCOSO));
+        assertEquals("Luna", ventana.nombrePorDefecto(TipoCuerpo.LUNA));
+        assertEquals("Planeta de Agua", ventana.nombrePorDefecto(TipoCuerpo.PLANETA_AGUA));
+        assertEquals("Planeta Lava", ventana.nombrePorDefecto(TipoCuerpo.PLANETA_LAVA));
 
-        assertTrue(VentanaDescripcionCuerpo.obtenerSubtitulo(TipoCuerpo.ESTRELLA).contains("Sol"));
-        assertTrue(VentanaDescripcionCuerpo.obtenerSubtitulo(TipoCuerpo.PLANETA_ROCOSO).contains("Planeta Porro"));
-        assertTrue(VentanaDescripcionCuerpo.obtenerSubtitulo(TipoCuerpo.LUNA).contains("Luna"));
-        assertTrue(VentanaDescripcionCuerpo.obtenerSubtitulo(TipoCuerpo.PLANETA_AGUA).contains("Planeta de Agua"));
-        assertTrue(VentanaDescripcionCuerpo.obtenerSubtitulo(TipoCuerpo.PLANETA_LAVA).contains("Planeta Lava"));
+        assertTrue(ventana.subtitulo(TipoCuerpo.ESTRELLA).contains("Sol"));
+        assertTrue(ventana.subtitulo(TipoCuerpo.PLANETA_ROCOSO).contains("Planeta Porro"));
+        assertTrue(ventana.subtitulo(TipoCuerpo.LUNA).contains("Luna"));
+        assertTrue(ventana.subtitulo(TipoCuerpo.PLANETA_AGUA).contains("Planeta de Agua"));
+        assertTrue(ventana.subtitulo(TipoCuerpo.PLANETA_LAVA).contains("Planeta Lava"));
 
         SimulacionSolar sim = new SimulacionSolar(1000, 1000);
         BarraInventarioHotbar hotbar = new BarraInventarioHotbar(sim);

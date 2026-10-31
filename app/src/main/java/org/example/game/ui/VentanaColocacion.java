@@ -30,7 +30,7 @@ public class VentanaColocacion {
     private final SimulacionSolar simulacion;
     private final Window owner;
     private final Runnable onConfirmado;
-    private final SeccionInfoCuerpo seccionInfo;
+    private final ProveedorInfoCuerpo seccionInfo;
 
     private Stage stage;
     private TextField txtNombre;
@@ -40,7 +40,7 @@ public class VentanaColocacion {
     private Label lblEstado;
     private Button btnColocar;
 
-    public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado, SeccionInfoCuerpo seccionInfo) {
+    public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado, ProveedorInfoCuerpo seccionInfo) {
         this.tipo = tipo;
         this.simulacion = simulacion;
         this.owner = owner;
@@ -61,16 +61,16 @@ public class VentanaColocacion {
 
     public void abrir() {
         stage = new Stage();
-        VBox root = SeccionInfoCuerpo.inicializarDialogo(stage, "Configurar y Colocar: " + tipo.nombre, owner);
+        VBox root = seccionInfo.inicializarDialogo(stage, "Configurar y Colocar: " + tipo.nombre, owner);
 
-        HBox header = SeccionInfoCuerpo.crearHeader(
-                SeccionInfoCuerpo.crearNodoIcono(tipo),
+        HBox header = seccionInfo.crearHeader(
+                seccionInfo.crearNodoIcono(tipo),
                 tipo.nombre,
-                SeccionInfoCuerpo.obtenerSubtitulo(tipo) + " - Configuracion de Colocacion"
+                seccionInfo.obtenerSubtitulo(tipo) + " - Configuracion de Colocacion"
         );
 
-        VBox descBox = SeccionInfoCuerpo.crearSeccionDescripcion(tipo);
-        VBox caracBox = SeccionInfoCuerpo.crearSeccionCaracteristicas(tipo);
+        VBox descBox = seccionInfo.crearSeccionDescripcion(tipo);
+        VBox caracBox = seccionInfo.crearSeccionCaracteristicas(tipo);
         VBox formBox = construirFormulario();
         HBox econBox = construirFichaEconomica();
         lblEstado = construirEtiquetaEstado();
@@ -85,7 +85,7 @@ public class VentanaColocacion {
         scroll.setStyle("-fx-background: #13151f; -fx-background-color: #13151f;");
 
         Scene scene = new Scene(scroll, 580, 620);
-        SeccionInfoCuerpo.vincularCierrePorEscape(scene, stage);
+        seccionInfo.vincularCierrePorEscape(scene, stage);
 
         stage.setScene(scene);
         stage.show();
@@ -101,7 +101,7 @@ public class VentanaColocacion {
         lblNombrePrompt.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
         lblNombrePrompt.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
 
-        txtNombre = new TextField(SeccionInfoCuerpo.obtenerNombrePorDefecto(tipo));
+        txtNombre = new TextField(seccionInfo.obtenerNombrePorDefecto(tipo));
         txtNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
         txtNombre.setStyle(TemaUI.CSS_TEXTFIELD);
         campoNombreBox.getChildren().addAll(lblNombrePrompt, txtNombre);
@@ -190,10 +190,10 @@ public class VentanaColocacion {
     private void actualizarDatosDinamicos() {
         double factor = tipo.ajustarFactorMasaEfectivo(widgetMasa.getFactorMasa());
         Map<TipoRecurso, Double> costosEscalados = InventarioJugador.getCostosEscalados(tipo, factor);
-        SeccionInfoCuerpo.poblarListaCostos(listaCostos, costosEscalados);
+        seccionInfo.poblarListaCostos(listaCostos, costosEscalados);
 
         Map<TipoRecurso, Double> prodEscalada = InventarioJugador.getProduccionEscaladaPorTick(tipo, factor);
-        SeccionInfoCuerpo.poblarListaProduccion(listaProd, prodEscalada);
+        seccionInfo.poblarListaProduccion(listaProd, prodEscalada);
 
         boolean puedeCrear = simulacion == null || simulacion.getInventario().puedeCrear(tipo, factor);
         if (!puedeCrear) {
@@ -210,7 +210,7 @@ public class VentanaColocacion {
     private void confirmarColocacion() {
         String nombreFinal = txtNombre.getText() != null ? txtNombre.getText().trim() : "";
         if (nombreFinal.isBlank()) {
-            nombreFinal = SeccionInfoCuerpo.obtenerNombrePorDefecto(tipo);
+            nombreFinal = seccionInfo.obtenerNombrePorDefecto(tipo);
         }
         double factorMasaFinal = tipo.ajustarFactorMasaEfectivo(widgetMasa.getFactorMasa());
         if (simulacion != null) {

@@ -1,8 +1,8 @@
 package org.example.game.simulacion;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import java.util.List;
 /**
@@ -19,6 +19,15 @@ public class ControladorColocacion {
     private double factorMasaColocacion = 1.0;
     private String nombreColocacion = null;
     private Vector2D posicionPreview = null;
+    private final ConversorCoordenadas conversor;
+
+    public ControladorColocacion() {
+        this(new TransformadorCoordenadas());
+    }
+
+    public ControladorColocacion(ConversorCoordenadas conversor) {
+        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    }
 
     public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa, String nombre, double maxMasaPermitida) {
         this.modoColocacion = ModoColocacion.COLOCANDO;
@@ -36,8 +45,8 @@ public class ControladorColocacion {
     }
 
     public void actualizarPosicionPreview(double xJavaFX, double yJavaFX, double anchoMundo, double altoMundo) {
-        double xFisica = ConstantesFisicas.javaFXAFisicaX(xJavaFX, anchoMundo);
-        double yFisica = ConstantesFisicas.javaFXAFisica(yJavaFX, altoMundo);
+        double xFisica = conversor.javaFXAFisicaX(xJavaFX, anchoMundo);
+        double yFisica = conversor.javaFXAFisica(yJavaFX, altoMundo);
         this.posicionPreview = new Vector2D(xFisica, yFisica);
     }
 
@@ -58,7 +67,7 @@ public class ControladorColocacion {
                 Vector2D uTangencial = new Vector2D(-uRadial.y(), uRadial.x());
                 return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
             }
-            return CuerpoCelesteFactory.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
+            return org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
         }
         return Vector2D.cero();
     }

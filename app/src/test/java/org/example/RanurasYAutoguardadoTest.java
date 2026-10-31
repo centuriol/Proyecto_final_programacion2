@@ -147,7 +147,7 @@ class RanurasYAutoguardadoTest {
         // En derrota (agujero negro sin planetas ni lunas)
         sim.play();
         sim.limpiarCuerpos();
-        sim.agregarCuerpo(CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0));
+        sim.agregarCuerpo(new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0));
         assertTrue(sim.estaPerdida());
         assertFalse(auto.actualizar(10.0));
         assertTrue(gestor.obtenerRanuras().stream().noneMatch(InfoRanuraGuardado::estaOcupada));

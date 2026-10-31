@@ -24,9 +24,14 @@ public class SlotHotbar extends VBox {
     private boolean bloqueado = false;
 
     public SlotHotbar(TipoCuerpo tipo, int hotkey, Consumer<TipoCuerpo> onClick) {
+        this(tipo, hotkey, onClick, new org.example.game.render.GestorImagenes());
+    }
+
+    public SlotHotbar(TipoCuerpo tipo, int hotkey, Consumer<TipoCuerpo> onClick, org.example.game.render.RepositorioSprites repositorioSprites) {
         super(4);
         this.tipo = tipo;
         this.hotkey = hotkey;
+        org.example.game.render.RepositorioSprites sprites = repositorioSprites != null ? repositorioSprites : new org.example.game.render.GestorImagenes();
 
         setAlignment(Pos.CENTER);
         setPrefSize(100, 84);
@@ -39,7 +44,7 @@ public class SlotHotbar extends VBox {
         lblKey.setFont(Font.font("Monospace", FontWeight.BOLD, 9));
         lblKey.setTextFill(TemaUI.COLOR_TEXTO_MUTED);
 
-        iconBox = GestorImagenes.crearContenedorIcono(tipo, 40, 40);
+        iconBox = sprites.crearContenedorSprite(tipo, 40, 40);
 
         lblNom = new Label(tipo.nombre.toUpperCase());
         lblNom.setFont(Font.font("Monospace", FontWeight.BOLD, 10));

@@ -52,20 +52,21 @@ class MeteoritosProgresivosYEconomiaTest {
 
     @Test
     void testFraccionDeDanoEscalaConProgresoYEsConfigurable() {
+        org.example.game.simulacion.CalculadorAmenazaMeteorito escalador = new EscaladorAmenazaMeteorito();
         assertEquals(ConfiguracionColisiones.DANO_METEORITO_INICIAL_FRACCION,
-                EscaladorAmenazaMeteorito.calcularFraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL), 1e-9);
+                escalador.fraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL), 1e-9);
         assertEquals(0.05, ConfiguracionColisiones.DANO_METEORITO_INICIAL_FRACCION, 1e-9);
 
-        double danoBajo = EscaladorAmenazaMeteorito.calcularFraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_BAJO);
+        double danoBajo = escalador.fraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_BAJO);
         assertEquals(ConfiguracionColisiones.DANO_METEORITO_PROGRESO_BAJO_MAX_FRACCION, danoBajo, 1e-9);
         assertTrue(danoBajo <= 0.10 + 1e-9, "Con progreso bajo (0.6x) el dano maximo es 10%");
 
-        assertEquals(1.0, EscaladorAmenazaMeteorito.calcularFraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO), 1e-9);
-        assertEquals(1.0, EscaladorAmenazaMeteorito.calcularFraccionDano(10.0), 1e-9);
+        assertEquals(1.0, escalador.fraccionDano(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO), 1e-9);
+        assertEquals(1.0, escalador.fraccionDano(10.0), 1e-9);
 
         double previo = 0.0;
         for (double progreso = 0.3; progreso <= 5.0; progreso += 0.1) {
-            double dano = EscaladorAmenazaMeteorito.calcularFraccionDano(progreso);
+            double dano = escalador.fraccionDano(progreso);
             assertTrue(dano >= previo - 1e-12, "El dano debe crecer de forma monotona con el progreso");
             previo = dano;
         }
@@ -73,27 +74,28 @@ class MeteoritosProgresivosYEconomiaTest {
 
     @Test
     void testFactorProgresoSeDerivaDelArbolODelLimiteDeMasa() {
+        org.example.game.simulacion.CalculadorAmenazaMeteorito escalador = new EscaladorAmenazaMeteorito();
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
         assertEquals(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL,
-                EscaladorAmenazaMeteorito.calcularFactorProgreso(sim.getProgresion()), 1e-9);
+                escalador.factorProgreso(sim.getProgresion()), 1e-9);
 
         sim.getProgresion().restaurarEstado(Map.of(RamaProgresion.PLANETAS, 1), 0);
-        assertEquals(0.6, EscaladorAmenazaMeteorito.calcularFactorProgreso(sim.getProgresion()), 1e-9,
+        assertEquals(0.6, escalador.factorProgreso(sim.getProgresion()), 1e-9,
                 "Un nivel del arbol equivale a progreso bajo (0.6x)");
 
         sim.getProgresion().restaurarEstado(Map.of(RamaProgresion.MASA, 4), 0);
-        assertTrue(EscaladorAmenazaMeteorito.calcularFactorProgreso(sim.getProgresion())
+        assertTrue(escalador.factorProgreso(sim.getProgresion())
                 >= ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO);
     }
 
     @Test
     void testAlInicioUnMeteoritoSoloQuitaCincoPorCientoYNoDestruyeElPlaneta() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, ConfiguracionEconomia.FACTOR_MASA_INICIAL, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, ConfiguracionEconomia.FACTOR_MASA_INICIAL, Vector2D.cero());
         sim.agregarCuerpo(planeta);
         double masaInicial = planeta.getMasaInicial();
 
-        sim.agregarCuerpo(CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
+        sim.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
         sim.avanzarTick();
 
         assertTrue(sim.getSistemaSolar().getCuerpos().contains(planeta), "El planeta no debe destruirse de un solo golpe");
@@ -105,34 +107,35 @@ class MeteoritosProgresivosYEconomiaTest {
     void testProgresoBajoDanaComoMaximoDiezPorCientoYProgresoAltoDestruye() {
         SimulacionSolar simBaja = new SimulacionSolar(1920, 1080);
         simBaja.getProgresion().restaurarEstado(Map.of(RamaProgresion.PLANETAS, 1), 0);
-        Planeta planetaBajo = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 0.6, Vector2D.cero());
+        Planeta planetaBajo = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 0.6, Vector2D.cero());
         simBaja.agregarCuerpo(planetaBajo);
         double masaBaja = planetaBajo.getMasaInicial();
-        simBaja.agregarCuerpo(CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
+        simBaja.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
         simBaja.avanzarTick();
         assertTrue(simBaja.getSistemaSolar().getCuerpos().contains(planetaBajo));
         assertTrue(planetaBajo.getMasa() >= masaBaja * (1.0 - ConfiguracionColisiones.DANO_METEORITO_PROGRESO_BAJO_MAX_FRACCION) - masaBaja * 1e-6);
 
         SimulacionSolar simAlta = new SimulacionSolar(1920, 1080);
         simAlta.getProgresion().restaurarEstado(Map.of(RamaProgresion.MASA, 4), 0);
-        Planeta planetaAlto = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planetaAlto = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
         simAlta.agregarCuerpo(planetaAlto);
-        simAlta.agregarCuerpo(CuerpoCelesteFactory.crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
+        simAlta.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
         simAlta.avanzarTick();
         assertFalse(simAlta.getSistemaSolar().getCuerpos().contains(planetaAlto), "Con progreso alto el dano es completo");
     }
 
     @Test
     void testTamanoYMasaDelMeteoritoEscalanConElProgreso() {
-        double radioInicial = EscaladorAmenazaMeteorito.calcularRadioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
-        double radioBajo = EscaladorAmenazaMeteorito.calcularRadioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_BAJO);
-        double radioAlto = EscaladorAmenazaMeteorito.calcularRadioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO);
+        org.example.game.simulacion.CalculadorAmenazaMeteorito escalador = new EscaladorAmenazaMeteorito();
+        double radioInicial = escalador.radioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
+        double radioBajo = escalador.radioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_BAJO);
+        double radioAlto = escalador.radioPorProgreso(ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO);
         assertTrue(radioInicial < radioBajo && radioBajo < radioAlto);
 
-        Planeta planetaInicial = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, ConfiguracionEconomia.FACTOR_MASA_INICIAL, Vector2D.cero());
-        Meteorito inicial = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(1920, 1080, planetaInicial,
+        Planeta planetaInicial = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, ConfiguracionEconomia.FACTOR_MASA_INICIAL, Vector2D.cero());
+        Meteorito inicial = new CuerpoCelesteFactory().crearMeteoritoHaciaObjetivo(1920, 1080, planetaInicial,
                 ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
-        Meteorito avanzado = CuerpoCelesteFactory.crearMeteoritoHaciaObjetivo(1920, 1080, planetaInicial,
+        Meteorito avanzado = new CuerpoCelesteFactory().crearMeteoritoHaciaObjetivo(1920, 1080, planetaInicial,
                 ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_ALTO);
 
         assertEquals(ConfiguracionColisiones.MASA_MINIMA_METEORITO, inicial.getMasa(), ConfiguracionColisiones.MASA_MINIMA_METEORITO * 1e-6);

@@ -54,6 +54,8 @@ public class SimulacionSolar {
     private final PresetsSistema presetsSistema;
     private final ServicioEscudo servicioEscudo;
     private final ServicioReembolso servicioReembolso;
+    private final CalculadorAmenazaMeteorito escaladorAmenaza;
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
     // Delegados especializados
     private final CoordinadorPasoSimulacion coordinadorPaso;
@@ -103,16 +105,18 @@ public class SimulacionSolar {
         this.presetsSistema = presetsSistema != null ? presetsSistema : new PresetsSistema();
         this.servicioEscudo = servicioEscudo != null ? servicioEscudo : new ServicioEscudo();
         this.servicioReembolso = servicioReembolso != null ? servicioReembolso : new ServicioReembolso();
+        this.escaladorAmenaza = new EscaladorAmenazaMeteorito();
+        this.fabricaCuerpos = new org.example.game.cuerpo.CuerpoCelesteFactory(this.escaladorAmenaza);
 
         this.coordinadorPaso = new CoordinadorPasoSimulacion(
                 this.motorFisica, this.sistemaSolar, this.transformadorCuerpos,
                 this.gestorEconomia, this.inventario, this.gestorColonizacion,
                 this.gestorEfectos, this.generadorEventosCosmicos, this.progresion,
-                new EscaladorAmenazaMeteorito()
+                this.escaladorAmenaza
         );
         this.gestorCicloVida = new GestorCicloVidaCuerpos(
                 this.sistemaSolar, this.validadorColocacionCuerpos,
-                this.progresion, this.inventario, this.busEventos
+                this.progresion, this.inventario, this.busEventos, this.fabricaCuerpos
         );
         this.gestorColocacion = new GestorColocacionCuerpos(
                 this.controladorColocacion, this.gestorCicloVida
@@ -178,7 +182,7 @@ public class SimulacionSolar {
             this.motorFisica.agregarListenerColision(busEventos::notificarCambioEstado);
             this.motorFisica.setListenerNotificacion(this::notificarEvento);
             this.motorFisica.setListenerExplosion(this.gestorEfectos::agregarExplosion);
-            this.motorFisica.setProveedorProgreso(() -> EscaladorAmenazaMeteorito.calcularFactorProgreso(this.progresion));
+            this.motorFisica.setProveedorProgreso(() -> this.escaladorAmenaza.factorProgreso(this.progresion));
         }
     }
 
@@ -275,7 +279,7 @@ public class SimulacionSolar {
         progresion.reiniciar();
         reloj.reiniciar();
         gameOverDisparado = false;
-        CuerpoCelesteFactory.resetearContador();
+        this.fabricaCuerpos.resetearContador();
         salirModoColocacion();
         notificarListenersUI();
         notificarEvento("Simulacion reiniciada por completo.", MensajeEvento.TipoMensaje.INFO);

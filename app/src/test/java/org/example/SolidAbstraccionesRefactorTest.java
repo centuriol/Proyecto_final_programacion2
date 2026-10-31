@@ -137,28 +137,26 @@ public class SolidAbstraccionesRefactorTest {
     @Test
     @DisplayName("CuerpoCelesteFactory permite registrar y crear cuerpos dinamicamente via CreadorCuerpo (OCP)")
     void testCuerpoCelesteFactoryExtensible() {
+        org.example.game.cuerpo.FabricaCuerpos fabrica = new CuerpoCelesteFactory();
         // Creacion por registro estandar
-        CuerpoCeleste sol = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.ESTRELLA, 100, 200, 1.0, Vector2D.cero());
+        CuerpoCeleste sol = fabrica.crearCuerpo(TipoCuerpo.ESTRELLA, 100, 200, 1.0, Vector2D.cero());
         assertNotNull(sol);
         assertEquals(TipoCuerpo.ESTRELLA, sol.getTipoCuerpo());
 
-        CuerpoCeleste planeta = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.PLANETA_ROCOSO, 50, 60, 1.2, new Vector2D(0, 5));
+        CuerpoCeleste planeta = fabrica.crearCuerpo(TipoCuerpo.PLANETA_ROCOSO, 50, 60, 1.2, new Vector2D(0, 5));
         assertNotNull(planeta);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, planeta.getTipoCuerpo());
 
         // Registro de un creador personalizado para validar OCP
         AtomicBoolean creadorInvocado = new AtomicBoolean(false);
-        CuerpoCelesteFactory.registrarCreador(TipoCuerpo.SATELITE, (x, y, factor, vel) -> {
+        fabrica.registrarCreador(TipoCuerpo.SATELITE, (x, y, factor, vel) -> {
             creadorInvocado.set(true);
             return new Planeta("SatCustom", 10.0, x, y);
         });
 
-        CuerpoCeleste custom = CuerpoCelesteFactory.crearCuerpo(TipoCuerpo.SATELITE, 10, 20, 1.0, Vector2D.cero());
+        CuerpoCeleste custom = fabrica.crearCuerpo(TipoCuerpo.SATELITE, 10, 20, 1.0, Vector2D.cero());
         assertTrue(creadorInvocado.get(), "El creador registrado debe invocarse polimorficamente");
         assertNotNull(custom);
-
-        // Restaurar creador de satelite para no afectar otros tests
-        CuerpoCelesteFactory.registrarCreador(TipoCuerpo.SATELITE, CuerpoCelesteFactory::crearSatelite);
     }
 
     @Test

@@ -124,8 +124,8 @@ public class Fase2BugsTest {
         MotorFisicaPermisiva motor = new MotorFisicaPermisiva(1000);
         assertNotNull(motor);
         // Verificar que motor avance sin excepciones usando el Set aEliminar
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         List<CuerpoCeleste> cuerpos = new java.util.ArrayList<>(List.of(p1, p2));
         assertDoesNotThrow(() -> motor.avanzarPaso(cuerpos));
     }
@@ -135,7 +135,7 @@ public class Fase2BugsTest {
     void testServicioReembolsoEnSimulacion() {
         SimulacionSolar sim = new SimulacionSolar(1920, 1080);
         sim.getProgresion().desbloquearTodo();
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 100, 1.0, Vector2D.cero());
         sim.agregarCuerpo(planeta);
 
         double minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);

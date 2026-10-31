@@ -12,6 +12,13 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
     private CuerpoCeleste objetivo;
     private double rapidez = 0.0;
     private double factorProgresoOrigen = -1.0;
+    private org.example.game.simulacion.CalculadorAmenazaMeteorito calculadorAmenaza = new org.example.game.simulacion.EscaladorAmenazaMeteorito();
+
+    public void setCalculadorAmenaza(org.example.game.simulacion.CalculadorAmenazaMeteorito calculadorAmenaza) {
+        if (calculadorAmenaza != null) {
+            this.calculadorAmenaza = calculadorAmenaza;
+        }
+    }
 
     public Meteorito(String nombre, double masa, double x, double y,
                      Vector2D velocidadInicial, double ticksVida, boolean lanzadoPorJugador) {
@@ -130,7 +137,7 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
 
     @Override
     public double getRadio() {
-        return org.example.game.simulacion.EscaladorAmenazaMeteorito.calcularRadioDesdeMasa(getMasa());
+        return calculadorAmenaza.radioDesdeMasa(getMasa());
     }
 
     private static double acotarMasaMeteorito(double masa) {

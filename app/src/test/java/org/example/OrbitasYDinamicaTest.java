@@ -13,12 +13,12 @@ class OrbitasYDinamicaTest {
     @Test
     void testFisicaPermisivaAvancePaso() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella estrella = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella estrella = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         cuerpos.add(estrella);
 
         Vector2D pos = new Vector2D(150, 0);
-        Vector2D vel = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(estrella, pos, false);
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x(), pos.y(), 1.0, vel);
+        Vector2D vel = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(estrella, pos, false);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(pos.x(), pos.y(), 1.0, vel);
         cuerpos.add(planeta);
 
         Vector2D posInicial = planeta.getPosicion();
@@ -35,11 +35,11 @@ class OrbitasYDinamicaTest {
     @Test
     void testPredictorTrayectoria() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella estrella = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella estrella = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         cuerpos.add(estrella);
 
         Vector2D posInicial = new Vector2D(150, 0);
-        Vector2D velInicial = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(estrella, posInicial, false);
+        Vector2D velInicial = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(estrella, posInicial, false);
 
         TrayectoriaPredictor predictor = new TrayectoriaPredictor();
         List<Vector2D> tray = predictor.predecirTrayectoria(posInicial, velInicial, 5.97e24, cuerpos, 50, 1.0);
@@ -62,11 +62,11 @@ class OrbitasYDinamicaTest {
 
     @Test
     void testRadioAtraccionJerarquiaYMenorAreaLuna() {
-        Estrella estrella = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta planeta1x = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta planeta2x = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
-        Planeta planeta5x = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
-        Luna luna1x = CuerpoCelesteFactory.crearLuna(0, 0, 1.0, Vector2D.cero());
+        Estrella estrella = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta planeta1x = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta planeta2x = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
+        Planeta planeta5x = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Luna luna1x = new CuerpoCelesteFactory().crearLuna(0, 0, 1.0, Vector2D.cero());
 
         assertTrue(luna1x.getRadioAtraccion() < planeta1x.getRadioAtraccion());
         assertTrue(planeta1x.getRadioAtraccion() < estrella.getRadioAtraccion());
@@ -77,8 +77,8 @@ class OrbitasYDinamicaTest {
     @Test
     void testPlanetasADistanciaRazonableNoColapsan() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p5x = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
-        Planeta p2x = CuerpoCelesteFactory.crearPlanetaRocoso(250, 0, 2.0, Vector2D.cero());
+        Planeta p5x = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 5.0, Vector2D.cero());
+        Planeta p2x = new CuerpoCelesteFactory().crearPlanetaRocoso(250, 0, 2.0, Vector2D.cero());
         cuerpos.add(p5x);
         cuerpos.add(p2x);
 
@@ -93,8 +93,8 @@ class OrbitasYDinamicaTest {
     @Test
     void testLunaOrbitaPlanetaYNotificaMensaje() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaPersonalizado("planeta rocoso1", TipoCuerpo.PLANETA_ROCOSO.masaBase, 0, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
-        Luna luna = CuerpoCelesteFactory.crearLunaPersonalizada("luna1", TipoCuerpo.LUNA.masaBase, 30, 0, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaPersonalizado("planeta rocoso1", TipoCuerpo.PLANETA_ROCOSO.masaBase, 0, 0, TipoCuerpo.PLANETA_ROCOSO, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLunaPersonalizada("luna1", TipoCuerpo.LUNA.masaBase, 30, 0, Vector2D.cero());
         cuerpos.add(planeta);
         cuerpos.add(luna);
 
@@ -116,8 +116,8 @@ class OrbitasYDinamicaTest {
     @Test
     void testDosLunasCercanasColapsan() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Luna luna1 = CuerpoCelesteFactory.crearLunaPersonalizada("luna1", TipoCuerpo.LUNA.masaBase, 0, 0, Vector2D.cero());
-        Luna luna2 = CuerpoCelesteFactory.crearLunaPersonalizada("luna2", TipoCuerpo.LUNA.masaBase, 20, 0, Vector2D.cero());
+        Luna luna1 = new CuerpoCelesteFactory().crearLunaPersonalizada("luna1", TipoCuerpo.LUNA.masaBase, 0, 0, Vector2D.cero());
+        Luna luna2 = new CuerpoCelesteFactory().crearLunaPersonalizada("luna2", TipoCuerpo.LUNA.masaBase, 20, 0, Vector2D.cero());
         cuerpos.add(luna1);
         cuerpos.add(luna2);
 

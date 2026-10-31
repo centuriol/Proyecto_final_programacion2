@@ -26,9 +26,9 @@ public class VentanaInspeccion {
     private final CuerpoCeleste cuerpo;
     private final SimulacionSolar simulacion;
     private final Window owner;
-    private final SeccionInfoCuerpo seccionInfo;
+    private final ProveedorInfoCuerpo seccionInfo;
 
-    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, SeccionInfoCuerpo seccionInfo) {
+    public VentanaInspeccion(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ProveedorInfoCuerpo seccionInfo) {
         this.cuerpo = cuerpo;
         this.simulacion = simulacion;
         this.owner = owner;
@@ -48,16 +48,16 @@ public class VentanaInspeccion {
 
     public void abrir() {
         Stage stage = new Stage();
-        VBox root = SeccionInfoCuerpo.inicializarDialogo(stage, "Inspeccionar: " + cuerpo.getNombre(), owner);
+        VBox root = seccionInfo.inicializarDialogo(stage, "Inspeccionar: " + cuerpo.getNombre(), owner);
         TipoCuerpo tipo = cuerpo.getTipoCuerpo();
 
-        HBox header = SeccionInfoCuerpo.crearHeader(
-                SeccionInfoCuerpo.crearNodoIcono(tipo),
+        HBox header = seccionInfo.crearHeader(
+                seccionInfo.crearNodoIcono(tipo),
                 cuerpo.getNombre(),
-                tipo.nombre + " • " + SeccionInfoCuerpo.obtenerSubtitulo(tipo)
+                tipo.nombre + " • " + seccionInfo.obtenerSubtitulo(tipo)
         );
 
-        VBox descBox = SeccionInfoCuerpo.crearSeccionDescripcion(tipo);
+        VBox descBox = seccionInfo.crearSeccionDescripcion(tipo);
         VBox datosFisicos = construirSeccionTelemetria();
         agregarDetallesOpcionales(datosFisicos, stage);
         VBox prodBox = construirSeccionProduccion(tipo);
@@ -70,7 +70,7 @@ public class VentanaInspeccion {
         scroll.setStyle("-fx-background: #13151f; -fx-background-color: #13151f;");
 
         Scene scene = new Scene(scroll, 540, 580);
-        SeccionInfoCuerpo.vincularCierrePorEscape(scene, stage);
+        seccionInfo.vincularCierrePorEscape(scene, stage);
         stage.setScene(scene);
         stage.show();
     }
@@ -183,7 +183,7 @@ public class VentanaInspeccion {
         Map<TipoRecurso, Double> prod = transformado
                 ? Collections.emptyMap()
                 : InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
-        SeccionInfoCuerpo.poblarListaProduccion(prodBox, prod);
+        seccionInfo.poblarListaProduccion(prodBox, prod);
         return prodBox;
     }
 

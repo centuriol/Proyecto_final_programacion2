@@ -94,7 +94,7 @@ public class RendimientoRegresionTest {
     @Test
     void testTrayectoriaPredictorCalculaCorrectamenteSinObjetosIntermedios() {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         sim.agregarCuerpo(sol);
 
         TrayectoriaPredictor predictor = new TrayectoriaPredictor();

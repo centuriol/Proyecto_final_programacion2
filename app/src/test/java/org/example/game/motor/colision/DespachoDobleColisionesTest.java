@@ -24,9 +24,9 @@ class DespachoDobleColisionesTest {
     @DisplayName("ReglaColisionFusionAguaLava: doble despacho polimorfico entre Planeta Agua y Lava")
     void testFusionAguaLavaDobleDespacho() {
         ReglaColisionFusionAguaLava regla = new ReglaColisionFusionAguaLava();
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
-        Planeta lava = CuerpoCelesteFactory.crearPlanetaLava(10, 0, 1.0, Vector2D.cero());
-        Planeta rocoso = CuerpoCelesteFactory.crearPlanetaRocoso(20, 0, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(10, 0, 1.0, Vector2D.cero());
+        Planeta rocoso = new CuerpoCelesteFactory().crearPlanetaRocoso(20, 0, 1.0, Vector2D.cero());
 
         assertTrue(regla.aplica(agua, lava));
         assertTrue(regla.aplica(lava, agua));
@@ -45,8 +45,8 @@ class DespachoDobleColisionesTest {
     @DisplayName("ReglaColisionEstrella: doble despacho con meteorito en corona solar")
     void testEstrellaDesintegraMeteoritoDobleDespacho() {
         ReglaColisionEstrella regla = new ReglaColisionEstrella();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Meteorito met = CuerpoCelesteFactory.crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Meteorito met = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(10, 0, Vector2D.cero());
 
         assertTrue(regla.aplica(sol, met));
         assertTrue(regla.aplica(met, sol));
@@ -62,10 +62,10 @@ class DespachoDobleColisionesTest {
     @DisplayName("ReglaColisionAgujeroNegro: doble despacho con absorcion de planeta y colapso binario")
     void testAgujeroNegroDobleDespacho() {
         ReglaColisionAgujeroNegro regla = new ReglaColisionAgujeroNegro();
-        Estrella sol1 = CuerpoCelesteFactory.crearEstrella(-50, 0, 1.0);
-        Estrella sol2 = CuerpoCelesteFactory.crearEstrella(50, 0, 1.0);
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroPersonalizado(0, 0, 1e31, Vector2D.cero());
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
+        Estrella sol1 = new CuerpoCelesteFactory().crearEstrella(-50, 0, 1.0);
+        Estrella sol2 = new CuerpoCelesteFactory().crearEstrella(50, 0, 1.0);
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroPersonalizado(0, 0, 1e31, Vector2D.cero());
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(10, 0, 1.0, Vector2D.cero());
 
         assertTrue(regla.aplica(sol1, sol2));
         assertTrue(regla.aplica(bh, planeta));

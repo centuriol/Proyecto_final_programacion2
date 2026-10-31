@@ -1,6 +1,7 @@
 package org.example.game.motor.colision;
 import org.example.game.cuerpo.*;
 import org.example.game.motor.Vector2D;
+import org.example.game.simulacion.CalculadorAmenazaMeteorito;
 import org.example.game.simulacion.ConfiguracionColisiones;
 import org.example.game.simulacion.EscaladorAmenazaMeteorito;
 import org.example.game.simulacion.MensajeEvento;
@@ -13,24 +14,30 @@ public class ReglaColisionMeteorito implements ReglaColision {
 
     private final UtilidadColision utilidadColision;
     private DoubleSupplier proveedorProgreso;
+    private final CalculadorAmenazaMeteorito calculadorAmenaza;
 
     public ReglaColisionMeteorito() {
-        this(new UtilidadColision(), () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
+        this(new UtilidadColision(), () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL, new EscaladorAmenazaMeteorito());
     }
 
     public ReglaColisionMeteorito(DoubleSupplier proveedorProgreso) {
-        this(new UtilidadColision(), proveedorProgreso);
+        this(new UtilidadColision(), proveedorProgreso, new EscaladorAmenazaMeteorito());
     }
 
     public ReglaColisionMeteorito(UtilidadColision utilidadColision) {
-        this(utilidadColision, () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL);
+        this(utilidadColision, () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL, new EscaladorAmenazaMeteorito());
     }
 
     public ReglaColisionMeteorito(UtilidadColision utilidadColision, DoubleSupplier proveedorProgreso) {
+        this(utilidadColision, proveedorProgreso, new EscaladorAmenazaMeteorito());
+    }
+
+    public ReglaColisionMeteorito(UtilidadColision utilidadColision, DoubleSupplier proveedorProgreso, CalculadorAmenazaMeteorito calculadorAmenaza) {
         this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
         this.proveedorProgreso = proveedorProgreso != null
                 ? proveedorProgreso
                 : () -> ConfiguracionColisiones.FACTOR_PROGRESO_METEORITO_INICIAL;
+        this.calculadorAmenaza = calculadorAmenaza != null ? calculadorAmenaza : new EscaladorAmenazaMeteorito();
     }
 
     public void setProveedorProgreso(DoubleSupplier proveedorProgreso) {
@@ -148,7 +155,7 @@ public class ReglaColisionMeteorito implements ReglaColision {
                 return met.tieneProgresoExplicito() ? met.getFactorProgresoOrigen() : proveedorProgreso.getAsDouble();
             }
         });
-        double factorDano = EscaladorAmenazaMeteorito.calcularFraccionDano(progresoEfectivo);
+        double factorDano = calculadorAmenaza.fraccionDano(progresoEfectivo);
         double danoMasa = masaInicial * factorDano;
         double nuevaMasa = Math.max(0.0, planeta.getMasa() - danoMasa);
         planeta.setMasa(nuevaMasa);

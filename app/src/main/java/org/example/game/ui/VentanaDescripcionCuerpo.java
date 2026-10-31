@@ -1,92 +1,64 @@
 package org.example.game.ui;
+
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import org.example.game.controlador.ControladorMouse;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.simulacion.SimulacionSolar;
+
 /**
- * Fachada para las ventanas modales de inspección y colocación de cuerpos celestes (Facade / SRP).
+ * Fachada para las ventanas modales de inspección y colocación de cuerpos celestes (Facade / SRP / DIP).
  */
-public class VentanaDescripcionCuerpo {
+public class VentanaDescripcionCuerpo implements VisualizadorDescripcion {
 
-    private static final VentanaDescripcionCuerpo INSTANCIA_POR_DEFECTO = new VentanaDescripcionCuerpo();
+    private final ProveedorInfoCuerpo infoCuerpo;
 
-    public VentanaDescripcionCuerpo() {}
-
-    public static VentanaDescripcionCuerpo getInstanciaPorDefecto() {
-        return INSTANCIA_POR_DEFECTO;
+    public VentanaDescripcionCuerpo() {
+        this(new SeccionInfoCuerpo());
     }
 
+    public VentanaDescripcionCuerpo(ProveedorInfoCuerpo infoCuerpo) {
+        this.infoCuerpo = infoCuerpo != null ? infoCuerpo : new SeccionInfoCuerpo();
+    }
+
+    @Override
     public void abrirParaColocar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
         VentanaColocacion.mostrar(tipo, simulacion, owner, onConfirmado);
     }
 
+    @Override
     public void abrirParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
         VentanaInspeccion.mostrar(cuerpo, simulacion, owner, controladorMouse);
     }
 
+    @Override
     public void abrir(TipoCuerpo tipo, Window owner) {
         VentanaColocacion.mostrar(tipo, null, owner, null);
     }
 
+    @Override
     public String nombrePorDefecto(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerNombrePorDefecto(tipo);
+        return infoCuerpo.obtenerNombrePorDefecto(tipo);
     }
 
+    @Override
     public String icono(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerIcono(tipo);
+        return infoCuerpo.obtenerIcono(tipo);
     }
 
+    @Override
     public String subtitulo(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerSubtitulo(tipo);
+        return infoCuerpo.obtenerSubtitulo(tipo);
     }
 
+    @Override
     public String lore(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.obtenerLore(tipo);
+        return infoCuerpo.obtenerLore(tipo);
     }
 
+    @Override
     public VBox caracteristicas(TipoCuerpo tipo) {
-        return SeccionInfoCuerpo.crearSeccionCaracteristicas(tipo);
-    }
-
-    public static void mostrarParaColocar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
-        INSTANCIA_POR_DEFECTO.abrirParaColocar(tipo, simulacion, owner, onConfirmado);
-    }
-
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, Window owner) {
-        INSTANCIA_POR_DEFECTO.abrirParaInspeccionar(cuerpo, null, owner, null);
-    }
-
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner) {
-        INSTANCIA_POR_DEFECTO.abrirParaInspeccionar(cuerpo, simulacion, owner, null);
-    }
-
-    public static void mostrarParaInspeccionar(CuerpoCeleste cuerpo, SimulacionSolar simulacion, Window owner, ControladorMouse controladorMouse) {
-        INSTANCIA_POR_DEFECTO.abrirParaInspeccionar(cuerpo, simulacion, owner, controladorMouse);
-    }
-
-    public static void mostrar(TipoCuerpo tipo, Window owner) {
-        INSTANCIA_POR_DEFECTO.abrir(tipo, owner);
-    }
-
-    public static String obtenerNombrePorDefecto(TipoCuerpo tipo) {
-        return INSTANCIA_POR_DEFECTO.nombrePorDefecto(tipo);
-    }
-
-    public static String obtenerIcono(TipoCuerpo tipo) {
-        return INSTANCIA_POR_DEFECTO.icono(tipo);
-    }
-
-    public static String obtenerSubtitulo(TipoCuerpo tipo) {
-        return INSTANCIA_POR_DEFECTO.subtitulo(tipo);
-    }
-
-    public static String obtenerLore(TipoCuerpo tipo) {
-        return INSTANCIA_POR_DEFECTO.lore(tipo);
-    }
-
-    public static VBox crearSeccionCaracteristicas(TipoCuerpo tipo) {
-        return INSTANCIA_POR_DEFECTO.caracteristicas(tipo);
+        return infoCuerpo.crearSeccionCaracteristicas(tipo);
     }
 }

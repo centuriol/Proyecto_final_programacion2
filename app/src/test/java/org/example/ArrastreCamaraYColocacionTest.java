@@ -109,7 +109,7 @@ class ArrastreCamaraYColocacionTest {
 
     @Test
     void testClickSimpleInspeccionaPeroArrastreNoAbreInspeccion() {
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         simulacion.agregarCuerpo(sol);
 
         mouse.manejarMousePresionado(eventoMouse(MouseEvent.MOUSE_PRESSED, 500, 400, MouseButton.PRIMARY));
@@ -136,7 +136,7 @@ class ArrastreCamaraYColocacionTest {
 
     @Test
     void testModoColonizacionNoMueveCamaraAlArrastrar() {
-        Planeta origen = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta origen = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         origen.desarrollarCivilizacion();
         mouse.iniciarModoColonizacion(origen);
 

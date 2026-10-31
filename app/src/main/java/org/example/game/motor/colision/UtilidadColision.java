@@ -14,12 +14,14 @@ import java.util.Set;
  */
 public class UtilidadColision {
 
-    private static final UtilidadColision INSTANCIA_POR_DEFECTO = new UtilidadColision();
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
-    public UtilidadColision() {}
+    public UtilidadColision() {
+        this(new org.example.game.cuerpo.CuerpoCelesteFactory());
+    }
 
-    public static UtilidadColision getInstanciaPorDefecto() {
-        return INSTANCIA_POR_DEFECTO;
+    public UtilidadColision(org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
     }
 
     public double calcularRatioMasas(CuerpoCeleste a, CuerpoCeleste b) {
@@ -84,7 +86,7 @@ public class UtilidadColision {
         double masaRepartible = Math.min(masaNeta, numFragmentos * topeMasaFragmento);
         double masaPorFragmento = Math.min(topeMasaFragmento, masaRepartible / numFragmentos);
         for (int i = 0; i < numFragmentos; i++) {
-            Meteorito fragmento = CuerpoCelesteFactory.crearFragmentoEscombro(
+            Meteorito fragmento = fabricaCuerpos.crearFragmentoColision(
                     destruido.getPosicion().x(), destruido.getPosicion().y(),
                     destruido.getVelocidad(), masaPorFragmento
             );

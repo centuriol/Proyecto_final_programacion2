@@ -24,17 +24,28 @@ public class GestorCicloVidaCuerpos {
     private final SistemaProgresion progresion;
     private final InventarioJugador inventario;
     private final BusEventos busEventos;
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
     public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar,
                                   ValidadorColocacionCuerpos validador,
                                   SistemaProgresion progresion,
                                   InventarioJugador inventario,
                                   BusEventos busEventos) {
+        this(sistemaSolar, validador, progresion, inventario, busEventos, new org.example.game.cuerpo.CuerpoCelesteFactory());
+    }
+
+    public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar,
+                                  ValidadorColocacionCuerpos validador,
+                                  SistemaProgresion progresion,
+                                  InventarioJugador inventario,
+                                  BusEventos busEventos,
+                                  org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
         this.sistemaSolar = sistemaSolar;
         this.validador = validador;
         this.progresion = progresion;
         this.inventario = inventario;
         this.busEventos = busEventos;
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
     }
 
     public int getCantidadPlanetasActuales() {
@@ -57,7 +68,7 @@ public class GestorCicloVidaCuerpos {
             return Optional.empty();
         }
 
-        CuerpoCeleste cuerpo = CuerpoCelesteFactory.crearCuerpo(tipo, x, y, factorEfectivo, velocidadInicial);
+        CuerpoCeleste cuerpo = fabricaCuerpos.crearCuerpo(tipo, x, y, factorEfectivo, velocidadInicial);
         if (cuerpo == null) return Optional.empty();
 
         if (nombrePersonalizado != null && !nombrePersonalizado.isBlank()) {

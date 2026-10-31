@@ -15,13 +15,19 @@ import org.example.game.simulacion.MensajeEvento;
 public class ReglaColisionAgujeroNegro implements ReglaColision {
 
     private final UtilidadColision utilidadColision;
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
     public ReglaColisionAgujeroNegro() {
-        this(new UtilidadColision());
+        this(new UtilidadColision(), new org.example.game.cuerpo.CuerpoCelesteFactory());
     }
 
     public ReglaColisionAgujeroNegro(UtilidadColision utilidadColision) {
+        this(utilidadColision, new org.example.game.cuerpo.CuerpoCelesteFactory());
+    }
+
+    public ReglaColisionAgujeroNegro(UtilidadColision utilidadColision, org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
         this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
     }
 
     @Override
@@ -84,7 +90,7 @@ public class ReglaColisionAgujeroNegro implements ReglaColision {
             Vector2D posCM = (a.getPosicion().multiplicar(a.getMasa()).sumar(b.getPosicion().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
             Vector2D velCM = (a.getVelocidad().multiplicar(a.getMasa()).sumar(b.getVelocidad().multiplicar(b.getMasa()))).dividir(Math.max(1e-9, masaTotal));
 
-            AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroPersonalizado(posCM.x(), posCM.y(), masaTotal, velCM);
+            AgujeroNegro bh = fabricaCuerpos.crearAgujeroNegroPersonalizado(posCM.x(), posCM.y(), masaTotal, velCM);
             utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
             utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.aAgregar().add(bh);

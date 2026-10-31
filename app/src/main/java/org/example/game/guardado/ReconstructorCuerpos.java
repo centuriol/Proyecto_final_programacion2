@@ -20,8 +20,14 @@ public class ReconstructorCuerpos {
 
     private final Map<TipoCuerpo, CreadorDesdeDatos> registro = new EnumMap<>(TipoCuerpo.class);
     private Consumer<MensajeEvento> emisorActivo;
+    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
     public ReconstructorCuerpos() {
+        this(new org.example.game.cuerpo.CuerpoCelesteFactory());
+    }
+
+    public ReconstructorCuerpos(org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
         inicializarRegistroPorDefecto();
     }
 
@@ -134,7 +140,7 @@ public class ReconstructorCuerpos {
         int guion = nombre.lastIndexOf('-');
         if (guion > 0 && guion < nombre.length() - 1) {
             try {
-                CuerpoCelesteFactory.getInstancia().asegurarContadorMinimo(Long.parseLong(nombre.substring(guion + 1)));
+                fabricaCuerpos.asegurarContadorMinimo(Long.parseLong(nombre.substring(guion + 1)));
             } catch (NumberFormatException e) {
                 System.err.println("[DEBUG] Nombre de cuerpo sin id numerico estandar: " + nombre);
             }

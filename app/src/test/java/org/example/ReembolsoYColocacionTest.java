@@ -17,23 +17,23 @@ class ReembolsoYColocacionTest {
 
     @Test
     void testCuerpoCelesteFactory() {
-        Estrella estrella = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella estrella = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         assertNotNull(estrella);
         assertEquals(TipoCuerpo.ESTRELLA, estrella.getTipoCuerpo());
 
         Vector2D pos = new Vector2D(150, 0);
-        Vector2D velOrbital = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(estrella, pos, false);
+        Vector2D velOrbital = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(estrella, pos, false);
         assertNotNull(velOrbital);
         assertTrue(velOrbital.magnitud() > 0);
 
-        Planeta planeta = CuerpoCelesteFactory.crearPlanetaRocoso(pos.x(), pos.y(), 1.0, velOrbital);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(pos.x(), pos.y(), 1.0, velOrbital);
         assertNotNull(planeta);
         assertEquals(TipoCuerpo.PLANETA_ROCOSO, planeta.getTipoCuerpo());
 
-        Luna luna = CuerpoCelesteFactory.crearLuna(170, 0, 1.0, velOrbital);
+        Luna luna = new CuerpoCelesteFactory().crearLuna(170, 0, 1.0, velOrbital);
         assertEquals(TipoCuerpo.LUNA, luna.getTipoCuerpo());
 
-        Satelite sat = CuerpoCelesteFactory.crearSatelite(140, 0, 1.0, velOrbital);
+        Satelite sat = new CuerpoCelesteFactory().crearSatelite(140, 0, 1.0, velOrbital);
         assertEquals(TipoCuerpo.SATELITE, sat.getTipoCuerpo());
     }
 
@@ -173,7 +173,7 @@ class ReembolsoYColocacionTest {
         assertEquals(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_ENERGIA, prodSol.get(TipoRecurso.ENERGIA), 1e-6);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_ESTRELLA_MINERALES, prodSol.get(TipoRecurso.MINERALES), 1e-6);
 
-        Planeta agua = CuerpoCelesteFactory.crearPlanetaAgua(100, 100, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(100, 100, 1.0, Vector2D.cero());
         sim.agregarCuerpo(agua);
 
         double minAntes = sim.getInventario().getRecurso(TipoRecurso.MINERALES);
@@ -188,7 +188,8 @@ class ReembolsoYColocacionTest {
         assertEquals(pobAntes, sim.getInventario().getRecurso(TipoRecurso.POBLACION), 1e-6);
         assertEquals(eneAntes + ConfiguracionSimulacion.PRODUCCION_PLANETA_AGUA_ENERGIA, sim.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6);
 
-        assertTrue(GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_AGUA));
-        assertTrue(GestorImagenes.tieneImagen(TipoCuerpo.PLANETA_LAVA));
+        org.example.game.render.RepositorioSprites repo = new GestorImagenes();
+        assertTrue(repo.tieneSprite(TipoCuerpo.PLANETA_AGUA));
+        assertTrue(repo.tieneSprite(TipoCuerpo.PLANETA_LAVA));
     }
 }

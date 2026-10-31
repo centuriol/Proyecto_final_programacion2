@@ -5,8 +5,9 @@ import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Defensor;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.motor.ConstantesFisicas;
+import org.example.game.motor.ConversorCoordenadas;
 import org.example.game.motor.GestorAgujeroNegro;
+import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import org.example.game.render.capa.*;
 import org.example.game.render.cuerpo.*;
@@ -28,6 +29,7 @@ public class RenderizadorPixelArt {
     private final CamaraZoom camaraZoom = new CamaraZoom();
     private final RenderizadorFondo renderizadorFondo;
     private final GestorEstelas gestorEstelas;
+    private final ConversorCoordenadas conversor;
     private final RepositorioSprites repositorioSprites;
 
     // Capas visuales (SRP)
@@ -57,7 +59,8 @@ public class RenderizadorPixelArt {
         this.altoCanvas = alto;
         this.renderizadorFondo = renderizadorFondo != null ? renderizadorFondo : new RenderizadorFondo(ancho, alto);
         this.gestorEstelas = gestorEstelas != null ? gestorEstelas : new GestorEstelas();
-        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : GestorImagenes.getInstancia();
+        this.conversor = new TransformadorCoordenadas();
+        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         this.capaZonasHabitables = capaZonasHabitables != null ? capaZonasHabitables : new CapaZonasHabitables();
         this.capaAreaAtraccion = capaAreaAtraccion != null ? capaAreaAtraccion : new CapaAreaAtraccion();
         this.capaSeleccion = capaSeleccion != null ? capaSeleccion : new CapaSeleccion();
@@ -183,8 +186,8 @@ public class RenderizadorPixelArt {
     }
 
     private void dibujarCuerpoPixelArt(GraphicsContext gc, CuerpoCeleste c, List<CuerpoCeleste> cuerpos, long tick) {
-        double x = Math.round(ConstantesFisicas.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas));
-        double y = Math.round(ConstantesFisicas.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas));
+        double x = Math.round(conversor.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas));
+        double y = Math.round(conversor.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas));
         TipoCuerpo tipo = c.getTipoCuerpo();
         double r = c.getRadio();
 
@@ -250,8 +253,8 @@ public class RenderizadorPixelArt {
         for (org.example.game.colonizacion.NaveColonizadora nave : naves) {
             if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
             Vector2D pos = nave.getPosicion();
-            double sx = ConstantesFisicas.fisicaAXJavaFX(pos.x(), anchoCanvas);
-            double sy = ConstantesFisicas.fisicaAYJavaFX(pos.y(), altoCanvas);
+            double sx = conversor.fisicaAXJavaFX(pos.x(), anchoCanvas);
+            double sy = conversor.fisicaAYJavaFX(pos.y(), altoCanvas);
 
             gc.save();
             gc.setFill(UtilidadRender.colorWeb("#50fa7b"));

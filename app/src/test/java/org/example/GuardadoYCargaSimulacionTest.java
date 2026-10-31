@@ -38,24 +38,24 @@ class GuardadoYCargaSimulacionTest {
         simOrigen.getProgresion().investigar(RamaProgresion.PLANETAS, simOrigen.getInventario());
         simOrigen.getProgresion().investigar(RamaProgresion.MASA, simOrigen.getInventario());
 
-        Estrella sol = CuerpoCelesteFactory.crearEstrellaPersonalizada("SolAlpha", 1.989e30, 0, 0);
-        Planeta tierra = CuerpoCelesteFactory.crearPlanetaPersonalizado(
+        Estrella sol = new CuerpoCelesteFactory().crearEstrellaPersonalizada("SolAlpha", 1.989e30, 0, 0);
+        Planeta tierra = new CuerpoCelesteFactory().crearPlanetaPersonalizado(
                 "Gaia", 5.97e24, 220, 0, TipoCuerpo.PLANETA_ROCOSO, new Vector2D(0, -11.0));
         tierra.setCuerpoOrbitado(sol);
         tierra.setRadioOrbita(220.0);
         tierra.activarEscudo(4);
         tierra.getCivilizacion().restaurarMetricas(9000.0, 2, 0.85, 0.90);
 
-        Planeta oceano = CuerpoCelesteFactory.crearPlanetaPersonalizado(
+        Planeta oceano = new CuerpoCelesteFactory().crearPlanetaPersonalizado(
                 "Poseidon", 5.97e24, 340, 0, TipoCuerpo.PLANETA_AGUA, new Vector2D(0, -8.5));
         oceano.setCuerpoOrbitado(sol);
         oceano.setRadioOrbita(340.0);
 
-        Luna luna = CuerpoCelesteFactory.crearLunaPersonalizada("Selene", 7.34e22, 260, 0, new Vector2D(0, -12.2));
+        Luna luna = new CuerpoCelesteFactory().crearLunaPersonalizada("Selene", 7.34e22, 260, 0, new Vector2D(0, -12.2));
         luna.setCuerpoOrbitado(tierra);
         luna.setRadioOrbita(40.0);
 
-        Satelite satelite = CuerpoCelesteFactory.crearSatelite(240, 0, 1.0, new Vector2D(0, -13.0));
+        Satelite satelite = new CuerpoCelesteFactory().crearSatelite(240, 0, 1.0, new Vector2D(0, -13.0));
         satelite.setNombre("Hubble");
         satelite.setCuerpoOrbitado(tierra);
         satelite.producirRecursos(10.0);
@@ -121,7 +121,7 @@ class GuardadoYCargaSimulacionTest {
     @Test
     void testPlanetaInerteTransformadoPreservaNoReembolsableYSinCivilizacion() {
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        Planeta inerte = CuerpoCelesteFactory.crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
+        Planeta inerte = new CuerpoCelesteFactory().crearPlanetaRocoso(150, 0, 1.0, Vector2D.cero());
         inerte.transformarA(TipoCuerpo.PLANETA_ROCOSO);
         sim.agregarCuerpo(inerte);
 
@@ -196,18 +196,18 @@ class GuardadoYCargaSimulacionTest {
 
     @Test
     void testContadorFabricaSeSincronizaTrasCargarNombresNumerados() {
-        CuerpoCelesteFactory.resetearContador();
+        new CuerpoCelesteFactory().resetearContador();
         SimulacionSolar sim = new SimulacionSolar(1280, 720);
-        sim.agregarCuerpo(CuerpoCelesteFactory.crearEstrellaPersonalizada("Sol-42", 1.989e30, 0, 0));
+        sim.agregarCuerpo(new CuerpoCelesteFactory().crearEstrellaPersonalizada("Sol-42", 1.989e30, 0, 0));
 
         GestorGuardadoPartida gestor = new GestorGuardadoPartida(new RepositorioPartidasArchivo(tempDir.resolve("ids")));
         gestor.guardarPartidaRapida(sim, null);
 
-        CuerpoCelesteFactory.resetearContador();
+        new CuerpoCelesteFactory().resetearContador();
         SimulacionSolar destino = new SimulacionSolar(1280, 720);
         gestor.cargarPartidaRapida(destino, null);
 
-        Estrella nueva = CuerpoCelesteFactory.crearEstrella(100, 100, 1.0);
+        Estrella nueva = new CuerpoCelesteFactory().crearEstrella(100, 100, 1.0);
         assertEquals("Sol-43", nueva.getNombre());
     }
 

@@ -25,11 +25,11 @@ class AgujeroNegroFisicaTest {
         SimulacionSolar simulacion = new SimulacionSolar(1920, 1080);
         simulacion.limpiarCuerpos();
 
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0);
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0);
         double masaInicialBH = bh.getMasa();
         simulacion.agregarCuerpo(bh);
 
-        Planeta presa = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
+        Planeta presa = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
         double masaPresa = presa.getMasa();
         simulacion.agregarCuerpo(presa);
 
@@ -42,11 +42,11 @@ class AgujeroNegroFisicaTest {
     @Test
     void testAbsorcionesEnCadenaAgujeroNegro() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        AgujeroNegro bh = CuerpoCelesteFactory.crearAgujeroNegroEstelar(0, 0, 1.0);
+        AgujeroNegro bh = new CuerpoCelesteFactory().crearAgujeroNegroEstelar(0, 0, 1.0);
         cuerpos.add(bh);
 
-        Planeta p1 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
-        Planeta p2 = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
+        Planeta p1 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p2 = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
         cuerpos.add(p1);
         cuerpos.add(p2);
 
@@ -61,7 +61,7 @@ class AgujeroNegroFisicaTest {
     @Test
     void testIntegracionMovimientoMasaInvalidaProtegida() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta p = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         p.setMasa(-10.0);
         cuerpos.add(p);
 
@@ -73,8 +73,8 @@ class AgujeroNegroFisicaTest {
     @Test
     void testGravedadProporcionalAMasa() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Planeta pesado = CuerpoCelesteFactory.crearPlanetaGaseoso(-100, 0, 1.0, Vector2D.cero());
-        Planeta liviano = CuerpoCelesteFactory.crearPlanetaRocoso(100, 0, 1.0, Vector2D.cero());
+        Planeta pesado = new CuerpoCelesteFactory().crearPlanetaGaseoso(-100, 0, 1.0, Vector2D.cero());
+        Planeta liviano = new CuerpoCelesteFactory().crearPlanetaRocoso(100, 0, 1.0, Vector2D.cero());
         cuerpos.add(pesado);
         cuerpos.add(liviano);
 
@@ -96,8 +96,8 @@ class AgujeroNegroFisicaTest {
     @Test
     void testSolAtraeYComePlanetaCercano() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
-        Planeta planetaCercano = CuerpoCelesteFactory.crearPlanetaRocoso(45, 0, 1.0, Vector2D.cero());
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta planetaCercano = new CuerpoCelesteFactory().crearPlanetaRocoso(45, 0, 1.0, Vector2D.cero());
         cuerpos.add(sol);
         cuerpos.add(planetaCercano);
 
@@ -117,10 +117,10 @@ class AgujeroNegroFisicaTest {
     @Test
     void testSolNoComePlanetaADistanciaOrbital() {
         List<CuerpoCeleste> cuerpos = new ArrayList<>();
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         Vector2D posTierra = new Vector2D(160, 0);
-        Vector2D velTierra = CuerpoCelesteFactory.calcularVelocidadOrbitalVector(sol, posTierra, false);
-        Planeta tierra = CuerpoCelesteFactory.crearPlanetaRocoso(posTierra.x(), posTierra.y(), 1.0, velTierra);
+        Vector2D velTierra = new CuerpoCelesteFactory().calcularVelocidadOrbitalVector(sol, posTierra, false);
+        Planeta tierra = new CuerpoCelesteFactory().crearPlanetaRocoso(posTierra.x(), posTierra.y(), 1.0, velTierra);
         cuerpos.add(sol);
         cuerpos.add(tierra);
 

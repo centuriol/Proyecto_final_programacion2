@@ -63,7 +63,7 @@ class UIWidgetsYFormatoTest {
 
     @Test
     void testRadioDinamicoPorMasa() {
-        Planeta p = CuerpoCelesteFactory.crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Planeta p = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         double radio1x = p.getRadio();
         assertEquals(15.0, radio1x, 1e-6);
 
@@ -76,15 +76,16 @@ class UIWidgetsYFormatoTest {
 
     @Test
     void testNombresPorDefectoVentana() {
-        String nombreSol = VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.ESTRELLA);
+        org.example.game.ui.VisualizadorDescripcion ventana = new VentanaDescripcionCuerpo();
+        String nombreSol = ventana.nombrePorDefecto(TipoCuerpo.ESTRELLA);
         assertNotNull(nombreSol);
         assertFalse(nombreSol.isBlank());
 
-        String nombrePlaneta = VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.PLANETA_ROCOSO);
+        String nombrePlaneta = ventana.nombrePorDefecto(TipoCuerpo.PLANETA_ROCOSO);
         assertNotNull(nombrePlaneta);
         assertFalse(nombrePlaneta.isBlank());
 
-        String nombreLuna = VentanaDescripcionCuerpo.obtenerNombrePorDefecto(TipoCuerpo.LUNA);
+        String nombreLuna = ventana.nombrePorDefecto(TipoCuerpo.LUNA);
         assertNotNull(nombreLuna);
         assertFalse(nombreLuna.isBlank());
     }
@@ -104,11 +105,11 @@ class UIWidgetsYFormatoTest {
         assertTrue(masaLuna.contains("MT"));
         assertFalse(masaLuna.contains("1e"));
 
-        Estrella sol = CuerpoCelesteFactory.crearEstrella(0, 0, 1.0);
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
         assertFalse(sol.describir().contains("1e"));
         assertTrue(sol.describir().contains("MT"));
 
-        Luna luna = CuerpoCelesteFactory.crearLuna(0, 0, 1.0, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLuna(0, 0, 1.0, Vector2D.cero());
         assertFalse(luna.describir().contains("1e"));
         assertTrue(luna.describir().contains("MT"));
     }

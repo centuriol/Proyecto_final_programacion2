@@ -26,8 +26,15 @@ public class ServicioEscudo {
     private final Map<CuerpoCeleste, Defensor> defensores = new ConcurrentHashMap<>();
     private final Map<Defensor, CuerpoCeleste> cuerposPorDefensor = new ConcurrentHashMap<>();
     private final Map<CuerpoCeleste, Satelite> satelitesEscudo = new ConcurrentHashMap<>();
+    private final FabricaCuerpos fabricaCuerpos;
 
-    public ServicioEscudo() {}
+    public ServicioEscudo() {
+        this(new CuerpoCelesteFactory());
+    }
+
+    public ServicioEscudo(FabricaCuerpos fabricaCuerpos) {
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new CuerpoCelesteFactory();
+    }
 
     public static ServicioEscudo getInstanciaPorDefecto() {
         return INSTANCIA_POR_DEFECTO;
@@ -137,7 +144,7 @@ public class ServicioEscudo {
         if (!yaTieneSatelite && cuerpoPlaneta != null) {
             double radioOrbita = planeta.getRadio() + 25.0;
             Vector2D posSatelite = planeta.getPosicion().sumar(new Vector2D(radioOrbita, 0));
-            Satelite sat = CuerpoCelesteFactory.crearSatelite(posSatelite.x(), posSatelite.y(), 1.0, Vector2D.cero());
+            Satelite sat = fabricaCuerpos.crearSatelite(posSatelite.x(), posSatelite.y(), 1.0, Vector2D.cero());
             sat.setCuerpoOrbitado(cuerpoPlaneta);
             sat.setRadioOrbita(radioOrbita);
             satelitesEscudo.put(cuerpoPlaneta, sat);
