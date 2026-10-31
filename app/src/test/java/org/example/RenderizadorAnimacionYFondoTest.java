@@ -95,4 +95,35 @@ class RenderizadorAnimacionYFondoTest {
         BarraInventarioHotbar hotbar = new BarraInventarioHotbar(sim);
         assertEquals(BarraInventarioHotbar.CUERPOS_HOTBAR.length, hotbar.getChildren().size());
     }
+
+    @Test
+    void testAvanceFondoMuchasVecesElAnchoMantieneDesplazamientoEntreCeroYAncho() {
+        double ancho = 1000.0;
+        double alto = 600.0;
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(ancho, alto);
+
+        // Avanzar el fondo acumulando muchas veces el ancho con distintos multiplicadores de velocidad
+        for (int i = 0; i < 50; i++) {
+            renderizador.avanzarFondo(100.0, 5.0);
+            double desp = renderizador.getDesplazamientoFondoX();
+            assertTrue(desp >= 0.0 && desp <= ancho,
+                    "El desplazamiento debe quedar siempre entre 0 y el ancho (" + ancho + "), pero fue: " + desp);
+        }
+
+        // Avance masivo directo equivalente a cientos de veces el ancho
+        renderizador.avanzarFondo(250000.0, 8.0);
+        double despMasivo = renderizador.getDesplazamientoFondoX();
+        assertTrue(despMasivo >= 0.0 && despMasivo <= ancho,
+                "Tras un avance masivo, el desplazamiento debe quedar entre 0 y el ancho, pero fue: " + despMasivo);
+
+        // Verificar tambien comportamiento con ventana redimensionada
+        double nuevoAncho = 1440.0;
+        renderizador.setDimensiones(nuevoAncho, 900.0);
+        for (int i = 0; i < 20; i++) {
+            renderizador.avanzarFondo(300.0, 4.0);
+            double despRedim = renderizador.getDesplazamientoFondoX();
+            assertTrue(despRedim >= 0.0 && despRedim <= nuevoAncho,
+                    "Con ventana redimensionada, el desplazamiento debe quedar entre 0 y el nuevo ancho, pero fue: " + despRedim);
+        }
+    }
 }

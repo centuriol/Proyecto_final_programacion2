@@ -254,9 +254,7 @@ public class RenderizadorPixelArt {
             this.anchoCanvas = w;
             this.altoCanvas = h;
             renderizadorFondo.generarEstrellasFondo(w, h);
-            if (w > 0) {
-                renderizadorFondo.setDesplazamientoFondoX(renderizadorFondo.getDesplazamientoFondoX() % w);
-            }
+            renderizadorFondo.normalizarDesplazamiento(w);
         }
     }
 
@@ -268,8 +266,7 @@ public class RenderizadorPixelArt {
 
     public void avanzarFondo(double deltaTime, double multiplicadorVelocidad) {
         if (deltaTime <= 0 || multiplicadorVelocidad <= 0) return;
-        double desplazamientoPx = renderizadorFondo.getVelocidadBaseFondo() * multiplicadorVelocidad * deltaTime;
-        renderizadorFondo.setDesplazamientoFondoX(renderizadorFondo.getDesplazamientoFondoX() + desplazamientoPx);
+        renderizadorFondo.avanzarDesplazamiento(deltaTime, multiplicadorVelocidad, anchoCanvas);
     }
 
     public Image getImagenFondo() {

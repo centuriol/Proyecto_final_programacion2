@@ -24,6 +24,7 @@ public class RenderizadorFondo {
     private final RepositorioSprites repositorioSprites;
     private double desplazamientoFondoX = 0.0;
     private double velocidadBaseFondo = 1.0;
+    private double anchoCanvas;
 
     private final List<EstrellaFondo> estrellasFondo = new ArrayList<>();
 
@@ -48,10 +49,14 @@ public class RenderizadorFondo {
     public RenderizadorFondo(double ancho, double alto, RepositorioSprites repositorioSprites) {
         this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         this.imagenFondo = this.repositorioSprites.obtenerImagenFondo();
+        this.anchoCanvas = Math.max(0.0, ancho);
         generarEstrellasFondo(ancho, alto);
     }
 
     public void generarEstrellasFondo(double ancho, double alto) {
+        if (ancho > 0) {
+            this.anchoCanvas = ancho;
+        }
         estrellasFondo.clear();
         Random rand = new Random(42);
         for (int i = 0; i < 180; i++) {
@@ -70,6 +75,7 @@ public class RenderizadorFondo {
 
         Image fondo = getImagenFondo();
         if (fondo != null) {
+            normalizarDesplazamiento(anchoCanvas);
             double x1 = desplazamientoFondoX;
             double x2 = desplazamientoFondoX - anchoCanvas;
             gc.drawImage(fondo, x1, 0, anchoCanvas + 1, altoCanvas);
@@ -142,17 +148,33 @@ public class RenderizadorFondo {
     }
 
     public void avanzarDesplazamiento(double deltaTime, double multiplicadorVelocidad, double anchoCanvas) {
-        if (anchoCanvas > 0) {
-            double deltaX = velocidadBaseFondo * multiplicadorVelocidad * deltaTime;
-            desplazamientoFondoX = (desplazamientoFondoX + deltaX) % anchoCanvas;
-            if (desplazamientoFondoX < 0) {
-                desplazamientoFondoX += anchoCanvas;
-            }
+        if (anchoCanvas <= 0 || deltaTime <= 0 || multiplicadorVelocidad <= 0) {
+            return;
+        }
+        this.anchoCanvas = anchoCanvas;
+        double deltaX = velocidadBaseFondo * multiplicadorVelocidad * deltaTime;
+        desplazamientoFondoX += deltaX;
+        normalizarDesplazamiento(anchoCanvas);
+    }
+
+    public void normalizarDesplazamiento(double ancho) {
+        if (ancho > 0) {
+            this.anchoCanvas = ancho;
+            desplazamientoFondoX = (desplazamientoFondoX % ancho + ancho) % ancho;
         }
     }
 
+    public void normalizarDesplazamiento() {
+        normalizarDesplazamiento(this.anchoCanvas);
+    }
+
     public double getDesplazamientoFondoX() { return desplazamientoFondoX; }
-    public void setDesplazamientoFondoX(double desplazamiento) { this.desplazamientoFondoX = desplazamiento; }
+    public void setDesplazamientoFondoX(double desplazamiento) {
+        this.desplazamientoFondoX = desplazamiento;
+        if (this.anchoCanvas > 0) {
+            normalizarDesplazamiento(this.anchoCanvas);
+        }
+    }
     public double getVelocidadBaseFondo() { return velocidadBaseFondo; }
     public void setVelocidadBaseFondo(double vel) { this.velocidadBaseFondo = vel; }
 
