@@ -3,20 +3,20 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-11-02.
+> Generado: 2026-11-06.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad POO/SOLID | **1/100** |
+| Índice de calidad POO/SOLID | **60/100** |
 | Código (LOC) | 20,666 |
 | Archivos de código | 265 |
-| Clases (bien usadas) | 288 (94 OK) |
+| Clases (bien usadas) | 288 (99 OK) |
 | Código dentro de clases (%POO) | 100% |
 | Funciones fuera de clases | 0 |
 | Duplicación lógica | 0.8% |
-| Señales S/O/L/I/D | 57/14/0/2/98 |
+| Señales S/O/L/I/D | 40/0/0/8/84 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
 
@@ -27,7 +27,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Semáforo | Resultado |
 |---|---|
 | Aprobar (`estandar`) | **no cumple** — 3/4 |
-| Destacar (`exigente`) | **no cumple** — 3/5 |
+| Destacar (`exigente`) | **no cumple** — 4/5 |
 
 **Criterios para aprobar**
 
@@ -36,7 +36,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Código dentro de clases (%POO) | ≥ 85% | 100% | sí |
 | Duplicación lógica | ≤ 10% | 0.8% | sí |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
-| Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP) | no |
+| Señales POO/SOLID críticas | ninguna | Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | no |
 
 **Criterios para destacar**
 
@@ -45,8 +45,8 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Código dentro de clases (%POO) | ≥ 95% | 100% | sí |
 | Duplicación lógica | ≤ 5% | 0.8% | sí |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
-| Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP), Interfaz con demasiados métodos (ISP) | no |
-| Índice de calidad POO/SOLID | ≥ 60 | 1/100 | no |
+| Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | no |
+| Índice de calidad POO/SOLID | ≥ 60 | 60/100 | sí |
 
 ### Cómo se calcula el %POO (y por qué no sube solo)
 
@@ -73,11 +73,9 @@ Reúne lo que el análisis marcó y lo que todavía falta para cada semáforo. C
 
 | Falla | Tu resultado | Requisito | Archivos |
 |---|---|---|---|
-| Señales POO/SOLID críticas | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Switch sobre tipos (OCP) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CalculadorDinamicaCivilizacion.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/civilizacion/EvaluadorHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java` (+149 más) |
-| Índice de calidad POO/SOLID | 1/100 | Destacar: ≥ 60 | — |
-| Métodos/funciones largos o con muchos parámetros | **88** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/java/org/example/game/civilizacion/CondicionesHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java`, `app/src/main/java/org/example/game/controlador/SeleccionadorCuerpoMouse.java`, `app/src/main/java/org/example/game/cuerpo/AgujeroNegro.java`, `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` (+59 más) |
-| Herencia profunda (DIT) | **1** clase(s) con herencia profunda | Sin señales | `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java` |
-| Dependencia de concretos y falta de abstracciones (DIP) | **98** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/civilizacion/EvaluadorHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java` (+92 más) |
+| Señales POO/SOLID críticas | Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java`, `app/src/main/java/org/example/game/controlador/ControladorMouse.java` (+93 más) |
+| Métodos/funciones largos o con muchos parámetros | **96** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/java/org/example/game/civilizacion/CondicionesHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java`, `app/src/main/java/org/example/game/controlador/SeleccionadorCuerpoMouse.java`, `app/src/main/java/org/example/game/cuerpo/AgujeroNegro.java`, `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` (+63 más) |
+| Dependencia de concretos y falta de abstracciones (DIP) | **84** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/civilizacion/EvaluadorHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java` (+78 más) |
 | Campos públicos (encapsulación) | **10** clase(s) con campos públicos | Sin señales | `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`, `app/src/main/java/org/example/game/jugador/TipoRecurso.java`, `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`, `app/src/main/java/org/example/game/render/CamaraZoom.java`, `app/src/main/java/org/example/game/simulacion/ConfiguracionColisiones.java`, `app/src/main/java/org/example/game/simulacion/ConfiguracionEconomia.java` (+4 más) |
 | Clase solo con métodos estáticos (utilitaria) | **1** clase(s) solo con métodos estáticos | Sin señales | `app/src/main/java/org/example/game/cuerpo/RegistroCapacidades.java` |
 
@@ -89,7 +87,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Un resumen numérico (0-100) que combina la riqueza de clases bien usadas con la penalización por señales POO/SOLID y duplicación, y luego aplica topes duros.
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
-- **Tu resultado:** índice **1/100**
+- **Tu resultado:** índice **60/100**
 
 ### 2. Duplicación lógica (DRY) (duplicacion) — sin señales
 
@@ -114,7 +112,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Clases con demasiadas líneas o métodos de LÓGICA. No cuentan los getters/setters triviales ni la cantidad de campos por sí sola.
 - **Por qué importa:** Una clase que hace de todo cambia por muchos motivos y cuesta entenderla y probarla.
-- **Tu resultado:** **44** clase(s) demasiado grande(s)
+- **Tu resultado:** **13** clase(s) demasiado grande(s)
 - **Para investigar la causa:**
     - ¿La clase creció por acumulación de responsabilidades?
     - ¿Qué partes de la clase se usan siempre juntas y cuáles no?
@@ -144,7 +142,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Tamaño de los métodos/funciones y cantidad de parámetros.
 - **Por qué importa:** Una función que hace varias cosas cuesta leerla, nombrarla y reutilizarla.
-- **Tu resultado:** **88** método(s)/función(es) largos o con muchos parámetros
+- **Tu resultado:** **96** método(s)/función(es) largos o con muchos parámetros
 - **Para investigar la causa:**
     - ¿La función creció por acumulación de pasos?
     - ¿Agrupa operaciones que podrían describirse por separado?
@@ -152,39 +150,31 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 9. Acoplamiento alto (CBO) (acoplamiento) — con señales
 
-- **Qué mide:** Cuánto depende una clase de otros tipos del proyecto.
+- **Qué mide:** Cuánto depende una clase de otros tipos del proyecto. No cuentan los tipos de la plataforma (biblioteca estándar, DOM, motor Godot) ni los métodos/propiedades propias.
 - **Por qué importa:** Piezas muy enlazadas hacen que un cambio se propague y que sea difícil reemplazar partes.
-- **Tu resultado:** **144** clase(s) muy acoplada(s)
+- **Tu resultado:** **74** clase(s) muy acoplada(s)
 - **Para investigar la causa:**
     - ¿La clase conoce detalles internos de muchas otras?
     - ¿Se puede cambiar una parte sin tocar las demás?
     - ¿Los colaboradores llegan como parámetros o se crean por dentro?
 
-### 10. Herencia profunda (DIT) (herencia) — con señales
+### 10. Herencia profunda (DIT) (herencia) — sin señales
 
 - **Qué mide:** Profundidad de la cadena de herencia de una clase.
 - **Por qué importa:** Jerarquías muy profundas vuelven difícil saber de dónde viene cada comportamiento.
-- **Tu resultado:** **1** clase(s) con herencia profunda
-- **Para investigar la causa:**
-    - ¿La jerarquía creció para reutilizar código o para modelar una relación real 'es-un'?
-    - ¿Qué comportamiento cambia entre niveles de la jerarquía?
-    - ¿Se evaluó la composición como alternativa?
+- **Tu resultado:** **0** clase(s) con herencia profunda
 
-### 11. Switch sobre tipos (OCP) (ocp) — con señales
+### 11. Switch sobre tipos (OCP) (ocp) — sin señales
 
-- **Qué mide:** Chequeos repetidos de tipo (`instanceof`/`is`/`typeof`) que equivalen a un switch sobre el tipo.
+- **Qué mide:** Cadenas de dispatch por tipo (`else if ... is` / `else if ... instanceof`, `switch` sobre tipo o `typeof`). Un `is Tipo variable` aislado (pattern matching / cast seguro) NO cuenta como switch.
 - **Por qué importa:** Cada tipo nuevo obliga a tocar varios lugares, en vez de extender con una implementación nueva.
-- **Tu resultado:** **14** clase(s) con switch sobre tipos
-- **Para investigar la causa:**
-    - ¿Qué operación se resuelve preguntando el tipo?
-    - ¿Qué se toca cada vez que aparece un tipo o caso nuevo?
-    - ¿El comportamiento podría vivir en la propia jerarquía de tipos?
+- **Tu resultado:** **0** clase(s) con switch sobre tipos
 
 ### 12. Interfaz con demasiados métodos (ISP) (isp) — con señales
 
 - **Qué mide:** Interfaces o clases abstractas con muchos métodos declarados.
 - **Por qué importa:** Obliga a implementar operaciones que no se usan y acopla a los clientes a métodos que no necesitan.
-- **Tu resultado:** **2** interfaz(es) con demasiados métodos
+- **Tu resultado:** **8** interfaz(es) con demasiados métodos
 - **Para investigar la causa:**
     - ¿Qué subconjunto de métodos usa realmente cada implementación?
     - ¿Se agruparon métodos de necesidades distintas en la misma interfaz?
@@ -198,9 +188,9 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 14. Dependencia de concretos y falta de abstracciones (DIP) (dip) — con señales
 
-- **Qué mide:** Instanciación directa de clases concretas y ausencia de interfaces o clases abstractas pese al acoplamiento.
+- **Qué mide:** Instanciación directa de clases **propias** concretas y ausencia de interfaces o clases abstractas pese al acoplamiento. No cuentan los structs ni los nodos/tipos del motor.
 - **Por qué importa:** Depender de implementaciones concretas dificulta cambiar o probar una parte sin arrastrar las demás.
-- **Tu resultado:** **98** dependencia(s) de concretos sin abstracciones
+- **Tu resultado:** **84** dependencia(s) de concretos sin abstracciones
 - **Para investigar la causa:**
     - ¿La clase crea por dentro a sus colaboradores en vez de recibirlos?
     - ¿Hay puntos de variación que convendría expresar como abstracción?
