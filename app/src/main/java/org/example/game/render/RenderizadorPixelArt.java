@@ -39,7 +39,7 @@ public class RenderizadorPixelArt {
     private final CapaTrayectorias capaTrayectorias;
     private final CapaGhostPreview capaGhostPreview;
     private final CapaNavesColonizadoras capaNaves = new CapaNavesColonizadoras();
-    private final CapaEscudoPlanetario capaEscudo = new CapaEscudoPlanetario();
+    private final CapaEscudoPlanetario capaEscudo;
     private final org.example.game.cuerpo.ServicioEscudo servicioEscudo = org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto();
 
     private final Map<TipoCuerpo, RenderizadorCuerpo> renderizadoresCuerpo = new EnumMap<>(TipoCuerpo.class);
@@ -68,6 +68,7 @@ public class RenderizadorPixelArt {
         this.capaSeleccion = capaSeleccion != null ? capaSeleccion : new CapaSeleccion();
         this.capaTrayectorias = capaTrayectorias != null ? capaTrayectorias : new CapaTrayectorias();
         this.capaGhostPreview = capaGhostPreview != null ? capaGhostPreview : new CapaGhostPreview(this.repositorioSprites);
+        this.capaEscudo = new CapaEscudoPlanetario(this.repositorioSprites);
 
         inicializarRenderizadoresCuerpo();
     }
@@ -113,6 +114,9 @@ public class RenderizadorPixelArt {
 
     public void setGestorEfectos(org.example.game.efectos.GestorEfectos gestorEfectos) {
         this.gestorEfectos = gestorEfectos;
+        if (this.gestorEfectos != null) {
+            this.gestorEfectos.setRepositorioSprites(this.repositorioSprites);
+        }
     }
 
     public void renderizarTodo(GraphicsContext gc, List<CuerpoCeleste> cuerpos, long tick,

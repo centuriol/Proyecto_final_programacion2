@@ -75,17 +75,12 @@ public class Meteorito extends CuerpoCeleste implements Actualizable, Expirable 
     public void actualizarEntidad(double dt) {
         reducirVida(dt);
 
-        // Guiado suave hacia el objetivo
+        // Guiado directo hacia el objetivo
         if (objetivo != null && objetivo.esSimulado()) {
             Vector2D dirDeseada = objetivo.getPosicion().restar(getPosicion());
             if (dirDeseada.magnitud() > 1.0) {
-                Vector2D vDeseada = dirDeseada.normalizar().multiplicar(rapidez > 0 ? rapidez : getVelocidad().magnitud());
-                double guiado = org.example.game.simulacion.ConfiguracionSimulacion.GUIADO_METEORITO;
-                Vector2D nuevaVel = getVelocidad().sumar(vDeseada.restar(getVelocidad()).multiplicar(guiado));
-                if (rapidez > 0) {
-                    nuevaVel = nuevaVel.normalizar().multiplicar(rapidez);
-                }
-                setVelocidad(nuevaVel);
+                double mag = rapidez > 0 ? rapidez : Math.max(1.0, getVelocidad().magnitud());
+                setVelocidad(dirDeseada.normalizar().multiplicar(mag));
             }
         }
     }

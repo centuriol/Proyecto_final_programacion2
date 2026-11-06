@@ -102,4 +102,45 @@ class GestorSpritesYPixilTest {
             assertEquals(77, (int) img.getHeight());
         }
     }
+
+    @Test
+    void testCargarSpritesPersonasYEscudo() {
+        Image imgEscudo = gestor.obtenerImagenPorNombre(org.example.game.render.capa.CapaEscudoPlanetario.NOMBRE_SPRITE_ESCUDO);
+        assertNotNull(imgEscudo, "El sprite del escudo planetario debe cargarse correctamente");
+        assertTrue(imgEscudo.getWidth() > 0 && imgEscudo.getHeight() > 0);
+
+        for (String nombrePersona : org.example.game.render.cuerpo.RenderizadorPlaneta.SPRITES_PERSONAS) {
+            Image imgPersona = gestor.obtenerImagenPorNombre(nombrePersona);
+            assertNotNull(imgPersona, "El sprite de persona '" + nombrePersona + "' debe cargarse correctamente");
+            assertEquals(8, (int) imgPersona.getWidth());
+            assertEquals(8, (int) imgPersona.getHeight());
+        }
+    }
+
+    @Test
+    void testCargarSpritesExplosionYAnimacionGifEnColision() {
+        assertEquals(9, org.example.game.efectos.GestorEfectos.SPRITES_EXPLOSION.size());
+        for (String nombreExplosion : org.example.game.efectos.GestorEfectos.SPRITES_EXPLOSION) {
+            Image imgExp = gestor.obtenerImagenPorNombre(nombreExplosion);
+            assertNotNull(imgExp, "El frame de explosion '" + nombreExplosion + "' debe cargarse correctamente");
+            assertTrue(imgExp.getWidth() > 0 && imgExp.getHeight() > 0);
+        }
+
+        org.example.game.simulacion.SimulacionSolar sim = new org.example.game.simulacion.SimulacionSolar(1280, 720);
+        sim.limpiarCuerpos();
+        org.example.game.cuerpo.Planeta planeta = new org.example.game.cuerpo.CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, org.example.game.motor.Vector2D.cero());
+        org.example.game.cuerpo.Meteorito met = new org.example.game.cuerpo.Meteorito("Met-Impacto", planeta.getMasa() * 0.1, 5, 0, new org.example.game.motor.Vector2D(-5, 0), 200, false, planeta);
+        sim.agregarCuerpo(planeta);
+        sim.agregarCuerpo(met);
+
+        sim.avanzarTick();
+        assertEquals(1, sim.getGestorEfectos().getCantidadExplosionesActivas(), "Debe activarse la animacion GIF de explosion al colisionar");
+
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(400, 400);
+        for (int i = 0; i < 36; i++) {
+            assertDoesNotThrow(() -> sim.getGestorEfectos().dibujar(canvas.getGraphicsContext2D(), 400, 400));
+            sim.getGestorEfectos().actualizar();
+        }
+        assertEquals(0, sim.getGestorEfectos().getCantidadExplosionesActivas(), "La explosion GIF debe finalizar tras recorrer sus 9 frames");
+    }
 }

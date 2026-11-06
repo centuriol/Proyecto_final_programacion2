@@ -181,4 +181,70 @@ class TransformacionCuerposTest {
             assertNull(destino);
         }
     }
+
+    @Test
+    void testAguaEnPrimeraLineaSeConvierteEnPorroYPasaASegundaOrbita() {
+        simulacion.limpiarCuerpos();
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(160, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(sol);
+        simulacion.agregarCuerpo(agua);
+
+        for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
+            simulacion.avanzarTick();
+        }
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
+        assertEquals("Planeta Porro", agua.getNombre());
+
+        for (int i = 0; i < ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA; i++) {
+            simulacion.avanzarTick();
+        }
+        assertEquals(320.0, agua.getPosicion().distanciaA(sol.getPosicion()), 1.0);
+    }
+
+    @Test
+    void testCualquierPlanetaEnUltimaOrbitaSeConvierteEnPlanetaAgua() {
+        simulacion.limpiarCuerpos();
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(640, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(sol);
+        simulacion.agregarCuerpo(porro);
+
+        for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG; i++) {
+            simulacion.avanzarTick();
+        }
+        assertEquals(TipoCuerpo.PLANETA_AGUA, porro.getTipoCuerpo());
+        assertEquals("Planeta de Agua", porro.getNombre());
+        assertTrue(porro.isTransformadoPorEvento());
+        assertEquals(640.0, porro.getPosicion().distanciaA(sol.getPosicion()), 1.0);
+    }
+
+    @Test
+    void testPlanetaTransformadoPorEasterEggMantieneGravedadYOrbitaNormalSinGenerarRecursos() {
+        simulacion.limpiarCuerpos();
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(160, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(sol);
+        simulacion.agregarCuerpo(agua);
+
+        for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG + ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA; i++) {
+            simulacion.avanzarTick();
+        }
+        assertTrue(agua.isTransformadoPorEvento());
+        assertEquals(TipoCuerpo.PLANETA_ROCOSO, agua.getTipoCuerpo());
+
+        // Colocar una luna cerca del planeta transformado: debe orbitarlo normalmente
+        Vector2D posPlaneta = agua.getPosicion();
+        Luna luna = new CuerpoCelesteFactory().crearLuna(posPlaneta.x() + 65, posPlaneta.y(), 1.0, agua.getVelocidad());
+        simulacion.agregarCuerpo(luna);
+
+        for (int i = 0; i < 40; i++) {
+            simulacion.avanzarTick();
+        }
+
+        assertTrue(agua.estaOrbitando(sol), "El planeta transformado debe seguir orbitando al Sol normalmente");
+        assertEquals(320.0, agua.getPosicion().distanciaA(sol.getPosicion()), 1.0);
+        assertTrue(luna.estaOrbitando(agua), "El planeta transformado debe tener gravedad normal y capturar lunas en orbita");
+        assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(luna));
+    }
 }

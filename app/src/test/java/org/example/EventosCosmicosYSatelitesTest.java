@@ -12,16 +12,22 @@ class EventosCosmicosYSatelitesTest {
     }
 
     @Test
-    void testMeteoritosDestruyenPlanetasInicialesSinEscudo() {
+    void testMeteoritosRestanDiezPorCientoYExtinguenCivilizacionSinEscudo() {
         simulacion.getProgresion().desbloquearTodo();
-        Planeta planetaInicial = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 0.3, Vector2D.cero());
+        Planeta planetaInicial = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
         simulacion.agregarCuerpo(planetaInicial);
+        double masaOriginal = planetaInicial.getMasa();
+        assertTrue(planetaInicial.tieneCivilizacion());
 
         Meteorito met = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
         simulacion.agregarCuerpo(met);
+        assertEquals(masaOriginal * 0.10, met.getMasa(), masaOriginal * 1e-6);
 
         simulacion.avanzarTick();
-        assertFalse(simulacion.getSistemaSolar().getCuerpos().contains(planetaInicial));
+        assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(planetaInicial));
+        assertEquals(masaOriginal * 0.90, planetaInicial.getMasa(), masaOriginal * 1e-6);
+        assertFalse(planetaInicial.tieneCivilizacion(), "La civilización debe extinguirse al impactar el meteorito");
+        assertEquals(0.0, planetaInicial.getCivilizacion().getPoblacion(), 1e-6);
     }
 
     @Test

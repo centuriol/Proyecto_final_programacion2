@@ -8,6 +8,7 @@ public final class ConfiguracionColisiones {
 
     public static final double RATIO_COLISION_COLAPSO = 1.3;
     public static final double RATIO_ABSORCION_MASA = 8.0;
+    public static final double RATIO_ABSORCION_PLANETA_LUNA = 150.0;
     public static final int FRAGMENTOS_POR_COLAPSO = 3;
     public static final int MAX_FRAGMENTOS_POR_COLAPSO = 8;
     public static final double FRACCION_MASA_DISIPADA = 0.10;
@@ -28,11 +29,12 @@ public final class ConfiguracionColisiones {
     public static final double DANO_METEORITO_MIN_FRACCION = DANO_METEORITO_INICIAL_FRACCION;
     public static final double DANO_METEORITO_MAX_FRACCION = DANO_METEORITO_PROGRESO_ALTO_FRACCION;
     public static final double UMBRAL_EXPLOSION_MASA_FRACCION = 0.30;
+    public static final double FRACCION_MASA_METEORITO_PLANETA_MAX = 0.10;
 
     // Topes fisicos y visuales reducidos y escalables para meteoritos y escombros
     public static final double MASA_MINIMA_METEORITO = 1.0e17;
     public static final double MASA_METEORITO_PROGRESO_BAJO = 1.0e18;
-    public static final double MASA_MAXIMA_METEORITO = 5.0e20;
+    public static final double MASA_MAXIMA_METEORITO = 5.97e24;
 
     public static final double RADIO_MINIMO_METEORITO = 1.5;
     public static final double RADIO_METEORITO_PROGRESO_BAJO = 2.2;

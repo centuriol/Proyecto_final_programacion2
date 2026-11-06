@@ -155,4 +155,71 @@ class OrbitasYDinamicaTest {
         Vector2D vRelLuna = luna.getVelocidad().restar(tierra.getVelocidad());
         assertTrue(vRelLuna.magnitud() < 2.5);
     }
+
+    @Test
+    void testLunaOrbitaPlanetaSiMasaPlanetaMenorA150VecesLuna() {
+        List<CuerpoCeleste> cuerpos = new ArrayList<>();
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Vector2D posPlaneta = new Vector2D(320, 0);
+        Vector2D velPlaneta = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, posPlaneta, false);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(posPlaneta.x(), posPlaneta.y(), 1.0, velPlaneta);
+        planeta.setCuerpoOrbitado(sol);
+
+        // Planeta 1.0x (~5.97e24) vs Luna 1.0x (~7.34e22) -> ratio ~81.3x < 150x
+        Luna luna = new CuerpoCelesteFactory().crearLuna(posPlaneta.x() + 65, posPlaneta.y(), 1.0, velPlaneta);
+        cuerpos.add(sol);
+        cuerpos.add(planeta);
+        cuerpos.add(luna);
+
+        for (int i = 0; i < 60; i++) {
+            motorFisica.avanzarPaso(cuerpos);
+        }
+
+        assertTrue(cuerpos.contains(luna), "La luna no debe ser comida si el planeta tiene menos de 150 veces su masa");
+        assertTrue(luna.estaOrbitando(planeta), "La luna debe orbitar al planeta y no al sol");
+    }
+
+    @Test
+    void testPlanetaComeLunaSiTieneAlMenos150VecesSuMasa() {
+        List<CuerpoCeleste> cuerpos = new ArrayList<>();
+        // Planeta 2.0x (~1.194e25) vs Luna 1.0x (~7.34e22) -> ratio ~162.6x >= 150x
+        Planeta planetaMasivo = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 2.0, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLuna(60, 0, 1.0, Vector2D.cero());
+        cuerpos.add(planetaMasivo);
+        cuerpos.add(luna);
+
+        double masaInicialPlaneta = planetaMasivo.getMasa();
+        for (int i = 0; i < 60 && cuerpos.contains(luna); i++) {
+            motorFisica.avanzarPaso(cuerpos);
+        }
+
+        assertFalse(cuerpos.contains(luna), "El planeta debe comerse a la luna cuando tiene >= 150 veces su masa");
+        assertTrue(planetaMasivo.getMasa() > masaInicialPlaneta);
+    }
+
+    @Test
+    void testMeteoritoEsIndependienteAGravedadDelSolYVaDirectoAlPlaneta() {
+        List<CuerpoCeleste> cuerpos = new ArrayList<>();
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta objetivo = new CuerpoCelesteFactory().crearPlanetaRocoso(320, 0, 1.0, Vector2D.cero());
+        Meteorito meteorito = new Meteorito(
+                "Met-Directo",
+                objetivo.getMasa() * 0.10,
+                -200, 30,
+                new Vector2D(8.0, 0),
+                600,
+                false,
+                objetivo
+        );
+        cuerpos.add(sol);
+        cuerpos.add(objetivo);
+        cuerpos.add(meteorito);
+
+        for (int i = 0; i < 15; i++) {
+            motorFisica.avanzarPaso(cuerpos);
+        }
+
+        assertFalse(meteorito.estaOrbitando(), "El meteorito nunca debe ponerse a orbitar el sol");
+        assertEquals(0.0, meteorito.getFuerza().magnitud(), 1e-6, "El meteorito debe ser independiente a la gravedad del sol");
+    }
 }

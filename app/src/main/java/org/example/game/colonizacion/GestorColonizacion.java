@@ -59,6 +59,85 @@ public class GestorColonizacion {
         return Optional.empty();
     }
 
+    public double calcularCostoCienciaPoblar(org.example.game.cuerpo.TipoCuerpo tipo) {
+        if (tipo == null) return ConfiguracionSimulacion.COSTO_POBLAR_OTRO_CIENCIA;
+        return switch (tipo) {
+            case PLANETA_AGUA -> ConfiguracionSimulacion.COSTO_POBLAR_AGUA_CIENCIA;
+            case PLANETA_LAVA -> ConfiguracionSimulacion.COSTO_POBLAR_LAVA_CIENCIA;
+            default -> ConfiguracionSimulacion.COSTO_POBLAR_OTRO_CIENCIA;
+        };
+    }
+
+    public List<Planeta> obtenerPlanetasOrigenParaPoblar(CuerpoCeleste destino, List<CuerpoCeleste> cuerpos) {
+        if (cuerpos == null) return List.of();
+        List<Planeta> candidatos = new ArrayList<>();
+        for (CuerpoCeleste c : cuerpos) {
+            if (c instanceof Planeta p && p != destino && p.esSimulado()
+                    && p.tieneCivilizacion() && p.getCivilizacion() != null
+                    && p.getCivilizacion().getPoblacion() >= ConfiguracionSimulacion.UMBRAL_POBLACION_PORRO_POBLAR) {
+                candidatos.add(p);
+            }
+        }
+        candidatos.sort((a, b) -> Double.compare(
+                b.getCivilizacion().getPoblacion(),
+                a.getCivilizacion().getPoblacion()));
+        return candidatos;
+    }
+
+    public Planeta buscarPlanetaPorroOrigen(List<CuerpoCeleste> cuerpos) {
+        List<Planeta> candidatos = obtenerPlanetasOrigenParaPoblar(null, cuerpos);
+        return candidatos.isEmpty() ? null : candidatos.get(0);
+    }
+
+    public boolean puedePoblar(CuerpoCeleste destino, List<CuerpoCeleste> cuerpos, InventarioJugador inventario) {
+        if (destino == null || inventario == null) return false;
+        Colonizable colDestino = obtenerColonizable(destino).orElse(null);
+        if (colDestino == null || !colDestino.puedeSerColonizado()) return false;
+        if (obtenerPlanetasOrigenParaPoblar(destino, cuerpos).isEmpty()) return false;
+        double costoCiencia = calcularCostoCienciaPoblar(destino.getTipoCuerpo());
+        return inventario.getRecurso(TipoRecurso.CIENCIA) >= costoCiencia;
+    }
+
+    public boolean poblar(CuerpoCeleste destino, List<CuerpoCeleste> cuerpos, InventarioJugador inventario,
+                          Consumer<MensajeEvento> emisorEventos, long tickActual) {
+        List<Planeta> origenes = obtenerPlanetasOrigenParaPoblar(destino, cuerpos);
+        Planeta origenPorDefecto = origenes.isEmpty() ? null : origenes.get(0);
+        return poblarDesde(origenPorDefecto, destino, cuerpos, inventario, emisorEventos, tickActual);
+    }
+
+    public boolean poblarDesde(Planeta origen, CuerpoCeleste destino, List<CuerpoCeleste> cuerpos,
+                               InventarioJugador inventario, Consumer<MensajeEvento> emisorEventos, long tickActual) {
+        List<Planeta> origenesValidos = obtenerPlanetasOrigenParaPoblar(destino, cuerpos);
+        if (!puedePoblar(destino, cuerpos, inventario) || origen == null || !origenesValidos.contains(origen)) {
+            if (emisorEventos != null) {
+                emisorEventos.accept(new MensajeEvento(
+                        "No se cumplen los requisitos para poblar (planeta origen con +1000 hab. y Ciencia suficiente).",
+                        MensajeEvento.TipoMensaje.ADVERTENCIA,
+                        tickActual
+                ));
+            }
+            return false;
+        }
+
+        Colonizable colDestino = obtenerColonizable(destino).orElse(null);
+        double costoCiencia = calcularCostoCienciaPoblar(destino.getTipoCuerpo());
+        inventario.gastarRecurso(TipoRecurso.CIENCIA, costoCiencia);
+
+        double colonos = Math.max(100.0, origen.getCivilizacion().getPoblacion() * ConfiguracionSimulacion.PORCENTAJE_POBLACION_COLONIZADORA);
+        origen.getCivilizacion().restarPoblacion(colonos);
+        colDestino.recibirColonos(colonos);
+
+        if (emisorEventos != null) {
+            emisorEventos.accept(new MensajeEvento(
+                    "Planeta " + destino.getNombre() + " poblado desde " + origen.getNombre()
+                            + " con " + (int) colonos + " habitantes (-" + (int) costoCiencia + " Ciencia).",
+                    MensajeEvento.TipoMensaje.EXITO,
+                    tickActual
+            ));
+        }
+        return true;
+    }
+
     public boolean puedeColonizar(Planeta origen, InventarioJugador inventario) {
         if (origen == null || !origen.tieneCivilizacion() || origen.getCivilizacion() == null) {
             return false;

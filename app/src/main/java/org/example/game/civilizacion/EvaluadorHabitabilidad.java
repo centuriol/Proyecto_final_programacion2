@@ -79,8 +79,13 @@ public class EvaluadorHabitabilidad {
         double factorLuminosidad = Math.pow(Math.max(0.0, estrella.getMasa()) / masaSol, 3.5);
         double distIdeal = Math.max(0.001, Math.sqrt(factorLuminosidad) * 150);
         double ratioZona = distEstrella / distIdeal;
-        boolean enZona = ratioZona >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
-                && ratioZona <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX;
+        boolean enRanuraSolar = distEstrella >= 100.0 && distEstrella <= 700.0;
+        if (enRanuraSolar) {
+            ratioZona = (ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
+                    + ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX) / 2.0;
+        }
+        boolean enZona = enRanuraSolar || (ratioZona >= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MIN
+                && ratioZona <= ConfiguracionSimulacion.DISTANCIA_ZONA_HABITABLE_MAX);
         double dist2 = Math.max(0.001, distEstrella * distEstrella);
         double flujo = factorLuminosidad / dist2;
         return new EvaluacionEstelar(distIdeal, ratioZona, enZona, flujo);

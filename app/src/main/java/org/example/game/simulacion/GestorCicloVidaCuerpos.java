@@ -26,20 +26,14 @@ public class GestorCicloVidaCuerpos {
     private final BusEventos busEventos;
     private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
 
-    public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar,
-                                  ValidadorColocacionCuerpos validador,
-                                  SistemaProgresion progresion,
-                                  InventarioJugador inventario,
-                                  BusEventos busEventos) {
-        this(sistemaSolar, validador, progresion, inventario, busEventos, new org.example.game.cuerpo.CuerpoCelesteFactory());
+    public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar, ValidadorColocacionCuerpos validador,
+                                  SistemaProgresion progresion, InventarioJugador inventario, BusEventos busEventos) {
+        this(sistemaSolar, validador, progresion, inventario, busEventos, new CuerpoCelesteFactory());
     }
 
-    public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar,
-                                  ValidadorColocacionCuerpos validador,
-                                  SistemaProgresion progresion,
-                                  InventarioJugador inventario,
-                                  BusEventos busEventos,
-                                  org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
+    public GestorCicloVidaCuerpos(SistemaSolar sistemaSolar, ValidadorColocacionCuerpos validador,
+                                  SistemaProgresion progresion, InventarioJugador inventario,
+                                  BusEventos busEventos, org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
         this.sistemaSolar = sistemaSolar;
         this.validador = validador;
         this.progresion = progresion;
@@ -97,19 +91,29 @@ public class GestorCicloVidaCuerpos {
     }
 
     public boolean validarRequisitosColocacion(TipoCuerpo tipo, double factorMasa, java.util.function.BiConsumer<String, MensajeEvento.TipoMensaje> notificador) {
-        return validador.validar(
-                tipo,
-                factorMasa,
-                getCantidadPlanetasActuales(),
-                progresion,
-                inventario,
-                notificador
-        );
+        return validador.validar(tipo, factorMasa, getCantidadPlanetasActuales(), progresion, inventario, notificador);
     }
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
+        if (cuerpo != null && cuerpo.getTipoCuerpo() == TipoCuerpo.METEORITO
+                && (cuerpo.getNombre() == null || !cuerpo.getNombre().startsWith("Escombro"))) {
+            double masaMaxPlaneta = obtenerMasaMaximaPlaneta();
+            if (masaMaxPlaneta > 0.0) {
+                cuerpo.setMasa(masaMaxPlaneta * ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX);
+            }
+        }
         sistemaSolar.agregarCuerpo(cuerpo);
         busEventos.notificarCambioEstado();
+    }
+
+    private double obtenerMasaMaximaPlaneta() {
+        double max = 0.0;
+        for (CuerpoCeleste c : sistemaSolar.getCuerpos()) {
+            if (c != null && c.esSimulado() && c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta()) {
+                max = Math.max(max, c.getMasa());
+            }
+        }
+        return max;
     }
 
     public void eliminarCuerpo(CuerpoCeleste cuerpo) {
@@ -134,6 +138,8 @@ public class GestorCicloVidaCuerpos {
 
         busEventos.notificarCambioEstado();
     }
+
+    public List<CuerpoCeleste> getCuerpos() { return sistemaSolar.getCuerpos(); }
 
     public void limpiarCuerpos() {
         sistemaSolar.getCuerpos().clear();

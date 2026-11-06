@@ -126,12 +126,14 @@ class ColonizacionYEscudosTest {
         assertTrue(planeta.tieneEscudo());
         assertEquals(5, planeta.getGolpesEscudoRestantes());
 
-        CuerpoCeleste satelite = simulacion.getSistemaSolar().getCuerpos().stream()
-                .filter(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE && c.estaOrbitando(planeta))
-                .findFirst()
-                .orElse(null);
+        boolean creoSateliteAutomatico = simulacion.getSistemaSolar().getCuerpos().stream()
+                .anyMatch(c -> c.getTipoCuerpo() == TipoCuerpo.SATELITE);
+        assertFalse(creoSateliteAutomatico, "Activar el escudo no debe desplegar un satélite automáticamente");
 
-        assertNotNull(satelite);
+        Satelite satelite = new CuerpoCelesteFactory().crearSatelite(25, 0, 1.0, Vector2D.cero());
+        satelite.setCuerpoOrbitado(planeta);
+        simulacion.agregarCuerpo(satelite);
+
         assertEquals(ConfiguracionSimulacion.PRODUCCION_SATELITE_CIENCIA, satelite.getTipoCuerpo().getProduccionBase().get(TipoRecurso.CIENCIA), 1e-6);
         assertEquals(ConfiguracionSimulacion.PRODUCCION_SATELITE_ENERGIA, satelite.getTipoCuerpo().getProduccionBase().get(TipoRecurso.ENERGIA), 1e-6);
         assertNull(satelite.getTipoCuerpo().getProduccionBase().get(TipoRecurso.MINERALES));
@@ -199,5 +201,109 @@ class ColonizacionYEscudosTest {
         assertTrue(costoGrande > costoNormal);
         assertTrue(costoColosal > costoGrande);
         assertEquals(ConfiguracionSimulacion.COSTO_ACTIVACION_ESCUDO_ENERGIA * 5.0, costoColosal, 1e-6);
+    }
+
+    @Test
+    void testOpcionPoblarConPlanetaPorroMilHabitantesYCienciaAguaMasBaratoQueLava() {
+        var gestorCol = simulacion.getGestorColonizacion();
+        double costoAgua = gestorCol.calcularCostoCienciaPoblar(TipoCuerpo.PLANETA_AGUA);
+        double costoLava = gestorCol.calcularCostoCienciaPoblar(TipoCuerpo.PLANETA_LAVA);
+        assertTrue(costoAgua < costoLava, "Poblar un Planeta de Agua debe ser mas barato en Ciencia que poblar un Planeta Lava");
+
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(160, 0, 1.0, Vector2D.cero());
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(320, 0, 1.0, Vector2D.cero());
+        Planeta lava = new CuerpoCelesteFactory().crearPlanetaLava(480, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(porro);
+        simulacion.agregarCuerpo(agua);
+        simulacion.agregarCuerpo(lava);
+
+        // Con menos de 1000 habitantes en Planeta Porro, no se puede poblar aunque sobre ciencia
+        porro.getCivilizacion().setPoblacion(800);
+        simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, 2000);
+        assertFalse(gestorCol.puedePoblar(agua, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario()));
+
+        // Con >= 1000 habitantes y ciencia suficiente para Agua (300) pero no para Lava (750)
+        porro.getCivilizacion().setPoblacion(1200);
+        simulacion.getInventario().reiniciar();
+        simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, costoAgua + 50.0);
+        assertTrue(gestorCol.puedePoblar(agua, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario()));
+        assertFalse(gestorCol.puedePoblar(lava, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario()));
+
+        assertTrue(gestorCol.poblar(agua, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario(), null, 0));
+        assertTrue(agua.tieneCivilizacion(), "El Planeta de Agua debe quedar poblado tras ejecutar poblar()");
+    }
+
+    @Test
+    void testCrecimientoMasLentoEnOtrosPlanetasYBonusMaterialesX1_3AlEstarPoblado() {
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta porro = new CuerpoCelesteFactory().crearPlanetaRocoso(160, 0, 1.0,
+                org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, new Vector2D(160, 0), false));
+        Planeta agua = new CuerpoCelesteFactory().crearPlanetaAgua(320, 0, 1.0,
+                org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, new Vector2D(320, 0), false));
+
+        // Comparar producción antes y después de poblar Planeta de Agua
+        org.example.game.jugador.InventarioJugador invSinPoblar = new org.example.game.jugador.InventarioJugador();
+        org.example.game.simulacion.GestorEconomia econ = new org.example.game.simulacion.GestorEconomia();
+        double minBase = invSinPoblar.getRecurso(TipoRecurso.MINERALES);
+        econ.actualizarEconomia(List.of(agua), invSinPoblar);
+        double prodSinPoblar = invSinPoblar.getRecurso(TipoRecurso.MINERALES) - minBase;
+
+        agua.recibirColonos(500.0);
+        porro.getCivilizacion().setPoblacion(500.0);
+
+        org.example.game.jugador.InventarioJugador invPoblado = new org.example.game.jugador.InventarioJugador();
+        double minAntesPoblado = invPoblado.getRecurso(TipoRecurso.MINERALES);
+        econ.actualizarEconomia(List.of(agua), invPoblado);
+        double prodPoblado = invPoblado.getRecurso(TipoRecurso.MINERALES) - minAntesPoblado;
+
+        assertEquals(prodSinPoblar * ConfiguracionSimulacion.MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO, prodPoblado, 1e-5,
+                "Un planeta poblado debe otorgar x1.3 mas materiales");
+
+        List<CuerpoCeleste> sistema = List.of(sol, porro, agua);
+        for (int i = 0; i < 100; i++) {
+            porro.actualizarCivilizacion(sistema);
+            agua.actualizarCivilizacion(sistema);
+        }
+
+        double aumentoPorro = porro.getCivilizacion().getPoblacion() - 500.0;
+        double aumentoAgua = agua.getCivilizacion().getPoblacion() - 500.0;
+        assertTrue(aumentoAgua > 0, "La poblacion en Planeta de Agua debe crecer");
+        assertTrue(aumentoPorro > aumentoAgua * 2.5, "La poblacion en otros planetas debe crecer mucho mas despacio que en Planeta Porro");
+    }
+
+    @Test
+    void testPoblarDesdeCualquierPlanetaConMilHabitantesYElegirOrigenRestandoPoblacion() {
+        var gestorCol = simulacion.getGestorColonizacion();
+        simulacion.getInventario().agregarRecurso(TipoRecurso.CIENCIA, 5000);
+
+        // Sin Planeta Porro: un Planeta de Agua poblado con >= 1000 habitantes puede poblar un Planeta Lava
+        Planeta aguaOrigen = new CuerpoCelesteFactory().crearPlanetaAgua(160, 0, 1.0, Vector2D.cero());
+        Planeta lavaDestino = new CuerpoCelesteFactory().crearPlanetaLava(320, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(aguaOrigen);
+        simulacion.agregarCuerpo(lavaDestino);
+
+        aguaOrigen.recibirColonos(1500.0);
+        assertTrue(gestorCol.puedePoblar(lavaDestino, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario()),
+                "Un Planeta de Agua con +1000 habitantes debe poder poblar otros planetas aunque no haya Planeta Porro");
+
+        // Si agregamos otro planeta con +1000 habitantes, ambos aparecen como opciones de origen y se resta población al elegido
+        Planeta porroOrigen = new CuerpoCelesteFactory().crearPlanetaRocoso(480, 0, 1.0, Vector2D.cero());
+        simulacion.agregarCuerpo(porroOrigen);
+        porroOrigen.getCivilizacion().setPoblacion(2000.0);
+
+        List<Planeta> origenes = gestorCol.obtenerPlanetasOrigenParaPoblar(lavaDestino, simulacion.getSistemaSolar().getCuerpos());
+        assertEquals(2, origenes.size(), "Deben listarse ambos planetas con +1000 habitantes para elegir cual poblara al destino");
+        assertTrue(origenes.contains(aguaOrigen) && origenes.contains(porroOrigen));
+
+        double pobAguaAntes = aguaOrigen.getCivilizacion().getPoblacion();
+        double pobPorroAntes = porroOrigen.getCivilizacion().getPoblacion();
+
+        // Elegimos poblar desde aguaOrigen específicamente
+        assertTrue(gestorCol.poblarDesde(aguaOrigen, lavaDestino, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario(), null, 0));
+        assertTrue(lavaDestino.tieneCivilizacion(), "El planeta destino debe quedar poblado");
+        assertTrue(aguaOrigen.getCivilizacion().getPoblacion() < pobAguaAntes,
+                "Se debe restar la poblacion del planeta elegido que puebla al otro");
+        assertEquals(pobPorroAntes, porroOrigen.getCivilizacion().getPoblacion(), 1e-6,
+                "El planeta que no fue elegido no debe perder poblacion");
     }
 }

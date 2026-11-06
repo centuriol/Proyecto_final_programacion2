@@ -193,8 +193,27 @@ class CivilizacionSinergiaTest {
         double distFinalTierra = tierra.getPosicion().distanciaA(sol.getPosicion());
         double distFinalMarte = marte.getPosicion().distanciaA(sol.getPosicion());
 
-        assertEquals(160.0, distFinalTierra, 5.0);
-        assertEquals(280.0, distFinalMarte, 5.0);
+        assertEquals(160.0, distFinalTierra, 1.0);
+        assertEquals(320.0, distFinalMarte, 1.0);
+    }
+
+    @Test
+    void testCuatroRanurasOrbitalesSeparadasYVelocidadFijaPorRanura() {
+        double[] radios = org.example.game.render.capa.CapaZonasHabitables.getRadiosReferenciaOrbital();
+        assertEquals(4, radios.length);
+        assertEquals(160.0, radios[0], 1e-6);
+        assertEquals(320.0, radios[1], 1e-6);
+        assertEquals(480.0, radios[2], 1e-6);
+        assertEquals(640.0, radios[3], 1e-6);
+
+        Estrella solChico = new CuerpoCelesteFactory().crearEstrella(0, 0, 0.3);
+        Estrella solGrande = new CuerpoCelesteFactory().crearEstrella(0, 0, 5.0);
+
+        for (double rRanura : radios) {
+            double vChico = org.example.game.motor.CalculadorOrbital.calcularRapidezOrbital(solChico.getMasa(), rRanura);
+            double vGrande = org.example.game.motor.CalculadorOrbital.calcularRapidezOrbital(solGrande.getMasa(), rRanura);
+            assertEquals(vChico, vGrande, 1e-9, "La velocidad orbital debe ser identica por ranura sin importar la masa del Sol");
+        }
     }
 
     @Test

@@ -35,7 +35,14 @@ public class GestorEconomia {
 
             double factorCiv = org.example.game.cuerpo.RegistroCapacidades.obtenerCivilizable(c)
                     .filter(civ -> civ.tieneCivilizacion() && civ.getCivilizacion() != null)
-                    .map(civ -> civ.getCivilizacion().calcularMultiplicadorProduccion())
+                    .map(civ -> {
+                        double multBase = civ.getCivilizacion().calcularMultiplicadorProduccion();
+                        boolean esPoblado = tipo != TipoCuerpo.PLANETA_ROCOSO
+                                || civ.getCivilizacion().getPoblacion() >= 100.0;
+                        return esPoblado
+                                ? multBase * ConfiguracionEconomia.MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO
+                                : multBase;
+                    })
                     .orElse(1.0);
 
             for (Map.Entry<TipoRecurso, Double> entry : produccionEscalada.entrySet()) {

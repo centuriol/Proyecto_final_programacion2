@@ -97,11 +97,23 @@ public class ResolvedorColisiones {
 
     public void resolverColision(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         if (a == null || b == null) return;
-        ContextoColision ctx = new ContextoColision(aEliminar, aAgregar, listenerMensaje, listenerNotificacion, listenerExplosion);
+        boolean[] explosionEmitida = {false};
+        BiConsumer<Vector2D, Double> emisorConRegistro = (pos, radio) -> {
+            explosionEmitida[0] = true;
+            if (listenerExplosion != null) {
+                listenerExplosion.accept(pos, radio);
+            }
+        };
+        ContextoColision ctx = new ContextoColision(aEliminar, aAgregar, listenerMensaje, listenerNotificacion, emisorConRegistro);
 
         for (ReglaColision regla : reglas) {
             if (regla.aplica(a, b)) {
+                Vector2D posColision = a.getPosicion().sumar(b.getPosicion()).multiplicar(0.5);
+                double radioColision = Math.max(18.0, Math.max(a.getRadio(), b.getRadio()) * 1.8);
                 regla.resolver(a, b, ctx);
+                if (!explosionEmitida[0]) {
+                    ctx.emitirExplosion(posColision, radioColision);
+                }
                 return;
             }
         }

@@ -16,7 +16,9 @@ public class BuscadorOrbitaLibre {
     }
 
     public Vector2D buscarPosicionLibre(CuerpoCeleste cuerpo, CuerpoCeleste estrella, double radioActivacion, List<CuerpoCeleste> cuerpos) {
-        double radioBase = radioActivacion + 40.0;
+        double radioBase = radioActivacion >= CalculadorOrbital.RADIOS_RANURAS_SOL[0] - 10.0
+                ? CalculadorOrbital.RADIOS_RANURAS_SOL[1]
+                : CalculadorOrbital.RADIOS_RANURAS_SOL[0];
         Vector2D dirActual = cuerpo.getPosicion().restar(estrella.getPosicion());
         double anguloActual = (dirActual.magnitud() > 0.001) ? Math.atan2(dirActual.y(), dirActual.x()) : 0.0;
 

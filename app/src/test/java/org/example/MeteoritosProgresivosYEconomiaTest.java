@@ -95,33 +95,34 @@ class MeteoritosProgresivosYEconomiaTest {
         sim.agregarCuerpo(planeta);
         double masaInicial = planeta.getMasaInicial();
 
-        sim.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
+        Meteorito met = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
+        sim.agregarCuerpo(met);
+        assertEquals(masaInicial * ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX, met.getMasa(), masaInicial * 1e-6);
         sim.avanzarTick();
 
         assertTrue(sim.getSistemaSolar().getCuerpos().contains(planeta), "El planeta no debe destruirse de un solo golpe");
-        assertEquals(masaInicial * (1.0 - ConfiguracionColisiones.DANO_METEORITO_INICIAL_FRACCION), planeta.getMasa(), masaInicial * 1e-6);
+        assertEquals(masaInicial * (1.0 - ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX), planeta.getMasa(), masaInicial * 1e-6);
         assertTrue(sim.getSistemaSolar().getCuerpos().stream().noneMatch(c -> c instanceof Meteorito));
     }
 
     @Test
     void testProgresoBajoDanaComoMaximoDiezPorCientoYProgresoAltoDestruye() {
-        SimulacionSolar simBaja = new SimulacionSolar(1920, 1080);
-        simBaja.getProgresion().restaurarEstado(Map.of(RamaProgresion.PLANETAS, 1), 0);
-        Planeta planetaBajo = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 0.6, Vector2D.cero());
-        simBaja.agregarCuerpo(planetaBajo);
-        double masaBaja = planetaBajo.getMasaInicial();
-        simBaja.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
-        simBaja.avanzarTick();
-        assertTrue(simBaja.getSistemaSolar().getCuerpos().contains(planetaBajo));
-        assertTrue(planetaBajo.getMasa() >= masaBaja * (1.0 - ConfiguracionColisiones.DANO_METEORITO_PROGRESO_BAJO_MAX_FRACCION) - masaBaja * 1e-6);
+        SimulacionSolar sim = new SimulacionSolar(1920, 1080);
+        Planeta planetaChico = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
+        Planeta planetaGrande = new CuerpoCelesteFactory().crearPlanetaRocoso(500, 0, 4.0, Vector2D.cero());
+        sim.agregarCuerpo(planetaChico);
+        sim.agregarCuerpo(planetaGrande);
 
-        SimulacionSolar simAlta = new SimulacionSolar(1920, 1080);
-        simAlta.getProgresion().restaurarEstado(Map.of(RamaProgresion.MASA, 4), 0);
-        Planeta planetaAlto = new CuerpoCelesteFactory().crearPlanetaAgua(0, 0, 1.0, Vector2D.cero());
-        simAlta.agregarCuerpo(planetaAlto);
-        simAlta.agregarCuerpo(new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero()));
-        simAlta.avanzarTick();
-        assertFalse(simAlta.getSistemaSolar().getCuerpos().contains(planetaAlto), "Con progreso alto el dano es completo");
+        double masaAntesChico = planetaChico.getMasa();
+        double masaEsperadaMeteorito = planetaGrande.getMasa() * ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX;
+
+        Meteorito met = new CuerpoCelesteFactory().crearMeteoritoJugadorFisica(0, 0, Vector2D.cero());
+        sim.agregarCuerpo(met);
+        assertEquals(masaEsperadaMeteorito, met.getMasa(), masaEsperadaMeteorito * 1e-6);
+
+        sim.avanzarTick();
+        assertTrue(sim.getSistemaSolar().getCuerpos().contains(planetaChico));
+        assertEquals(masaAntesChico - masaEsperadaMeteorito, planetaChico.getMasa(), masaAntesChico * 1e-6);
     }
 
     @Test

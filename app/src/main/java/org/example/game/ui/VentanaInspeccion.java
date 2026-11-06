@@ -106,11 +106,88 @@ public class VentanaInspeccion {
                 datosFisicos.getChildren().add(construirTarjetaCivilizacion(civ.getCivilizacion()));
             }
         });
+        if (simulacion != null && simulacion.getGestorColonizacion().puedePoblar(
+                cuerpo, simulacion.getSistemaSolar().getCuerpos(), simulacion.getInventario())) {
+            datosFisicos.getChildren().add(construirTarjetaPoblar(stage));
+        }
         org.example.game.cuerpo.ServicioEscudo.getInstanciaPorDefecto().obtenerDefensor(cuerpo).ifPresent(def -> {
             if (def.puedeRecibirEscudo()) {
                 datosFisicos.getChildren().add(construirTarjetaEscudo(def, stage));
             }
         });
+    }
+
+    private VBox construirTarjetaPoblar(Stage stage) {
+        VBox poblarBox = new VBox(6);
+        poblarBox.setPadding(new Insets(10));
+        poblarBox.setStyle("-fx-background-color: #1a1c26; -fx-border-color: #50fa7b; -fx-border-width: 1px; -fx-background-radius: 4px;");
+
+        Label lblTitulo = new Label("POBLAR PLANETA (COLONIZACIÓN)");
+        lblTitulo.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        lblTitulo.setTextFill(TemaUI.COLOR_VERDE_EXITO);
+
+        double costoCiencia = simulacion.getGestorColonizacion().calcularCostoCienciaPoblar(cuerpo.getTipoCuerpo());
+        Label lblCosto = new Label(String.format("• Costo: %.0f Ciencia | Bonificación materiales: x1.3", costoCiencia));
+        lblCosto.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+        lblCosto.setTextFill(Color.web("#d1d5db"));
+
+        java.util.List<Planeta> origenes = simulacion.getGestorColonizacion()
+                .obtenerPlanetasOrigenParaPoblar(cuerpo, simulacion.getSistemaSolar().getCuerpos());
+        ComboBox<Planeta> comboOrigen = crearSelectorPlanetaOrigen(origenes);
+
+        Button btnPoblar = new Button(String.format("Poblar (%.0f Ciencia)", costoCiencia));
+        btnPoblar.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        btnPoblar.setStyle(TemaUI.CSS_BTN_PRIMARIO);
+        btnPoblar.setOnAction(e -> {
+            Planeta origenElegido = comboOrigen.getValue() != null ? comboOrigen.getValue()
+                    : (origenes.isEmpty() ? null : origenes.get(0));
+            simulacion.getGestorColonizacion().poblarDesde(
+                    origenElegido,
+                    cuerpo,
+                    simulacion.getSistemaSolar().getCuerpos(),
+                    simulacion.getInventario(),
+                    ev -> simulacion.notificarEvento(ev.mensaje(), ev.tipo()),
+                    simulacion.getReloj().getTickActual()
+            );
+            stage.close();
+        });
+
+        poblarBox.getChildren().addAll(lblTitulo, lblCosto);
+        if (origenes.size() > 1) {
+            Label lblElegir = new Label("• Elegir planeta que poblará (-10% pob.):");
+            lblElegir.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+            lblElegir.setTextFill(Color.web("#d1d5db"));
+            poblarBox.getChildren().addAll(lblElegir, comboOrigen);
+        } else if (origenes.size() == 1) {
+            Planeta u = origenes.get(0);
+            Label lblOrigen = new Label(String.format("• Origen: %s (%.0f hab.)", u.getNombre(), u.getCivilizacion().getPoblacion()));
+            lblOrigen.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
+            lblOrigen.setTextFill(Color.web("#d1d5db"));
+            poblarBox.getChildren().add(lblOrigen);
+        }
+        poblarBox.getChildren().add(btnPoblar);
+        return poblarBox;
+    }
+
+    private ComboBox<Planeta> crearSelectorPlanetaOrigen(java.util.List<Planeta> origenes) {
+        ComboBox<Planeta> combo = new ComboBox<>();
+        combo.getItems().addAll(origenes);
+        if (!origenes.isEmpty()) {
+            combo.getSelectionModel().selectFirst();
+        }
+        combo.setMaxWidth(Double.MAX_VALUE);
+        javafx.util.StringConverter<Planeta> converter = new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Planeta p) {
+                if (p == null) return "";
+                int pob = p.getCivilizacion() != null ? (int) p.getCivilizacion().getPoblacion() : 0;
+                return p.getNombre() + " (" + p.getTipoCuerpo().nombre + " - " + pob + " hab.)";
+            }
+            @Override
+            public Planeta fromString(String s) { return null; }
+        };
+        combo.setConverter(converter);
+        return combo;
     }
 
     private VBox construirTarjetaCivilizacion(CivilizacionComponent comp) {
@@ -182,7 +259,14 @@ public class VentanaInspeccion {
                 .orElse(false);
         Map<TipoRecurso, Double> prod = transformado
                 ? Collections.emptyMap()
-                : InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa);
+                : new java.util.EnumMap<>(InventarioJugador.getProduccionEscaladaPorTick(tipo, factorMasa));
+        boolean esPoblado = RegistroCapacidades.obtenerCivilizable(cuerpo)
+                .map(civ -> civ.tieneCivilizacion() && (tipo != TipoCuerpo.PLANETA_ROCOSO
+                        || (civ.getCivilizacion() != null && civ.getCivilizacion().getPoblacion() >= 100.0)))
+                .orElse(false);
+        if (esPoblado && !prod.isEmpty()) {
+            prod.replaceAll((k, v) -> v * org.example.game.simulacion.ConfiguracionEconomia.MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO);
+        }
         seccionInfo.poblarListaProduccion(prodBox, prod);
         return prodBox;
     }

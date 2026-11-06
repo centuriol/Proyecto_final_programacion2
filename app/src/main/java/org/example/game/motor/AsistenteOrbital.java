@@ -42,6 +42,11 @@ public class AsistenteOrbital {
      * Retorna el cuerpo orbitando si se estableció un enlace orbital, o null.
      */
     public CuerpoCeleste[] verificarYCapturarOrbita(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje) {
+        if (debeRomperOrbitaPorMasa(ci, cj)) {
+            if (ci.estaOrbitando(cj)) ci.setCuerpoOrbitado(null);
+            if (cj.estaOrbitando(ci)) cj.setCuerpoOrbitado(null);
+            return null;
+        }
         if (ci.estaOrbitando(cj)) {
             return new CuerpoCeleste[]{ci, cj};
         } else if (cj.estaOrbitando(ci)) {
@@ -57,8 +62,22 @@ public class AsistenteOrbital {
         return null;
     }
 
+    private static boolean debeRomperOrbitaPorMasa(CuerpoCeleste a, CuerpoCeleste b) {
+        if (a.getTipoCuerpo() == TipoCuerpo.LUNA && b.getTipoCuerpo() != null && b.getTipoCuerpo().esPlaneta()) {
+            return b.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * a.getMasa();
+        }
+        if (b.getTipoCuerpo() == TipoCuerpo.LUNA && a.getTipoCuerpo() != null && a.getTipoCuerpo().esPlaneta()) {
+            return a.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * b.getMasa();
+        }
+        return false;
+    }
+
     public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
-        if (orbitando.getMasa() < 1e24 && anfitrion.getMasa() >= 1e24 && anfitrion.getMasa() < 1e29) {
+        boolean esMenorEnPlaneta = orbitando.getTipoCuerpo() != null
+                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
+                && anfitrion.getTipoCuerpo() != null
+                && anfitrion.getTipoCuerpo().esPlaneta();
+        if (esMenorEnPlaneta) {
             return Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
         }
         return anfitrion.getRadio() + orbitando.getRadio() + 5.0;
@@ -88,9 +107,12 @@ public class AsistenteOrbital {
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         double limiteEscape;
-        boolean esMenorAlrededorDePlaneta = orbitando.getMasa() < 1e23 && anfitrion.getMasa() <= 1e28 && anfitrion.getMasa() >= 1e22;
+        boolean esMenorAlrededorDePlaneta = orbitando.getTipoCuerpo() != null
+                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
+                && anfitrion.getTipoCuerpo() != null
+                && anfitrion.getTipoCuerpo().esPlaneta();
         if (esMenorAlrededorDePlaneta) {
-            limiteEscape = Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0);
+            limiteEscape = Math.max(anfitrion.getRadioAtraccion() * 4.0, 350.0);
         } else {
             limiteEscape = 1500.0;
         }
@@ -105,8 +127,13 @@ public class AsistenteOrbital {
         Vector2D uRadial = r.dividir(d);
 
         double rDeseado = orbitando.getRadioOrbita();
-        if (rDeseado <= 0) {
-            rDeseado = d;
+        boolean esPlanetaEnSol = anfitrion.getTipoCuerpo() == TipoCuerpo.ESTRELLA
+                && orbitando.getTipoCuerpo() != null
+                && orbitando.getTipoCuerpo().esPlaneta();
+        if (rDeseado <= 0 || (esPlanetaEnSol && Math.abs(d - rDeseado) > 250.0)) {
+            rDeseado = (esPlanetaEnSol && d > org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA)
+                    ? CalculadorOrbital.ajustarARanuraSolar(d)
+                    : d;
             orbitando.setRadioOrbita(rDeseado);
         }
 
@@ -116,7 +143,20 @@ public class AsistenteOrbital {
             orbitando.setRadioOrbita(rDeseado);
         }
 
-        if (Math.abs(d - rDeseado) > 0.01) {
+        boolean enRanuraSolar = esPlanetaEnSol && rDeseado >= CalculadorOrbital.RADIOS_RANURAS_SOL[0] - 1.0;
+        if (enRanuraSolar) {
+            double diff = rDeseado - d;
+            if (Math.abs(diff) <= 0.8) {
+                d = rDeseado;
+            } else {
+                double paso = diff * 0.15;
+                if (Math.abs(paso) < 0.8) {
+                    paso = Math.copySign(0.8, diff);
+                }
+                d = d + paso;
+            }
+            orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(d)));
+        } else if (Math.abs(d - rDeseado) > 0.01) {
             double dAjustado = d + (rDeseado - d) * 0.15;
             orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(dAjustado)));
             d = dAjustado;
@@ -128,7 +168,11 @@ public class AsistenteOrbital {
         double vOrbIdeal = calcularVelocidadOrbitalIdeal(orbitando, anfitrion, rDeseado);
 
         Vector2D vDeseada = anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vOrbIdeal));
-        orbitando.setVelocidad(orbitando.getVelocidad().sumar(vDeseada.restar(orbitando.getVelocidad()).multiplicar(0.15)));
+        if (enRanuraSolar || esMenorAlrededorDePlaneta) {
+            orbitando.setVelocidad(vDeseada);
+        } else {
+            orbitando.setVelocidad(orbitando.getVelocidad().sumar(vDeseada.restar(orbitando.getVelocidad()).multiplicar(0.15)));
+        }
 
         double aCentripeta = (vOrbIdeal * vOrbIdeal) / Math.max(1.0, d);
         Vector2D fCentripeta = uRadial.multiplicar(-1.0 * orbitando.getMasa() * aCentripeta);
@@ -144,6 +188,12 @@ public class AsistenteOrbital {
         if (asistenciaOrbital <= 0) return;
 
         for (CuerpoCeleste c : cuerpos) {
+            if (c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+                continue;
+            }
+            if (c.getTipoCuerpo() != null && c.getTipoCuerpo().puedeOrbitarPlanetas()) {
+                continue;
+            }
             if (c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
                 continue;
             }
@@ -187,7 +237,10 @@ public class AsistenteOrbital {
 
     public double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
         double d = Math.max(10.0, rOrb);
-        boolean esCuerpoMenorOrbital = orbitando.getMasa() < 1e23 && anfitrion.getMasa() <= 1e28 && anfitrion.getMasa() >= 1e22;
+        boolean esCuerpoMenorOrbital = orbitando.getTipoCuerpo() != null
+                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
+                && anfitrion.getTipoCuerpo() != null
+                && anfitrion.getTipoCuerpo().esPlaneta();
         if (esCuerpoMenorOrbital) {
             double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
                     ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)

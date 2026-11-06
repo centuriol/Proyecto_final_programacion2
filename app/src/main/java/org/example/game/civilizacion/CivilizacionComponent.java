@@ -61,6 +61,9 @@ public class CivilizacionComponent {
 
         CondicionesHabitabilidad condiciones = evaluadorHabitabilidad.evaluar(planeta, todosLosCuerpos);
         double factorCrecimiento = calculadorDinamica.calcularFactorCrecimiento(condiciones, nivelTecnologico);
+        if (planeta != null && planeta.getTipoCuerpo() != org.example.game.cuerpo.TipoCuerpo.PLANETA_ROCOSO && factorCrecimiento > 0) {
+            factorCrecimiento *= ConfiguracionSimulacion.FACTOR_CRECIMIENTO_OTROS_PLANETAS;
+        }
         poblacion = calculadorDinamica.calcularNuevaPoblacion(poblacion, poblacionMaxima, factorCrecimiento);
         estabilidad = calculadorDinamica.calcularNuevaEstabilidad(estabilidad, condiciones);
         felicidad = calculadorDinamica.calcularNuevaFelicidad(felicidad, estabilidad, poblacion, poblacionMaxima);
@@ -138,12 +141,10 @@ public class CivilizacionComponent {
 
     public void recibirImpactoMeteorito() {
         if (estado == EstadoCivilizacion.EXTINGUIDA) return;
-        this.poblacion *= 0.75;
-        this.estabilidad = Math.max(0.1, this.estabilidad - 0.3);
-        this.felicidad = Math.max(0.1, this.felicidad - 0.4);
+        this.estabilidad = 0.0;
+        this.felicidad = 0.0;
         this.ticksEfectoEventoReciente = ConfiguracionSimulacion.DURACION_TICKS_EFECTO_EVENTO;
-        this.estado = calculadorDinamica.determinarEstado(poblacion, estabilidad, felicidad);
-        emitirEvento("Catastrofe meteorica en " + planeta.getNombre() + "! Poblacion restante: " + (int)poblacion, MensajeEvento.TipoMensaje.PELIGRO);
+        extinguir();
     }
 
     public void destruir() {

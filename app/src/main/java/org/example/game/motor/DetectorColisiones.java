@@ -53,6 +53,12 @@ public class DetectorColisiones {
                 double radioContacto = a.getRadio() + b.getRadio();
 
                 if (dist < radioContacto) {
+                    if (esMeteoritoDirigidoPasandoPorEstrella(a, b)) {
+                        continue;
+                    }
+                    if (manejarContactoPlanetaLuna(a, b, dist, aEliminar, aAgregar)) {
+                        continue;
+                    }
                     if (a.estaOrbitando(b)) {
                         separarContactoOrbital(a, b, dist);
                         continue;
@@ -66,6 +72,36 @@ public class DetectorColisiones {
                 }
             }
         }
+    }
+
+    private boolean esMeteoritoDirigidoPasandoPorEstrella(CuerpoCeleste a, CuerpoCeleste b) {
+        CuerpoCeleste met = esMeteorito(a) ? a : (esMeteorito(b) ? b : null);
+        CuerpoCeleste otro = (met == a) ? b : a;
+        if (met instanceof Meteorito m && otro != null && otro.getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
+            return m.getObjetivo() != null && m.getObjetivo().esSimulado() && m.getObjetivo() != otro;
+        }
+        return false;
+    }
+
+    private boolean manejarContactoPlanetaLuna(CuerpoCeleste a, CuerpoCeleste b, double dist,
+                                               Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
+        if (a.getTipoCuerpo() == null || b.getTipoCuerpo() == null) return false;
+        boolean aPlanetaBLuna = a.getTipoCuerpo().esPlaneta() && b.getTipoCuerpo() == TipoCuerpo.LUNA;
+        boolean bPlanetaALuna = b.getTipoCuerpo().esPlaneta() && a.getTipoCuerpo() == TipoCuerpo.LUNA;
+        if (!aPlanetaBLuna && !bPlanetaALuna) return false;
+
+        CuerpoCeleste planeta = aPlanetaBLuna ? a : b;
+        CuerpoCeleste luna = aPlanetaBLuna ? b : a;
+
+        if (planeta.getMasa() >= ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * luna.getMasa()) {
+            luna.setCuerpoOrbitado(null);
+            resolvedorColisiones.resolverColision(a, b, aEliminar, aAgregar);
+        } else {
+            luna.setCuerpoOrbitado(planeta);
+            luna.setRadioOrbita(AsistenteOrbital.calcularRadioOrbitalMinimo(luna, planeta));
+            separarContactoOrbital(luna, planeta, dist);
+        }
+        return true;
     }
 
     private void interceptarMeteoritosConSatelites(List<CuerpoCeleste> simulados,

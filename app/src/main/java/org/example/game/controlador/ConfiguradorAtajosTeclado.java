@@ -57,5 +57,6 @@ public class ConfiguradorAtajosTeclado {
         controlador.registrarComando(KeyCode.PLUS, new ComandoAjustarFactorMasa(simulacion, 1.15));
         controlador.registrarComando(KeyCode.EQUALS, new ComandoAjustarFactorMasa(simulacion, 1.15));
         controlador.registrarComando(KeyCode.MINUS, new ComandoAjustarFactorMasa(simulacion, 1.0 / 1.15));
+        controlador.registrarComando(CombinacionTeclas.ctrl(KeyCode.M), new ComandoOtorgarRecursos(simulacion));
     }
 }
