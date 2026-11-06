@@ -20,7 +20,7 @@ public class ReglaColisionAsimetrica implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        return true; // Fallback por defecto para cualquier otro choque de cuerpos mayores
+        return !utilidadColision.esParPlanetaLuna(a, b);
     }
 
     @Override

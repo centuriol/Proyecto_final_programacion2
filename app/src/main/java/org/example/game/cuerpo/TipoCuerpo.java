@@ -200,7 +200,9 @@ public enum TipoCuerpo {
     static {
         FACTORES_CAPACIDAD_POBLACION.put(PLANETA_ROCOSO, 1.0);
         FACTORES_CAPACIDAD_POBLACION.put(PLANETA_AGUA, 0.6);
+        FACTORES_CAPACIDAD_POBLACION.put(PLANETA_HELADO, 0.4);
         FACTORES_CAPACIDAD_POBLACION.put(PLANETA_LAVA, 0.3);
+        FACTORES_CAPACIDAD_POBLACION.put(PLANETA_GASEOSO, 0.2);
     }
 
     public double getFactorCapacidadPoblacion() {

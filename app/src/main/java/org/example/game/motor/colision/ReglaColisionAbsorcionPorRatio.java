@@ -18,6 +18,11 @@ public class ReglaColisionAbsorcionPorRatio implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
+        if (utilidadColision.esParPlanetaLuna(a, b)) {
+            CuerpoCeleste planeta = (a.getTipoCuerpo() != null && a.getTipoCuerpo().esPlaneta()) ? a : b;
+            CuerpoCeleste luna = (planeta == a) ? b : a;
+            return planeta.getMasa() >= ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * luna.getMasa();
+        }
         return utilidadColision.calcularRatioMasas(a, b) >= ConfiguracionColisiones.RATIO_ABSORCION_MASA;
     }
 

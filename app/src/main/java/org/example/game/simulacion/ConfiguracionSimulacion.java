@@ -164,12 +164,18 @@ public final class ConfiguracionSimulacion {
     public static final double CRECIMIENTO_POBLACION_BASE = 0.0008;
     public static final double DECADENCIA_FUERA_ZONA = 0.0001;
     public static final double AMENAZA_AGUJERO_NEGRO_RADIO = 500.0;
-    public static final double POBLACION_INICIAL = 1000;
+    public static final double POBLACION_INICIAL = 50;
     public static final double POBLACION_MAXIMA_FACTOR = 1e6;
 
-    // Costo de lanzamiento de nave colonizadora
+    // Costo de lanzamiento de nave colonizadora y opcion de poblar planetas
     public static final double COSTO_COLONIZAR_ENERGIA = ConfiguracionEconomia.COSTO_COLONIZAR_ENERGIA;
     public static final double COSTO_COLONIZAR_MINERALES = ConfiguracionEconomia.COSTO_COLONIZAR_MINERALES;
+    public static final double COSTO_POBLAR_AGUA_CIENCIA = ConfiguracionEconomia.COSTO_POBLAR_AGUA_CIENCIA;
+    public static final double COSTO_POBLAR_OTRO_CIENCIA = ConfiguracionEconomia.COSTO_POBLAR_OTRO_CIENCIA;
+    public static final double COSTO_POBLAR_LAVA_CIENCIA = ConfiguracionEconomia.COSTO_POBLAR_LAVA_CIENCIA;
+    public static final double UMBRAL_POBLACION_PORRO_POBLAR = ConfiguracionEconomia.UMBRAL_POBLACION_PORRO_POBLAR;
+    public static final double FACTOR_CRECIMIENTO_OTROS_PLANETAS = ConfiguracionEconomia.FACTOR_CRECIMIENTO_OTROS_PLANETAS;
+    public static final double MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO = ConfiguracionEconomia.MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO;
     public static final double PORCENTAJE_POBLACION_COLONIZADORA = 0.10; // 10%
     public static final double UMBRAL_COLONIZAR_PORCENTAJE = 80.0; // 80% de capacidad
     public static final double VELOCIDAD_NAVE_COLONIZADORA = 4.0; // px/tick

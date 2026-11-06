@@ -47,39 +47,15 @@ public class ReglaColisionMeteorito implements ReglaColision {
     }
 
     private boolean esSatelite(CuerpoCeleste c) {
-        if (c == null) return false;
-        return c.aceptar(new VisitanteCuerpo<Boolean>() {
-            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
-            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
-            @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return true; }
-            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
-            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
-        });
+        return c != null && c.getTipoCuerpo() == TipoCuerpo.SATELITE;
     }
 
     private boolean esMeteorito(CuerpoCeleste c) {
-        if (c == null) return false;
-        return c.aceptar(new VisitanteCuerpo<Boolean>() {
-            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
-            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
-            @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
-            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return true; }
-            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
-        });
+        return c != null && c.getTipoCuerpo() == TipoCuerpo.METEORITO;
     }
 
     private boolean esPlaneta(CuerpoCeleste c) {
-        if (c == null) return false;
-        return c.aceptar(new VisitanteCuerpo<Boolean>() {
-            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
-            @Override public Boolean visitarPlaneta(Planeta planeta) { return true; }
-            @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
-            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
-            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
-        });
+        return c != null && c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta();
     }
 
     @Override
@@ -90,96 +66,73 @@ public class ReglaColisionMeteorito implements ReglaColision {
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
-        if (esSatelite(a) && esSatelite(b)) {
-            return;
-        }
-
+        if (esSatelite(a) && esSatelite(b)) return;
         if (esMeteorito(a) && esMeteorito(b)) {
             utilidadColision.desactivarYEliminar(a, ctx.aEliminar());
             utilidadColision.desactivarYEliminar(b, ctx.aEliminar());
             ctx.emitirMensaje("Destrucción mutua de meteoritos por impacto directo.");
             return;
         }
-
         CuerpoCeleste meteorito = esMeteorito(a) ? a : b;
         CuerpoCeleste objetivo = (meteorito == a) ? b : a;
-
+        double masaMeteorito = meteorito.getMasa();
+        double radioMeteorito = meteorito.getRadio();
         utilidadColision.desactivarYEliminar(meteorito, ctx.aEliminar());
 
         if (esSatelite(objetivo)) {
-            ctx.emitirExplosion(meteorito.getPosicion(), meteorito.getRadio() * 2.0);
-            ctx.emitirEvento(
-                    "El satélite " + objetivo.getNombre() + " interceptó y detuvo a " + meteorito.getNombre() + ".",
-                    MensajeEvento.TipoMensaje.INFO
-            );
-            ctx.emitirMensaje("Satélite " + objetivo.getNombre() + " detuvo a " + meteorito.getNombre() + ".");
+            notificarIntercepcionSatelite(meteorito, radioMeteorito, objetivo, ctx);
             return;
         }
-
         if (esPlaneta(objetivo)) {
-            aplicarImpactoAPlaneta(meteorito, objetivo, ctx);
+            aplicarImpactoAPlaneta(meteorito, masaMeteorito, objetivo, ctx);
             return;
         }
+        aplicarImpactoGenerico(meteorito, masaMeteorito, objetivo, ctx);
+    }
 
+    private void notificarIntercepcionSatelite(CuerpoCeleste meteorito, double radio, CuerpoCeleste satelite, ContextoColision ctx) {
+        ctx.emitirExplosion(meteorito.getPosicion(), radio * 2.0);
+        ctx.emitirEvento("El satélite " + satelite.getNombre() + " interceptó y detuvo a " + meteorito.getNombre() + ".", MensajeEvento.TipoMensaje.INFO);
+        ctx.emitirMensaje("Satélite " + satelite.getNombre() + " detuvo a " + meteorito.getNombre() + ".");
+    }
+
+    private void aplicarImpactoGenerico(CuerpoCeleste meteorito, double masaMeteorito, CuerpoCeleste objetivo, ContextoColision ctx) {
         if (objetivo.getMasa() > 0) {
-            Vector2D momentoMeteorito = meteorito.getVelocidad().multiplicar(meteorito.getMasa());
-            Vector2D nuevaVelocidad = objetivo.getVelocidad().sumar(momentoMeteorito.dividir(objetivo.getMasa()));
-            objetivo.setVelocidad(nuevaVelocidad);
+            Vector2D momentoMeteorito = meteorito.getVelocidad().multiplicar(masaMeteorito);
+            objetivo.setVelocidad(objetivo.getVelocidad().sumar(momentoMeteorito.dividir(objetivo.getMasa())));
         }
-
-        RegistroCapacidades.obtenerCivilizable(objetivo).ifPresent(civ -> {
-            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-                civ.getCivilizacion().recibirImpactoMeteorito();
-            }
-        });
-
+        extinguirCivilizacionSiExiste(objetivo, ctx, false);
         ctx.emitirMensaje(meteorito.getNombre() + " colisionó contra " + objetivo.getNombre() + ".");
     }
 
-    private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, CuerpoCeleste planeta, ContextoColision ctx) {
-        double masaInicial = planeta.aceptar(new VisitanteCuerpo<Double>() {
-            @Override public Double visitarEstrella(Estrella estrella) { return estrella.getMasa(); }
-            @Override public Double visitarPlaneta(Planeta p) { return p.getMasaInicial(); }
-            @Override public Double visitarLuna(Luna luna) { return luna.getMasa(); }
-            @Override public Double visitarSatelite(Satelite satelite) { return satelite.getMasa(); }
-            @Override public Double visitarMeteorito(Meteorito met) { return met.getMasa(); }
-            @Override public Double visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return agujeroNegro.getMasa(); }
-        });
-        double progresoEfectivo = meteorito.aceptar(new VisitanteCuerpo<>() {
-            @Override public Double visitarEstrella(Estrella estrella) { return proveedorProgreso.getAsDouble(); }
-            @Override public Double visitarPlaneta(Planeta planeta) { return proveedorProgreso.getAsDouble(); }
-            @Override public Double visitarLuna(Luna luna) { return proveedorProgreso.getAsDouble(); }
-            @Override public Double visitarSatelite(Satelite satelite) { return proveedorProgreso.getAsDouble(); }
-            @Override public Double visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return proveedorProgreso.getAsDouble(); }
-            @Override public Double visitarMeteorito(Meteorito met) {
-                return met.tieneProgresoExplicito() ? met.getFactorProgresoOrigen() : proveedorProgreso.getAsDouble();
-            }
-        });
-        double factorDano = calculadorAmenaza.fraccionDano(progresoEfectivo);
-        double danoMasa = masaInicial * factorDano;
-        double nuevaMasa = Math.max(0.0, planeta.getMasa() - danoMasa);
+    private void aplicarImpactoAPlaneta(CuerpoCeleste meteorito, double masaMeteorito, CuerpoCeleste planeta, ContextoColision ctx) {
+        double masaAntes = planeta.getMasa();
+        double danoMasa = masaMeteorito > ConfiguracionColisiones.MASA_MINIMA_METEORITO
+                ? masaMeteorito
+                : masaAntes * ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX;
+        double nuevaMasa = Math.max(0.0, masaAntes - danoMasa);
         planeta.setMasa(nuevaMasa);
+        extinguirCivilizacionSiExiste(planeta, ctx, true);
 
-        RegistroCapacidades.obtenerCivilizable(planeta).ifPresent(civ -> {
-            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
-                civ.getCivilizacion().recalcularPoblacionMaxima();
-                civ.getCivilizacion().recibirImpactoMeteorito();
-            }
-        });
-
-        if (nuevaMasa <= 0.0 || nuevaMasa < masaInicial * ConfiguracionColisiones.UMBRAL_EXPLOSION_MASA_FRACCION) {
+        if (nuevaMasa <= 0.0) {
             utilidadColision.desactivarYEliminar(planeta, ctx.aEliminar());
             ctx.emitirExplosion(planeta.getPosicion(), planeta.getRadio() * 2.5);
-            ctx.emitirEvento(
-                    "¡CATASTROFE! El impacto de meteorito masivo destruyó completamente al planeta " + planeta.getNombre() + ".",
-                    MensajeEvento.TipoMensaje.PELIGRO
-            );
+            ctx.emitirEvento("¡CATASTROFE! El impacto de meteorito masivo destruyó completamente al planeta " + planeta.getNombre() + ".", MensajeEvento.TipoMensaje.PELIGRO);
             return;
         }
+        ctx.emitirExplosion(planeta.getPosicion(), Math.max(18.0, planeta.getRadio() * 1.8));
+        double porcentajePerdido = masaAntes > 0.0 ? (danoMasa / masaAntes) * 100.0 : 0.0;
+        ctx.emitirMensaje(meteorito.getNombre() + " impactó en " + planeta.getNombre() + " reduciendo su masa en " + String.format("%.1f%%", porcentajePerdido) + ".");
+    }
 
-        ctx.emitirMensaje(
-                meteorito.getNombre() + " impactó en " + planeta.getNombre()
-                        + " reduciendo su masa en " + String.format("%.1f%%", factorDano * 100.0) + "."
-        );
+    private void extinguirCivilizacionSiExiste(CuerpoCeleste cuerpo, ContextoColision ctx, boolean emitirAlerta) {
+        RegistroCapacidades.obtenerCivilizable(cuerpo).ifPresent(civ -> {
+            if (civ.tieneCivilizacion() && civ.getCivilizacion() != null) {
+                civ.getCivilizacion().recibirImpactoMeteorito();
+                if (emitirAlerta) {
+                    ctx.emitirEvento("¡Extinción en " + cuerpo.getNombre() + "! El impacto del meteorito exterminó a su civilización.", MensajeEvento.TipoMensaje.PELIGRO);
+                }
+            }
+        });
     }
 }

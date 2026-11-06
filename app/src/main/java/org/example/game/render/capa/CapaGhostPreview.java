@@ -84,11 +84,9 @@ public class CapaGhostPreview {
         gc.strokeOval(x - rAtraccion, y - rAtraccion, rAtraccion * 2.0, rAtraccion * 2.0);
 
         if (est.tieneLineasReferenciaOrbital()) {
-            double escala = Math.sqrt(Math.max(0.1, factorMasa));
             double[] radiosReferencia = CapaZonasHabitables.getRadiosReferenciaOrbital();
-            gc.setStroke(UtilidadRender.colorRgb(91, 227, 255, 0.12));
-            for (double rBase : radiosReferencia) {
-                double rOrbita = rBase * escala;
+            gc.setStroke(UtilidadRender.colorRgb(91, 227, 255, 0.16));
+            for (double rOrbita : radiosReferencia) {
                 gc.strokeOval(x - rOrbita, y - rOrbita, rOrbita * 2.0, rOrbita * 2.0);
             }
         }

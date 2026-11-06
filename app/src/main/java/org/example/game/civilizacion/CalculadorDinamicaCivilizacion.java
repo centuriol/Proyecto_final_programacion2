@@ -8,7 +8,8 @@ import org.example.game.simulacion.ConfiguracionSimulacion;
 public class CalculadorDinamicaCivilizacion {
 
     public double calcularPoblacionMaxima(double masaPlaneta, double factorCapacidadPoblacion, int nivelTecnologico) {
-        double factorMasa = masaPlaneta / 5.97e24;
+        if (masaPlaneta <= 0 || factorCapacidadPoblacion <= 0) return 0.0;
+        double factorMasa = Math.max(0.3, masaPlaneta / 5.97e24);
         return ConfiguracionSimulacion.POBLACION_MAXIMA_FACTOR * factorMasa * factorCapacidadPoblacion * (1 + nivelTecnologico * 0.2);
     }
 

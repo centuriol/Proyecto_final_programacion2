@@ -5,8 +5,10 @@ package org.example.game.simulacion;
 public final class ConfiguracionTransformacion {
     private ConfiguracionTransformacion() {}
 
-    public static final double RADIO_TRANSFORMACION_AGUA_PORRO = 120.0;
+    public static final double RADIO_TRANSFORMACION_AGUA_PORRO = 175.0;
     public static final double RADIO_TRANSFORMACION_PORRO_LAVA = 70.0;
+    public static final double RADIO_MIN_ULTIMA_ORBITA_AGUA = 560.0;
+    public static final double RADIO_MAX_ULTIMA_ORBITA_AGUA = 800.0;
     public static final int TICKS_ESPERA_TRANSFORMACION_EASTER_EGG = 40;
     public static final int TICKS_MIGRACION_ORBITA = 30;
     public static final double MARGEN_SEGURIDAD_ORBITA_LIBRE = 15.0;

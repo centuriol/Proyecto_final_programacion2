@@ -39,6 +39,13 @@ public class CalculadorGravedad {
 
     private void procesarInteraccionPar(CuerpoCeleste ci, CuerpoCeleste cj, double softeningCuadrado,
                                        AsistenteOrbital asistenteOrbital, Consumer<String> listenerMensaje) {
+        if (ci.getTipoCuerpo() == TipoCuerpo.METEORITO || cj.getTipoCuerpo() == TipoCuerpo.METEORITO) {
+            return;
+        }
+        if (esInteraccionEstrellaYMenor(ci, cj)) {
+            return;
+        }
+
         Vector2D r = cj.getPosicion().restar(ci.getPosicion());
         double distReal = r.magnitud();
 
@@ -50,8 +57,45 @@ public class CalculadorGravedad {
             return;
         }
 
+        if (esParPlanetaLuna(ci, cj)) {
+            procesarGravedadPlanetaLuna(ci, cj, r, distReal, softeningCuadrado);
+            return;
+        }
+
         aplicarGravedadNewtoniana(ci, cj, r, distReal, softeningCuadrado);
         aplicarAtraccionArcade(ci, cj, distReal);
+    }
+
+    private boolean esInteraccionEstrellaYMenor(CuerpoCeleste ci, CuerpoCeleste cj) {
+        TipoCuerpo ti = ci.getTipoCuerpo();
+        TipoCuerpo tj = cj.getTipoCuerpo();
+        if (ti == null || tj == null) return false;
+        return (ti == TipoCuerpo.ESTRELLA && tj.puedeOrbitarPlanetas())
+                || (tj == TipoCuerpo.ESTRELLA && ti.puedeOrbitarPlanetas());
+    }
+
+    private boolean esParPlanetaLuna(CuerpoCeleste ci, CuerpoCeleste cj) {
+        TipoCuerpo ti = ci.getTipoCuerpo();
+        TipoCuerpo tj = cj.getTipoCuerpo();
+        if (ti == null || tj == null) return false;
+        return (ti.esPlaneta() && tj == TipoCuerpo.LUNA)
+                || (tj.esPlaneta() && ti == TipoCuerpo.LUNA);
+    }
+
+    private void procesarGravedadPlanetaLuna(CuerpoCeleste ci, CuerpoCeleste cj, Vector2D r, double distReal, double softeningCuadrado) {
+        CuerpoCeleste planeta = (ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esPlaneta()) ? ci : cj;
+        CuerpoCeleste luna = (planeta == ci) ? cj : ci;
+        if (planeta.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * luna.getMasa()) {
+            double radioComer = Math.max(planeta.getRadioAtraccion() * 3.0, 160.0);
+            if (distReal <= radioComer) {
+                Vector2D dirHaciaPlaneta = planeta.getPosicion().restar(luna.getPosicion()).normalizar();
+                luna.setVelocidad(planeta.getVelocidad().sumar(dirHaciaPlaneta.multiplicar(12.0)));
+                aplicarAtraccionArcade(ci, cj, distReal);
+            }
+            aplicarGravedadNewtoniana(ci, cj, r, distReal, softeningCuadrado);
+        } else {
+            aplicarGravedadNewtoniana(ci, cj, r, distReal, softeningCuadrado);
+        }
     }
 
     private boolean procesarCapturaOrbital(CuerpoCeleste ci, CuerpoCeleste cj, double distReal,

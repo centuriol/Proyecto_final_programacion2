@@ -32,6 +32,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     private final double dt;
     private double asistenciaOrbital = 0.015;
     private Consumer<String> listenerMensaje;
+    private BiConsumer<Vector2D, Double> listenerExplosion;
 
     // Listas internas reutilizables para optimización de memoria y GC por tick
     private final List<CuerpoCeleste> simuladosCache = new ArrayList<>();
@@ -116,6 +117,9 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         if (!aEliminarCache.isEmpty()) {
             cuerpos.removeAll(aEliminarCache);
             for (CuerpoCeleste c : aEliminarCache) {
+                if (listenerExplosion != null) {
+                    listenerExplosion.accept(c.getPosicion(), Math.max(20.0, c.getRadio() * 2.0));
+                }
                 notificarColision(c);
             }
         }
@@ -183,6 +187,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     }
 
     public void setListenerExplosion(BiConsumer<Vector2D, Double> listener) {
+        this.listenerExplosion = listener;
         this.resolvedorColisiones.setListenerExplosion(listener);
     }
 

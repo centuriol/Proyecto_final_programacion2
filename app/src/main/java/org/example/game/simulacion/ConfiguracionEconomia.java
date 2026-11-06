@@ -54,6 +54,12 @@ public final class ConfiguracionEconomia {
     public static final double COSTO_ACTIVACION_ESCUDO_ENERGIA = 280.0;
     public static final double COSTO_COLONIZAR_ENERGIA = 120.0;
     public static final double COSTO_COLONIZAR_MINERALES = 180.0;
+    public static final double COSTO_POBLAR_AGUA_CIENCIA = 300.0;
+    public static final double COSTO_POBLAR_OTRO_CIENCIA = 450.0;
+    public static final double COSTO_POBLAR_LAVA_CIENCIA = 750.0;
+    public static final double UMBRAL_POBLACION_PORRO_POBLAR = 1000.0;
+    public static final double FACTOR_CRECIMIENTO_OTROS_PLANETAS = 0.25;
+    public static final double MULTIPLICADOR_PRODUCCION_PLANETA_POBLADO = 1.3;
 
     public static final double COSTO_ESCUDO_NIVEL_1 = 180.0;
     public static final double COSTO_ESCUDO_NIVEL_2 = 400.0;

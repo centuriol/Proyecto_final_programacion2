@@ -69,6 +69,11 @@ public class ReglaColisionFusionAguaLava implements ReglaColision {
         if (sobreviviente.getCuerpoOrbitado() == null && absorbido.getCuerpoOrbitado() != null) {
             sobreviviente.setCuerpoOrbitado(absorbido.getCuerpoOrbitado());
         }
+        if (sobreviviente.getCuerpoOrbitado() != null
+                && sobreviviente.getCuerpoOrbitado().getTipoCuerpo() == TipoCuerpo.ESTRELLA) {
+            double distSol = sobreviviente.getPosicion().distanciaA(sobreviviente.getCuerpoOrbitado().getPosicion());
+            sobreviviente.setRadioOrbita(org.example.game.motor.CalculadorOrbital.ajustarARanuraSolar(distSol));
+        }
 
         utilidadColision.desactivarYEliminar(absorbido, ctx.aEliminar());
         ctx.emitirMensaje("Reacción hidro-magmática: Colisión entre Agua y Lava formó un nuevo Planeta Porro inerte.");

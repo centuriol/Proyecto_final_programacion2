@@ -122,40 +122,7 @@ public class ServicioEscudo {
         int golpes = progresion.getGolpesEscudo();
         planeta.activarEscudo(golpes);
 
-        // Verificar si ya tiene un satélite orbitándolo
-        boolean yaTieneSatelite = false;
-        CuerpoCeleste cuerpoPlaneta = cuerposPorDefensor.get(planeta);
-        if (cuerpoPlaneta == null && planeta instanceof CuerpoCeleste) {
-            cuerpoPlaneta = (CuerpoCeleste) planeta;
-        }
-
-        Satelite satExistente = cuerpoPlaneta != null ? satelitesEscudo.get(cuerpoPlaneta) : null;
-        if (satExistente != null && simulacion.getSistemaSolar().getCuerpos().contains(satExistente)) {
-            yaTieneSatelite = true;
-        } else if (cuerpoPlaneta != null) {
-            for (CuerpoCeleste c : simulacion.getSistemaSolar().getCuerpos()) {
-                if (c.estaOrbitando(cuerpoPlaneta) && c.getMasa() <= 10000.0) {
-                    yaTieneSatelite = true;
-                    break;
-                }
-            }
-        }
-
-        if (!yaTieneSatelite && cuerpoPlaneta != null) {
-            double radioOrbita = planeta.getRadio() + 25.0;
-            Vector2D posSatelite = planeta.getPosicion().sumar(new Vector2D(radioOrbita, 0));
-            Satelite sat = fabricaCuerpos.crearSatelite(posSatelite.x(), posSatelite.y(), 1.0, Vector2D.cero());
-            sat.setCuerpoOrbitado(cuerpoPlaneta);
-            sat.setRadioOrbita(radioOrbita);
-            satelitesEscudo.put(cuerpoPlaneta, sat);
-
-            AsistenteOrbital asistente = new AsistenteOrbital();
-            asistente.inicializarVelocidadOrbital(sat, cuerpoPlaneta, radioOrbita);
-
-            simulacion.agregarCuerpo(sat);
-        }
-
-        simulacion.notificarEvento("Escudo activado en " + planeta.getNombre() + " (" + golpes + " golpes). Satélite desplegado.", MensajeEvento.TipoMensaje.EXITO);
+        simulacion.notificarEvento("Escudo activado en " + planeta.getNombre() + " (" + golpes + " golpes).", MensajeEvento.TipoMensaje.EXITO);
         return true;
     }
 }

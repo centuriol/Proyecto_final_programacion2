@@ -18,7 +18,8 @@ public class ReglaColisionColapsoMutuo implements ReglaColision {
 
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
-        return utilidadColision.calcularRatioMasas(a, b) <= ConfiguracionColisiones.RATIO_COLISION_COLAPSO;
+        return !utilidadColision.esParPlanetaLuna(a, b)
+                && utilidadColision.calcularRatioMasas(a, b) <= ConfiguracionColisiones.RATIO_COLISION_COLAPSO;
     }
 
     @Override

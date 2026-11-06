@@ -139,4 +139,21 @@ class ControladorTecladoYComandosTest {
         controladorTeclado.handle(keyMinus);
         assertEquals(factorInicial, simulacion.getGestorColocacion().getFactorMasaColocacion(), 1e-4);
     }
+
+    @Test
+    void testComandoCtrlMOtorgaCienMilDeCadaRecurso() {
+        var inv = simulacion.getInventario();
+        double minAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.MINERALES);
+        double eneAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA);
+        double cieAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA);
+        double pobAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.POBLACION);
+
+        KeyEvent ctrlM = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.M, false, true, false, false);
+        controladorTeclado.handle(ctrlM);
+
+        assertEquals(minAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.MINERALES), 1e-4);
+        assertEquals(eneAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA), 1e-4);
+        assertEquals(cieAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA), 1e-4);
+        assertEquals(pobAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.POBLACION), 1e-4);
+    }
 }

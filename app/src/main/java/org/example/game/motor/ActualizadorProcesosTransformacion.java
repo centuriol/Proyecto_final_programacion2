@@ -33,7 +33,7 @@ public class ActualizadorProcesosTransformacion {
         CuerpoCeleste estrella = proceso.getEstrella();
 
         double dist = cuerpo.getPosicion().distanciaA(estrella.getPosicion());
-        double radioMinimo = estrella.getRadio() + cuerpo.getRadio() + 5.0;
+        double radioMinimo = Math.max(estrella.getRadio() + cuerpo.getRadio() + 5.0, proceso.getRadioMinimoActivacion());
 
         if (proceso.getEstado() == TransformadorCuerpos.EstadoTransformacion.ESPERANDO) {
             if (dist > proceso.getRadioActivacion() || dist <= radioMinimo) {
@@ -43,6 +43,10 @@ public class ActualizadorProcesosTransformacion {
 
             proceso.incrementarTicksEspera();
             if (proceso.getTicksEspera() >= ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG) {
+                if (!proceso.isMigrarSiguienteOrbita()) {
+                    aplicarTransformacionDirecta(proceso, cuerpo, estrella, procesosActivos, transformables, listenerMensaje);
+                    return;
+                }
                 Vector2D posLibre = buscadorOrbitaLibre.buscarPosicionLibre(cuerpo, estrella, proceso.getRadioActivacion(), cuerpos);
 
                 if (posLibre == null) {
@@ -53,15 +57,7 @@ public class ActualizadorProcesosTransformacion {
                     return;
                 }
 
-                Transformable t = transformables.get(cuerpo);
-                if (t == null) {
-                    t = org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(cuerpo).orElse(null);
-                }
-                if (t != null) {
-                    t.transformarA(proceso.getTipoDestino());
-                }
-                cuerpo.setNombre(proceso.getNombreResultante());
-
+                ejecutarCambioTipo(proceso, cuerpo, transformables);
                 proceso.iniciarMigracion(cuerpo.getPosicion(), posLibre, posLibre.distanciaA(estrella.getPosicion()));
 
                 if (listenerMensaje != null) {
@@ -75,6 +71,7 @@ public class ActualizadorProcesosTransformacion {
             double tSuave = factorProgreso * factorProgreso * (3.0 - 2.0 * factorProgreso);
             Vector2D posActual = proceso.getPosInicialMigracion().interpolar(proceso.getPosDestinoMigracion(), tSuave);
             cuerpo.setPosicion(posActual);
+            cuerpo.setRadioOrbita(posActual.distanciaA(estrella.getPosicion()));
 
             if (factorProgreso >= 1.0) {
                 cuerpo.setPosicion(proceso.getPosDestinoMigracion());
@@ -87,5 +84,32 @@ public class ActualizadorProcesosTransformacion {
                 procesosActivos.remove(cuerpo);
             }
         }
+    }
+
+    private void aplicarTransformacionDirecta(TransformadorCuerpos.ProcesoTransformacion proceso, CuerpoCeleste cuerpo,
+                                              CuerpoCeleste estrella,
+                                              Map<CuerpoCeleste, TransformadorCuerpos.ProcesoTransformacion> procesosActivos,
+                                              Map<CuerpoCeleste, Transformable> transformables,
+                                              Consumer<String> listenerMensaje) {
+        ejecutarCambioTipo(proceso, cuerpo, transformables);
+        cuerpo.setCuerpoOrbitado(estrella);
+        cuerpo.setRadioOrbita(CalculadorOrbital.ajustarARanuraSolar(cuerpo.getPosicion().distanciaA(estrella.getPosicion())));
+        cuerpo.setVelocidad(CalculadorOrbital.calcularVelocidadOrbitalVector(estrella, cuerpo.getPosicion(), false));
+        if (listenerMensaje != null) {
+            listenerMensaje.accept(proceso.getMensajeEvento());
+        }
+        procesosActivos.remove(cuerpo);
+    }
+
+    private void ejecutarCambioTipo(TransformadorCuerpos.ProcesoTransformacion proceso, CuerpoCeleste cuerpo,
+                                    Map<CuerpoCeleste, Transformable> transformables) {
+        Transformable t = transformables.get(cuerpo);
+        if (t == null) {
+            t = org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(cuerpo).orElse(null);
+        }
+        if (t != null) {
+            t.transformarA(proceso.getTipoDestino());
+        }
+        cuerpo.setNombre(proceso.getNombreResultante());
     }
 }

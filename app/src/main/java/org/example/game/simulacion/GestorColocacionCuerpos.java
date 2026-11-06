@@ -46,37 +46,14 @@ public class GestorColocacionCuerpos {
         controlador.actualizarPosicionPreview(xJavaFX, yJavaFX, anchoSupplier.getAsDouble(), altoSupplier.getAsDouble());
     }
 
-    public void salirModoColocacion() {
-        controlador.salirModoColocacion();
-    }
-
-    public ControladorColocacion.ModoColocacion getModoColocacion() {
-        return controlador.getModoColocacion();
-    }
-
-    public TipoCuerpo getTipoColocacion() {
-        return controlador.getTipoColocacion();
-    }
-
-    public Vector2D getPosicionPreview() {
-        return controlador.getPosicionPreview();
-    }
-
-    public double getFactorMasaColocacion() {
-        return controlador.getFactorMasaColocacion();
-    }
-
-    public void setFactorMasaColocacion(double factor, double maxMasaPermitida) {
-        controlador.setFactorMasaColocacion(factor, maxMasaPermitida);
-    }
-
-    public void setFactorMasaColocacion(double factor) {
-        controlador.setFactorMasaColocacion(factor, ConfiguracionSimulacion.MASA_FACTOR_MAX);
-    }
-
-    public String getNombreColocacion() {
-        return controlador.getNombreColocacion();
-    }
+    public void salirModoColocacion() { controlador.salirModoColocacion(); }
+    public ControladorColocacion.ModoColocacion getModoColocacion() { return controlador.getModoColocacion(); }
+    public TipoCuerpo getTipoColocacion() { return controlador.getTipoColocacion(); }
+    public Vector2D getPosicionPreview() { return controlador.getPosicionPreview(); }
+    public double getFactorMasaColocacion() { return controlador.getFactorMasaColocacion(); }
+    public void setFactorMasaColocacion(double factor, double maxMasaPermitida) { controlador.setFactorMasaColocacion(factor, maxMasaPermitida); }
+    public void setFactorMasaColocacion(double factor) { controlador.setFactorMasaColocacion(factor, ConfiguracionSimulacion.MASA_FACTOR_MAX); }
+    public String getNombreColocacion() { return controlador.getNombreColocacion(); }
 
     public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica, List<CuerpoCeleste> cuerpos) {
         return controlador.calcularVelocidadOrbitalAsistida(posFisica, cuerpos);
@@ -105,15 +82,21 @@ public class GestorColocacionCuerpos {
 
             if (spawnedOpt.isPresent() && cuerpoCercano != null) {
                 CuerpoCeleste recienCreado = spawnedOpt.get();
-                boolean recienEsMenor = recienCreado.getMasa() < 1e23;
-                boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
-                boolean recienEsPlaneta = recienCreado.getMasa() <= 1e28 && recienCreado.getMasa() >= 1e22;
+                boolean recienEsMenor = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().puedeOrbitarPlanetas();
+                boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
+                boolean recienEsPlaneta = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().esPlaneta();
                 boolean cercanoEsMasivo = cuerpoCercano.getMasa() >= 1e29;
 
                 double dist = posPreview.distanciaA(cuerpoCercano.getPosicion());
-                if ((recienEsMenor && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
+                boolean lunaComidaPorMasa = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA
+                        && cercanoEsPlaneta
+                        && cuerpoCercano.getMasa() >= ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * recienCreado.getMasa();
+                if ((recienEsMenor && cercanoEsPlaneta && !lunaComidaPorMasa) || (recienEsPlaneta && cercanoEsMasivo)) {
                     recienCreado.setCuerpoOrbitado(cuerpoCercano);
-                    recienCreado.setRadioOrbita(dist);
+                    double radioOrbita = (recienEsPlaneta && cuerpoCercano.getTipoCuerpo() == TipoCuerpo.ESTRELLA)
+                            ? org.example.game.motor.CalculadorOrbital.ajustarARanuraSolar(dist)
+                            : Math.max(dist, org.example.game.motor.AsistenteOrbital.calcularRadioOrbitalMinimo(recienCreado, cuerpoCercano));
+                    recienCreado.setRadioOrbita(radioOrbita);
                 }
             }
             return spawnedOpt;

@@ -71,13 +71,15 @@ public class GeneradorEventosCosmicos {
 
         List<CuerpoCeleste> planetas = new ArrayList<>();
         long meteoritosActivos = 0;
+        double masaPlanetaMax = 0.0;
 
         for (CuerpoCeleste c : cuerpos) {
             if (c != null && c.esSimulado()) {
-                if (!c.permiteReembolso()) {
+                if (c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
                     meteoritosActivos++;
                 } else if (org.example.game.cuerpo.RegistroCapacidades.obtenerCivilizable(c).isPresent()) {
                     planetas.add(c);
+                    masaPlanetaMax = Math.max(masaPlanetaMax, c.getMasa());
                 }
             }
         }
@@ -93,6 +95,9 @@ public class GeneradorEventosCosmicos {
             if (meteoritosActivos < ConfiguracionColisiones.MAX_METEORITOS_EVENTO_ACTIVOS) {
                 CuerpoCeleste objetivo = planetas.get(random.nextInt(planetas.size()));
                 Meteorito m = fabricaCuerpos.crearMeteoritoHaciaObjetivo(anchoMundo, altoMundo, objetivo, factorProgreso);
+                if (masaPlanetaMax > 0.0) {
+                    m.setMasa(masaPlanetaMax * ConfiguracionColisiones.FRACCION_MASA_METEORITO_PLANETA_MAX);
+                }
 
                 if (agregadorCuerpo != null) {
                     agregadorCuerpo.accept(m);

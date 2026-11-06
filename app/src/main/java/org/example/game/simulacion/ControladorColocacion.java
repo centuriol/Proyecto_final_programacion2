@@ -54,7 +54,7 @@ public class ControladorColocacion {
         CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica, cuerpos);
         if (cuerpoCercano != null) {
             boolean esMenorOrbital = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
-            boolean cercanoEsPlaneta = cuerpoCercano.getMasa() <= 1e28 && cuerpoCercano.getMasa() >= 1e22;
+            boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
             if (esMenorOrbital && cercanoEsPlaneta) {
                 Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
                 double dist = Math.max(1.0, r.magnitud());
@@ -73,11 +73,18 @@ public class ControladorColocacion {
     }
 
     public CuerpoCeleste encontrarCuerpoGravitatorioCercano(Vector2D pos, List<CuerpoCeleste> cuerpos) {
+        boolean priorizarPlaneta = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
+        if (priorizarPlaneta) {
+            CuerpoCeleste planetaCercano = buscarPlanetaMasCercano(pos, cuerpos);
+            if (planetaCercano != null) {
+                return planetaCercano;
+            }
+        }
         CuerpoCeleste mejor = null;
         double maxFuerza = 0;
 
         for (CuerpoCeleste c : cuerpos) {
-            if (!c.permiteReembolso() || c.getMasa() < 1e22) {
+            if (c.getTipoCuerpo() == TipoCuerpo.METEORITO || c.getMasa() < 1e22) {
                 continue;
             }
 
@@ -91,6 +98,22 @@ public class ControladorColocacion {
             }
         }
         return mejor;
+    }
+
+    private CuerpoCeleste buscarPlanetaMasCercano(Vector2D pos, List<CuerpoCeleste> cuerpos) {
+        CuerpoCeleste mejorPlaneta = null;
+        double menorDist = Double.MAX_VALUE;
+        for (CuerpoCeleste c : cuerpos) {
+            if (c.getTipoCuerpo() == null || !c.getTipoCuerpo().esPlaneta()) {
+                continue;
+            }
+            double dist = pos.distanciaA(c.getPosicion());
+            if (dist < menorDist) {
+                menorDist = dist;
+                mejorPlaneta = c;
+            }
+        }
+        return mejorPlaneta;
     }
 
     public void setFactorMasaColocacion(double f, double maxPermitido) {
@@ -122,5 +145,9 @@ public class ControladorColocacion {
 
     public Vector2D getPosicionPreview() {
         return posicionPreview;
+    }
+
+    public void setPosicionPreview(Vector2D posicionPreview) {
+        this.posicionPreview = posicionPreview;
     }
 }

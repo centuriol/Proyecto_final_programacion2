@@ -42,7 +42,9 @@ public class TransformadorCuerpos {
         private final TipoCuerpo tipoDestino;
         private final String nombreResultante;
         private final String mensajeEvento;
+        private final double radioMinimoActivacion;
         private final double radioActivacion;
+        private final boolean migrarSiguienteOrbita;
 
         private EstadoTransformacion estado = EstadoTransformacion.ESPERANDO;
         private int ticksEspera = 1;
@@ -53,12 +55,20 @@ public class TransformadorCuerpos {
 
         public ProcesoTransformacion(CuerpoCeleste cuerpo, CuerpoCeleste estrella, TipoCuerpo tipoDestino,
                                      String nombreResultante, String mensajeEvento, double radioActivacion) {
+            this(cuerpo, estrella, tipoDestino, nombreResultante, mensajeEvento, 0.0, radioActivacion, true);
+        }
+
+        public ProcesoTransformacion(CuerpoCeleste cuerpo, CuerpoCeleste estrella, TipoCuerpo tipoDestino,
+                                     String nombreResultante, String mensajeEvento,
+                                     double radioMinimoActivacion, double radioActivacion, boolean migrarSiguienteOrbita) {
             this.cuerpo = cuerpo;
             this.estrella = estrella;
             this.tipoDestino = tipoDestino;
             this.nombreResultante = nombreResultante;
             this.mensajeEvento = mensajeEvento;
+            this.radioMinimoActivacion = radioMinimoActivacion;
             this.radioActivacion = radioActivacion;
+            this.migrarSiguienteOrbita = migrarSiguienteOrbita;
         }
 
         public CuerpoCeleste getCuerpo() { return cuerpo; }
@@ -70,7 +80,9 @@ public class TransformadorCuerpos {
         public Vector2D getPosDestinoMigracion() { return posDestinoMigracion; }
         public String getNombreResultante() { return nombreResultante; }
         public String getMensajeEvento() { return mensajeEvento; }
+        public double getRadioMinimoActivacion() { return radioMinimoActivacion; }
         public double getRadioActivacion() { return radioActivacion; }
+        public boolean isMigrarSiguienteOrbita() { return migrarSiguienteOrbita; }
         public Vector2D getPosInicialMigracion() { return posInicialMigracion; }
         public double getRadioOrbitaDestino() { return radioOrbitaDestino; }
 
@@ -88,10 +100,17 @@ public class TransformadorCuerpos {
     public record ReglaTransformacion(
             TipoCuerpo tipoOrigen,
             TipoCuerpo tipoDestino,
+            double radioMinimoActivacion,
             double radioActivacion,
+            boolean migrarSiguienteOrbita,
             String nombreResultante,
             String mensajeEvento
-    ) {}
+    ) {
+        public ReglaTransformacion(TipoCuerpo tipoOrigen, TipoCuerpo tipoDestino, double radioActivacion,
+                                   String nombreResultante, String mensajeEvento) {
+            this(tipoOrigen, tipoDestino, 0.0, radioActivacion, true, nombreResultante, mensajeEvento);
+        }
+    }
 
     private final List<ReglaTransformacion> reglas = new ArrayList<>();
     private final Map<CuerpoCeleste, ProcesoTransformacion> procesosActivos = new HashMap<>();
@@ -108,7 +127,7 @@ public class TransformadorCuerpos {
     public TransformadorCuerpos(BuscadorOrbitaLibre buscadorOrbitaLibre, ActualizadorProcesosTransformacion actualizadorProcesos) {
         this.buscadorOrbitaLibre = buscadorOrbitaLibre != null ? buscadorOrbitaLibre : new BuscadorOrbitaLibre();
         this.actualizadorProcesos = actualizadorProcesos != null ? actualizadorProcesos : new ActualizadorProcesosTransformacion(this.buscadorOrbitaLibre);
-        // Regla 1: Planeta de Agua cerca del sol -> Planeta Porro
+        // Regla 1: Planeta de Agua en la primera linea -> Planeta Porro y pasa a la siguiente orbita
         reglas.add(new ReglaTransformacion(
                 TipoCuerpo.PLANETA_AGUA,
                 TipoCuerpo.PLANETA_ROCOSO,
@@ -117,13 +136,24 @@ public class TransformadorCuerpos {
                 "El calor estelar evaporo los oceanos. Transformacion: Agua -> Porro"
         ));
 
-        // Regla 2: Planeta Porro cerca del sol -> Planeta Lava
+        // Regla 2: Planeta Porro muy cerca del sol -> Planeta Lava
         reglas.add(new ReglaTransformacion(
                 TipoCuerpo.PLANETA_ROCOSO,
                 TipoCuerpo.PLANETA_LAVA,
                 ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA,
                 "Planeta Lava",
                 "Proximidad extrema a la estrella. Transformacion: Porro -> Lava"
+        ));
+
+        // Regla 3: Cualquier planeta en la ultima orbita (la mas lejana) -> Planeta de Agua
+        reglas.add(new ReglaTransformacion(
+                null,
+                TipoCuerpo.PLANETA_AGUA,
+                org.example.game.simulacion.ConfiguracionTransformacion.RADIO_MIN_ULTIMA_ORBITA_AGUA,
+                org.example.game.simulacion.ConfiguracionTransformacion.RADIO_MAX_ULTIMA_ORBITA_AGUA,
+                false,
+                "Planeta de Agua",
+                "La lejania estelar condenso oceanos. Transformacion a Planeta de Agua"
         ));
     }
 
@@ -213,16 +243,20 @@ public class TransformadorCuerpos {
 
             TipoCuerpo tipoActual = c.getTipoCuerpo();
             for (ReglaTransformacion regla : reglas) {
-                if (tipoActual != regla.tipoOrigen()) continue;
+                boolean coincideOrigen = regla.tipoOrigen() != null
+                        ? tipoActual == regla.tipoOrigen()
+                        : (tipoActual != null && tipoActual.esPlaneta() && tipoActual != regla.tipoDestino());
+                if (!coincideOrigen) continue;
 
                 for (CuerpoCeleste estrella : estrellas) {
                     double dist = c.getPosicion().distanciaA(estrella.getPosicion());
-                    double radioMinimo = estrella.getRadio() + c.getRadio() + 5.0;
+                    double radioMinimo = Math.max(estrella.getRadio() + c.getRadio() + 5.0, regla.radioMinimoActivacion());
 
                     if (dist > radioMinimo && dist <= regla.radioActivacion()) {
                         ProcesoTransformacion nuevo = new ProcesoTransformacion(
                                 c, estrella, regla.tipoDestino(),
-                                regla.nombreResultante(), regla.mensajeEvento(), regla.radioActivacion()
+                                regla.nombreResultante(), regla.mensajeEvento(),
+                                regla.radioMinimoActivacion(), regla.radioActivacion(), regla.migrarSiguienteOrbita()
                         );
                         procesosActivos.put(c, nuevo);
                         break;
@@ -265,7 +299,9 @@ public class TransformadorCuerpos {
     public List<Double> getRadiosActivacion() {
         List<Double> radios = new ArrayList<>();
         for (ReglaTransformacion regla : reglas) {
-            radios.add(regla.radioActivacion());
+            if (regla.migrarSiguienteOrbita()) {
+                radios.add(regla.radioActivacion());
+            }
         }
         return radios;
     }

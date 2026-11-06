@@ -47,6 +47,13 @@ public class GestorImagenes implements RepositorioSprites {
         for (String nombre : mapeoCuerpos.values()) {
             obtenerImagenPorNombre(nombre);
         }
+        obtenerImagenPorNombre(org.example.game.render.capa.CapaEscudoPlanetario.NOMBRE_SPRITE_ESCUDO);
+        for (String persona : org.example.game.render.cuerpo.RenderizadorPlaneta.SPRITES_PERSONAS) {
+            obtenerImagenPorNombre(persona);
+        }
+        for (String explosion : org.example.game.efectos.GestorEfectos.SPRITES_EXPLOSION) {
+            obtenerImagenPorNombre(explosion);
+        }
         obtenerImagenFondo();
     }
 

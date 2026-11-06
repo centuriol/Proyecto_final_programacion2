@@ -30,6 +30,12 @@ public class UtilidadColision {
         return Math.max(masaA, masaB) / Math.min(masaA, masaB);
     }
 
+    public boolean esParPlanetaLuna(CuerpoCeleste a, CuerpoCeleste b) {
+        if (a == null || b == null || a.getTipoCuerpo() == null || b.getTipoCuerpo() == null) return false;
+        return (a.getTipoCuerpo().esPlaneta() && b.getTipoCuerpo() == TipoCuerpo.LUNA)
+                || (b.getTipoCuerpo().esPlaneta() && a.getTipoCuerpo() == TipoCuerpo.LUNA);
+    }
+
     public void desactivarYEliminar(CuerpoCeleste victima, Set<CuerpoCeleste> aEliminar) {
         if (victima == null) return;
         victima.setSimulado(false);
@@ -63,7 +69,7 @@ public class UtilidadColision {
     }
 
     public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
-        if (!destruido.permiteReembolso()) {
+        if (destruido.getTipoCuerpo() == TipoCuerpo.METEORITO) {
             desactivarYEliminar(destruido, aEliminar);
             return;
         }

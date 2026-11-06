@@ -17,7 +17,7 @@ public class EvaluadorCondicionDerrota {
             if (c != null && c.esSimulado()) {
                 if (c.getMasa() >= 1e31) {
                     hayAgujeroNegro = true;
-                } else if (c.permiteReembolso() && c.getMasa() >= 1e22 && c.getMasa() <= 1e28) {
+                } else if (c.getTipoCuerpo() != org.example.game.cuerpo.TipoCuerpo.METEORITO && c.getMasa() >= 1e22 && c.getMasa() <= 1e28) {
                     hayPlanetaOLuna = true;
                 }
             }

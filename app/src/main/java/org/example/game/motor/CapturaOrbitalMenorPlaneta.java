@@ -9,20 +9,25 @@ public class CapturaOrbitalMenorPlaneta implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsMenor = ci.getMasa() < 1e23 && ci.permiteReembolso();
-        boolean cjEsMenor = cj.getMasa() < 1e23 && cj.permiteReembolso();
+        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().puedeOrbitarPlanetas();
+        boolean cjEsMenor = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().puedeOrbitarPlanetas();
 
         if (ciEsMenor ^ cjEsMenor) {
             CuerpoCeleste menor = ciEsMenor ? ci : cj;
             CuerpoCeleste planeta = ciEsMenor ? cj : ci;
 
-            if (planeta.getMasa() >= 1e22 && planeta.getMasa() <= 1e28) {
-                boolean esLuna = menor.getMasa() >= 1e22;
+            if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().esPlaneta()) {
+                boolean esLuna = menor.getTipoCuerpo() == TipoCuerpo.LUNA;
+                if (esLuna && planeta.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * menor.getMasa()) {
+                    return false;
+                }
                 double radioCaptura = esLuna
-                        ? Math.max(planeta.getRadioAtraccion() * 2.2, 120.0)
+                        ? Math.max(planeta.getRadioAtraccion() * 3.0, 160.0)
                         : Math.max(planeta.getRadioAtraccion(), 65.0);
 
-                return distReal <= radioCaptura && !menor.estaOrbitando();
+                boolean disponible = !menor.estaOrbitando()
+                        || (menor.getCuerpoOrbitado() != null && menor.getCuerpoOrbitado().getTipoCuerpo() == TipoCuerpo.ESTRELLA);
+                return distReal <= radioCaptura && disponible;
             }
         }
         return false;
@@ -30,7 +35,7 @@ public class CapturaOrbitalMenorPlaneta implements EstrategiaCapturaOrbital {
 
     @Override
     public CuerpoCeleste[] ejecutarCaptura(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje, AsistenteOrbital asistente) {
-        boolean ciEsMenor = ci.getMasa() < 1e23 && ci.permiteReembolso();
+        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().puedeOrbitarPlanetas();
         CuerpoCeleste menor = ciEsMenor ? ci : cj;
         CuerpoCeleste planeta = ciEsMenor ? cj : ci;
 
