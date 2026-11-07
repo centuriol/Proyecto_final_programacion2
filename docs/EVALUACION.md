@@ -249,11 +249,11 @@ xychart-beta
 <!-- actividad-clases:inicio -->
 ## Actividad en días de clase
 
-> Período **2026-08-14 → 2026-10-29** · **17 clases** (lunes, viernes) · calendario oficial de la materia.
+> Período evaluado **2026-08-14 → 2026-11-07** · **20 clases** (lunes, viernes) · días de clase del calendario, extendidos hasta la fecha de corte.
 >
 > `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. El cuadro principal usa sólo las fechas de clase del calendario oficial.
 >
-> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-06** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
+> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-07** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
 >
 > Se recorre `git log --all` sobre un mirror (todas las ramas y `refs/pull/*`), con deduplicación por commit. Fecha = fecha de autor en UTC-3. Los commits locales no pusheados no se ven. Si el trabajo fue en pareja y el commit es de otra persona, figura a nombre del autor del commit; para reflejarlo, usar `Co-authored-by` o una nota manual.
 >
@@ -261,7 +261,7 @@ xychart-beta
 
 ### mateovarelac
 
-**4/17 clases con actividad** · 3 commits · 2 merges
+**5/20 clases con actividad** · 5 commits · 2 merges
 
 | Fecha | Marca | Repositorios | Commits / merges |
 |---|:--:|---|--:|
@@ -282,19 +282,21 @@ xychart-beta
 | 2026-10-19 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
 | 2026-10-23 | No | sin actividad | 0 / 0 |
 | 2026-10-26 | No | sin actividad | 0 / 0 |
+| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
+| 2026-11-02 | No | sin actividad | 0 / 0 |
+| 2026-11-06 | No | sin actividad | 0 / 0 |
 
 #### Aportes fuera del calendario de clases — mateovarelac
 
-**mateovarelac — 2 fechas fuera del calendario** · 10 commits · 1 merge
+**mateovarelac — 1 fecha fuera del calendario** · 8 commits · 1 merge
 
 | Alumno | Fecha | Repositorios | Commits / merges |
 |---|---|---|---|
-| mateovarelac (`mateovarelac`) | 2026-10-30 | Proyecto_final_programacion2 | 2 / 0 |
 | mateovarelac (`mateovarelac`) | 2026-10-31 | Proyecto_final_programacion2 | 8 / 1 |
 
 ### minibautista14-tech
 
-**9/17 clases con actividad** · 8 commits · 3 merges
+**11/20 clases con actividad** · 14 commits · 5 merges
 
 | Fecha | Marca | Repositorios | Commits / merges |
 |---|:--:|---|--:|
@@ -315,15 +317,13 @@ xychart-beta
 | 2026-10-19 | No | sin actividad | 0 / 0 |
 | 2026-10-23 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
 | 2026-10-26 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
+| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 5 / 1 |
+| 2026-11-02 | No | sin actividad | 0 / 0 |
+| 2026-11-06 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
 
 #### Aportes fuera del calendario de clases — minibautista14-tech
 
-**minibautista14-tech — 2 fechas fuera del calendario** · 6 commits · 2 merges
-
-| Alumno | Fecha | Repositorios | Commits / merges |
-|---|---|---|---|
-| minibautista14-tech (`minibautista14-tech`) | 2026-10-30 | Proyecto_final_programacion2 | 5 / 1 |
-| minibautista14-tech (`minibautista14-tech`) | 2026-11-06 | Proyecto_final_programacion2 | 1 / 1 |
+_Sin aportes fuera del calendario de clases para minibautista14-tech._
 
 <!-- actividad-clases:fin -->
 
