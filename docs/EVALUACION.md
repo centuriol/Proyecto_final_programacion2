@@ -283,14 +283,14 @@ xychart-beta
 | 2026-10-23 | No | sin actividad | 0 / 0 |
 | 2026-10-26 | No | sin actividad | 0 / 0 |
 
-#### Aportes fuera del calendario de clases
+#### Aportes fuera del calendario de clases — mateovarelac
 
-**2 fechas fuera del calendario** · 10 commits · 1 merge
+**mateovarelac — 2 fechas fuera del calendario** · 10 commits · 1 merge
 
-| Fecha | Repositorios | Commits / merges |
-|---|---|--:|
-| 2026-10-30 | Proyecto_final_programacion2 | 2 / 0 |
-| 2026-10-31 | Proyecto_final_programacion2 | 8 / 1 |
+| Alumno | Fecha | Repositorios | Commits / merges |
+|---|---|---|---|
+| mateovarelac (`mateovarelac`) | 2026-10-30 | Proyecto_final_programacion2 | 2 / 0 |
+| mateovarelac (`mateovarelac`) | 2026-10-31 | Proyecto_final_programacion2 | 8 / 1 |
 
 ### minibautista14-tech
 
@@ -316,14 +316,14 @@ xychart-beta
 | 2026-10-23 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
 | 2026-10-26 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
 
-#### Aportes fuera del calendario de clases
+#### Aportes fuera del calendario de clases — minibautista14-tech
 
-**2 fechas fuera del calendario** · 6 commits · 2 merges
+**minibautista14-tech — 2 fechas fuera del calendario** · 6 commits · 2 merges
 
-| Fecha | Repositorios | Commits / merges |
-|---|---|--:|
-| 2026-10-30 | Proyecto_final_programacion2 | 5 / 1 |
-| 2026-11-06 | Proyecto_final_programacion2 | 1 / 1 |
+| Alumno | Fecha | Repositorios | Commits / merges |
+|---|---|---|---|
+| minibautista14-tech (`minibautista14-tech`) | 2026-10-30 | Proyecto_final_programacion2 | 5 / 1 |
+| minibautista14-tech (`minibautista14-tech`) | 2026-11-06 | Proyecto_final_programacion2 | 1 / 1 |
 
 <!-- actividad-clases:fin -->
 
