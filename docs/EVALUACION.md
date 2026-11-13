@@ -3,20 +3,20 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-11-06.
+> Generado: 2026-11-13.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad POO/SOLID | **60/100** |
-| Código (LOC) | 20,666 |
-| Archivos de código | 265 |
-| Clases (bien usadas) | 288 (99 OK) |
+| Índice de calidad POO/SOLID | **59/100** |
+| Código (LOC) | 21,534 |
+| Archivos de código | 266 |
+| Clases (bien usadas) | 289 (96 OK) |
 | Código dentro de clases (%POO) | 100% |
 | Funciones fuera de clases | 0 |
 | Duplicación lógica | 0.8% |
-| Señales S/O/L/I/D | 40/0/0/8/84 |
+| Señales S/O/L/I/D | 46/0/0/8/84 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
 
@@ -27,7 +27,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Semáforo | Resultado |
 |---|---|
 | Aprobar (`estandar`) | **no cumple** — 3/4 |
-| Destacar (`exigente`) | **no cumple** — 4/5 |
+| Destacar (`exigente`) | **no cumple** — 3/5 |
 
 **Criterios para aprobar**
 
@@ -46,7 +46,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Duplicación lógica | ≤ 5% | 0.8% | sí |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | no |
-| Índice de calidad POO/SOLID | ≥ 60 | 60/100 | sí |
+| Índice de calidad POO/SOLID | ≥ 60 | 59/100 | no |
 
 ### Cómo se calcula el %POO (y por qué no sube solo)
 
@@ -60,12 +60,12 @@ Sube cuando el código que hoy está **fuera** de clases pasa a ser método de u
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| mateovarelac | 11 | 12,546 | 4,102 | 0 | 5 | 71% |
-| minibautista14-tech | 13 | 5,145 | 2,642 | 153 | 10 | 29% |
+| mateovarelac | 11 | 12,341 | 4,082 | 0 | 5 | 67% |
+| minibautista14-tech | 14 | 5,986 | 3,007 | 153 | 11 | 33% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
-> **Reparto del trabajo:** mateovarelac concentra el 71% de las líneas de código. Un reparto muy desigual suele indicar que la integración no fue realmente en equipo; vale la pena reconstruir cómo se coordinó.
+> **Reparto del trabajo:** mateovarelac concentra el 67% de las líneas de código. Un reparto muy desigual suele indicar que la integración no fue realmente en equipo; vale la pena reconstruir cómo se coordinó.
 
 ## 3. Fallas detectadas
 
@@ -73,8 +73,9 @@ Reúne lo que el análisis marcó y lo que todavía falta para cada semáforo. C
 
 | Falla | Tu resultado | Requisito | Archivos |
 |---|---|---|---|
-| Señales POO/SOLID críticas | Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java`, `app/src/main/java/org/example/game/controlador/ControladorMouse.java` (+93 más) |
-| Métodos/funciones largos o con muchos parámetros | **96** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/java/org/example/game/civilizacion/CondicionesHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java`, `app/src/main/java/org/example/game/controlador/SeleccionadorCuerpoMouse.java`, `app/src/main/java/org/example/game/cuerpo/AgujeroNegro.java`, `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` (+63 más) |
+| Señales POO/SOLID críticas | Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Interfaz con demasiados métodos (ISP) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java`, `app/src/main/java/org/example/game/controlador/ControladorMouse.java` (+95 más) |
+| Índice de calidad POO/SOLID | 59/100 | Destacar: ≥ 60 | — |
+| Métodos/funciones largos o con muchos parámetros | **100** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/java/org/example/game/civilizacion/CondicionesHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java`, `app/src/main/java/org/example/game/controlador/SeleccionadorCuerpoMouse.java`, `app/src/main/java/org/example/game/cuerpo/AgujeroNegro.java`, `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` (+66 más) |
 | Dependencia de concretos y falta de abstracciones (DIP) | **84** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/java/org/example/App.java`, `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java`, `app/src/main/java/org/example/game/civilizacion/EvaluadorHabitabilidad.java`, `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java`, `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java` (+78 más) |
 | Campos públicos (encapsulación) | **10** clase(s) con campos públicos | Sin señales | `app/src/main/java/org/example/game/cuerpo/TipoCuerpo.java`, `app/src/main/java/org/example/game/jugador/TipoRecurso.java`, `app/src/main/java/org/example/game/motor/ConstantesFisicas.java`, `app/src/main/java/org/example/game/render/CamaraZoom.java`, `app/src/main/java/org/example/game/simulacion/ConfiguracionColisiones.java`, `app/src/main/java/org/example/game/simulacion/ConfiguracionEconomia.java` (+4 más) |
 | Clase solo con métodos estáticos (utilitaria) | **1** clase(s) solo con métodos estáticos | Sin señales | `app/src/main/java/org/example/game/cuerpo/RegistroCapacidades.java` |
@@ -87,7 +88,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Un resumen numérico (0-100) que combina la riqueza de clases bien usadas con la penalización por señales POO/SOLID y duplicación, y luego aplica topes duros.
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
-- **Tu resultado:** índice **60/100**
+- **Tu resultado:** índice **59/100**
 
 ### 2. Duplicación lógica (DRY) (duplicacion) — sin señales
 
@@ -112,7 +113,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Clases con demasiadas líneas o métodos de LÓGICA. No cuentan los getters/setters triviales ni la cantidad de campos por sí sola.
 - **Por qué importa:** Una clase que hace de todo cambia por muchos motivos y cuesta entenderla y probarla.
-- **Tu resultado:** **13** clase(s) demasiado grande(s)
+- **Tu resultado:** **17** clase(s) demasiado grande(s)
 - **Para investigar la causa:**
     - ¿La clase creció por acumulación de responsabilidades?
     - ¿Qué partes de la clase se usan siempre juntas y cuáles no?
@@ -132,7 +133,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Complejidad ciclomática: cantidad de caminos posibles dentro de un método o función (condicionales, bucles, casos).
 - **Por qué importa:** Muchos caminos = difícil de seguir y de probar; suelen esconderse casos sin cubrir.
-- **Tu resultado:** **3** método(s)/función(es) con complejidad alta
+- **Tu resultado:** **6** método(s)/función(es) con complejidad alta
 - **Para investigar la causa:**
     - ¿Se agregaron condiciones a medida que aparecían casos nuevos?
     - ¿Se probaron todos los caminos o solo el caso principal?
@@ -142,7 +143,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Tamaño de los métodos/funciones y cantidad de parámetros.
 - **Por qué importa:** Una función que hace varias cosas cuesta leerla, nombrarla y reutilizarla.
-- **Tu resultado:** **96** método(s)/función(es) largos o con muchos parámetros
+- **Tu resultado:** **100** método(s)/función(es) largos o con muchos parámetros
 - **Para investigar la causa:**
     - ¿La función creció por acumulación de pasos?
     - ¿Agrupa operaciones que podrían describirse por separado?
@@ -224,108 +225,32 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ## 5. Evolución por commit
 
-Métricas calculadas sobre el estado de `main` en **cada commit** (9 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
+Métricas calculadas sobre el estado de `main` en **cada commit** (14 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
 
 ```mermaid
 xychart-beta
     title "Índice POO/SOLID a lo largo de los commits"
-    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e", "1b7118e", "1dacc07", "4ce6d34"]
+    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e", "1b7118e", "1dacc07", "4ce6d34", "da0b4ed", "ae8da1f", "a8cddc8", "aad481c", "5fcf7a4"]
     y-axis "Índice" 0 --> 100
-    line [0, 0, 4, 3, 3, 2, 2, 1, 1]
+    line [0, 0, 59, 62, 66, 64, 64, 65, 60, 59, 59, 59, 59, 59]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
 |---|---|---|---|---:|---:|---:|---:|---:|
 | 1 | 2026-08-14 | `f322f1e` | minibautista14-tech | 0 | 0 | 0% | 0.0% | 0 |
 | 2 | 2026-08-24 | `c2ce669` | dqmdz-etec | 0 | 0 | 0% | 0.0% | 0 |
-| 3 | 2026-08-28 | `9675cae` | minibautista14-tech | 4,178 | 4 | 99% | 2.2% | 0 |
-| 4 | 2026-09-07 | `3f34b49` | minibautista14-tech | 6,476 | 3 | 99% | 2.0% | 0 |
-| 5 | 2026-09-25 | `35383e8` | mateovarelac | 7,073 | 3 | 100% | 1.9% | 0 |
-| 6 | 2026-10-05 | `052c78e` | minibautista14-tech | 7,965 | 2 | 100% | 2.6% | 0 |
-| 7 | 2026-10-19 | `1b7118e` | mateovarelac | 10,628 | 2 | 99% | 1.1% | 0 |
-| 8 | 2026-10-30 | `1dacc07` | minibautista14-tech | 12,819 | 1 | 100% | 1.1% | 0 |
-| 9 | 2026-10-31 | `4ce6d34` | mateovarelac | 20,666 | 1 | 100% | 0.8% | 0 |
-
-<!-- actividad-clases:inicio -->
-## Actividad en días de clase
-
-> Período evaluado **2026-08-14 → 2026-11-07** · **20 clases** (lunes, viernes) · días de clase del calendario, extendidos hasta la fecha de corte.
->
-> `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. El cuadro principal usa sólo las fechas de clase del calendario oficial.
->
-> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-07** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
->
-> Se recorre `git log --all` sobre un mirror (todas las ramas y `refs/pull/*`), con deduplicación por commit. Fecha = fecha de autor en UTC-3. Los commits locales no pusheados no se ven. Si el trabajo fue en pareja y el commit es de otra persona, figura a nombre del autor del commit; para reflejarlo, usar `Co-authored-by` o una nota manual.
->
-> Sección informativa: no modifica el semáforo de aprobación.
-
-### mateovarelac
-
-**5/20 clases con actividad** · 5 commits · 2 merges
-
-| Fecha | Marca | Repositorios | Commits / merges |
-|---|:--:|---|--:|
-| 2026-08-14 | No | sin actividad | 0 / 0 |
-| 2026-08-21 | No | sin actividad | 0 / 0 |
-| 2026-08-24 | No | sin actividad | 0 / 0 |
-| 2026-08-28 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-08-31 | No | sin actividad | 0 / 0 |
-| 2026-09-04 | No | sin actividad | 0 / 0 |
-| 2026-09-07 | No | sin actividad | 0 / 0 |
-| 2026-09-14 | No | sin actividad | 0 / 0 |
-| 2026-09-25 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-| 2026-09-28 | No | sin actividad | 0 / 0 |
-| 2026-10-02 | No | sin actividad | 0 / 0 |
-| 2026-10-05 | No | sin actividad | 0 / 0 |
-| 2026-10-09 | No | sin actividad | 0 / 0 |
-| 2026-10-16 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-19 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-10-23 | No | sin actividad | 0 / 0 |
-| 2026-10-26 | No | sin actividad | 0 / 0 |
-| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
-| 2026-11-02 | No | sin actividad | 0 / 0 |
-| 2026-11-06 | No | sin actividad | 0 / 0 |
-
-#### Aportes fuera del calendario de clases — mateovarelac
-
-**mateovarelac — 1 fecha fuera del calendario** · 8 commits · 1 merge
-
-| Alumno | Fecha | Repositorios | Commits / merges |
-|---|---|---|---|
-| mateovarelac (`mateovarelac`) | 2026-10-31 | Proyecto_final_programacion2 | 8 / 1 |
-
-### minibautista14-tech
-
-**11/20 clases con actividad** · 14 commits · 5 merges
-
-| Fecha | Marca | Repositorios | Commits / merges |
-|---|:--:|---|--:|
-| 2026-08-14 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-08-21 | No | sin actividad | 0 / 0 |
-| 2026-08-24 | No | sin actividad | 0 / 0 |
-| 2026-08-28 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-08-31 | No | sin actividad | 0 / 0 |
-| 2026-09-04 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-09-07 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-| 2026-09-14 | No | sin actividad | 0 / 0 |
-| 2026-09-25 | No | sin actividad | 0 / 0 |
-| 2026-09-28 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-02 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-05 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-10-09 | No | sin actividad | 0 / 0 |
-| 2026-10-16 | No | sin actividad | 0 / 0 |
-| 2026-10-19 | No | sin actividad | 0 / 0 |
-| 2026-10-23 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-26 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
-| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 5 / 1 |
-| 2026-11-02 | No | sin actividad | 0 / 0 |
-| 2026-11-06 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-
-#### Aportes fuera del calendario de clases — minibautista14-tech
-
-_Sin aportes fuera del calendario de clases para minibautista14-tech._
-
-<!-- actividad-clases:fin -->
+| 3 | 2026-08-28 | `9675cae` | minibautista14-tech | 4,178 | 59 | 99% | 2.2% | 0 |
+| 4 | 2026-09-07 | `3f34b49` | minibautista14-tech | 6,476 | 62 | 99% | 2.0% | 0 |
+| 5 | 2026-09-25 | `35383e8` | mateovarelac | 7,073 | 66 | 100% | 1.9% | 0 |
+| 6 | 2026-10-05 | `052c78e` | minibautista14-tech | 7,965 | 64 | 100% | 2.6% | 0 |
+| 7 | 2026-10-19 | `1b7118e` | mateovarelac | 10,628 | 64 | 99% | 1.1% | 0 |
+| 8 | 2026-10-30 | `1dacc07` | minibautista14-tech | 12,819 | 65 | 100% | 1.1% | 0 |
+| 9 | 2026-10-31 | `4ce6d34` | mateovarelac | 20,666 | 60 | 100% | 0.8% | 0 |
+| 10 | 2026-11-06 | `da0b4ed` | minibautista14-tech | 21,534 | 59 | 100% | 0.8% | 0 |
+| 11 | 2026-11-07 | `ae8da1f` | dqmdz-etec | 21,534 | 59 | 100% | 0.8% | 0 |
+| 12 | 2026-11-07 | `a8cddc8` | dqmdz-etec | 21,534 | 59 | 100% | 0.8% | 0 |
+| 13 | 2026-11-07 | `aad481c` | dqmdz-etec | 21,534 | 59 | 100% | 0.8% | 0 |
+| 14 | 2026-11-07 | `5fcf7a4` | dqmdz-etec | 21,534 | 59 | 100% | 0.8% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
