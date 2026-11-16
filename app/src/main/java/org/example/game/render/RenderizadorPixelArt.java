@@ -60,6 +60,7 @@ public class RenderizadorPixelArt {
         this.anchoCanvas = ancho;
         this.altoCanvas = alto;
         this.renderizadorFondo = renderizadorFondo != null ? renderizadorFondo : new RenderizadorFondo(ancho, alto);
+        this.renderizadorFondo.setCamara(this.camaraZoom);
         this.gestorEstelas = gestorEstelas != null ? gestorEstelas : new GestorEstelas();
         this.conversor = new TransformadorCoordenadas();
         this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
@@ -128,7 +129,7 @@ public class RenderizadorPixelArt {
                                Vector2D dragInicioFisica, List<Vector2D> trayectoriaPreview,
                                CuerpoCeleste cuerpoSeleccionado) {
 
-        renderizadorFondo.dibujarFondo(gc, anchoCanvas, altoCanvas, tick);
+        renderizadorFondo.dibujarFondo(gc, anchoCanvas, altoCanvas, tick, camaraZoom);
 
         if (repositorioSprites.obtenerImagenFondo() == null) {
             renderizadorFondo.dibujarEstrellasFondo(gc, tick);
@@ -254,7 +255,7 @@ public class RenderizadorPixelArt {
             this.anchoCanvas = w;
             this.altoCanvas = h;
             renderizadorFondo.generarEstrellasFondo(w, h);
-            renderizadorFondo.normalizarDesplazamiento(w);
+            renderizadorFondo.normalizarDesplazamiento(w, h);
         }
     }
 
@@ -269,19 +270,11 @@ public class RenderizadorPixelArt {
         renderizadorFondo.avanzarDesplazamiento(deltaTime, multiplicadorVelocidad, anchoCanvas);
     }
 
-    public Image getImagenFondo() {
-        return repositorioSprites.obtenerImagenFondo();
-    }
-
-    public double getDesplazamientoFondoX() {
-        return renderizadorFondo.getDesplazamientoFondoX();
-    }
-
-    public double getVelocidadBaseFondo() {
-        return renderizadorFondo.getVelocidadBaseFondo();
-    }
-
-    public double getTiempoAnimacionSegundos() {
-        return tiempoAnimacionSegundos;
-    }
+    public Image getImagenFondo() { return repositorioSprites.obtenerImagenFondo(); }
+    public double getDesplazamientoFondoX() { return renderizadorFondo.getDesplazamientoFondoX(); }
+    public double getDesplazamientoFondoY() { return renderizadorFondo.getDesplazamientoFondoY(); }
+    public double getFactorParallaxFondo() { return renderizadorFondo.getFactorParallax(); }
+    public RenderizadorFondo getRenderizadorFondo() { return renderizadorFondo; }
+    public double getVelocidadBaseFondo() { return renderizadorFondo.getVelocidadBaseFondo(); }
+    public double getTiempoAnimacionSegundos() { return tiempoAnimacionSegundos; }
 }

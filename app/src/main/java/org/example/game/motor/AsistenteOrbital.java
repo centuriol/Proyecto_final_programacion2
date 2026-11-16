@@ -58,18 +58,36 @@ public class AsistenteOrbital {
     }
 
     public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
-        if (orbitando.getMasa() < 1e24 && anfitrion.getMasa() >= 1e24 && anfitrion.getMasa() < 1e29) {
+        if (esSateliteOrbital(orbitando) && esPlanetaAnfitrion(anfitrion)) {
+            return anfitrion.getRadio() + orbitando.getRadio() + 6.0;
+        }
+        if (orbitando.getMasa() < 1e24 && esPlanetaAnfitrion(anfitrion)) {
             return Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
         }
         return anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+    }
+
+    public static double calcularRadioOrbitalMaximoSatelite(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
+        return anfitrion.getRadio() + orbitando.getRadio() + 14.0;
+    }
+
+    private static boolean esSateliteOrbital(CuerpoCeleste c) {
+        return c != null && (c.getTipoCuerpo() == TipoCuerpo.SATELITE || (c.getMasa() > 0 && c.getMasa() < 1e22));
+    }
+
+    private static boolean esPlanetaAnfitrion(CuerpoCeleste c) {
+        return c != null && c.getMasa() >= 1e22 && c.getMasa() < 1e29;
     }
 
     public void inicializarVelocidadOrbital(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
         Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
         double d = r.magnitud();
         double minOrb = calcularRadioOrbitalMinimo(orbitando, anfitrion);
-        if (d < minOrb) {
-            d = minOrb;
+        double maxOrb = (esSateliteOrbital(orbitando) && esPlanetaAnfitrion(anfitrion))
+                ? calcularRadioOrbitalMaximoSatelite(orbitando, anfitrion)
+                : Double.POSITIVE_INFINITY;
+        if (d < minOrb || d > maxOrb) {
+            d = Math.max(minOrb, Math.min(maxOrb, d));
             Vector2D norm = (r.magnitud() > 0.001) ? r.normalizar() : new Vector2D(1, 0);
             orbitando.setPosicion(anfitrion.getPosicion().sumar(norm.multiplicar(d)));
             r = norm.multiplicar(d);
@@ -87,22 +105,21 @@ public class AsistenteOrbital {
     }
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
-        double limiteEscape;
+        boolean esSatelite = esSateliteOrbital(orbitando);
         boolean esMenorAlrededorDePlaneta = orbitando.getMasa() < 1e23 && anfitrion.getMasa() <= 1e28 && anfitrion.getMasa() >= 1e22;
-        if (esMenorAlrededorDePlaneta) {
-            limiteEscape = Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0);
-        } else {
-            limiteEscape = 1500.0;
-        }
+        double limiteEscape = esMenorAlrededorDePlaneta
+                ? Math.max(orbitando.getRadioAtraccion() * 3.5, 300.0)
+                : 1500.0;
 
-        if (distReal > limiteEscape) {
+        if (!esSatelite && distReal > limiteEscape) {
             orbitando.setCuerpoOrbitado(null);
             return;
         }
 
         Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
-        double d = Math.max(0.1, r.magnitud());
-        Vector2D uRadial = r.dividir(d);
+        double magR = r.magnitud();
+        Vector2D uRadial = (magR > 0.001) ? r.dividir(magR) : new Vector2D(1, 0);
+        double d = Math.max(0.1, magR);
 
         double rDeseado = orbitando.getRadioOrbita();
         if (rDeseado <= 0) {
@@ -115,8 +132,18 @@ public class AsistenteOrbital {
             rDeseado = minOrb;
             orbitando.setRadioOrbita(rDeseado);
         }
+        if (esSatelite && esPlanetaAnfitrion(anfitrion)) {
+            double maxOrb = calcularRadioOrbitalMaximoSatelite(orbitando, anfitrion);
+            if (rDeseado > maxOrb) {
+                rDeseado = maxOrb;
+                orbitando.setRadioOrbita(rDeseado);
+            }
+        }
 
-        if (Math.abs(d - rDeseado) > 0.01) {
+        if (d < minOrb) {
+            d = minOrb;
+            orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(d)));
+        } else if (Math.abs(d - rDeseado) > 0.01) {
             double dAjustado = d + (rDeseado - d) * 0.15;
             orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(dAjustado)));
             d = dAjustado;

@@ -80,6 +80,10 @@ public class ControladorColocacion {
             if (!c.permiteReembolso() || c.getMasa() < 1e22) {
                 continue;
             }
+            if (tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas()
+                    && c.getTipoCuerpo() != null && c.getTipoCuerpo().puedeOrbitarPlanetas()) {
+                continue;
+            }
 
             double dist = pos.distanciaA(c.getPosicion());
             if (dist < 10.0) continue;

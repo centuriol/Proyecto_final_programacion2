@@ -82,15 +82,51 @@ public class ReglaColisionMeteorito implements ReglaColision {
         });
     }
 
+    private boolean esLuna(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return true; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
     @Override
     public boolean aplica(CuerpoCeleste a, CuerpoCeleste b) {
         if (esSatelite(a) && esSatelite(b)) return true;
+        if ((esSatelite(a) && (esPlaneta(b) || esLuna(b))) || (esSatelite(b) && (esPlaneta(a) || esLuna(a)))) {
+            return true;
+        }
         return esMeteorito(a) || esMeteorito(b);
     }
 
     @Override
     public void resolver(CuerpoCeleste a, CuerpoCeleste b, ContextoColision ctx) {
         if (esSatelite(a) && esSatelite(b)) {
+            return;
+        }
+        if (!esMeteorito(a) && !esMeteorito(b)) {
+            if (esSatelite(a) || esSatelite(b)) {
+                CuerpoCeleste sat = esSatelite(a) ? a : b;
+                CuerpoCeleste otro = (sat == a) ? b : a;
+                if (esPlaneta(otro)) {
+                    if (!sat.estaOrbitando()) {
+                        sat.setCuerpoOrbitado(otro);
+                    }
+                    if (sat.estaOrbitando(otro)) {
+                        double minOrb = org.example.game.motor.AsistenteOrbital.calcularRadioOrbitalMinimo(sat, otro);
+                        Vector2D diff = sat.getPosicion().restar(otro.getPosicion());
+                        Vector2D norm = diff.magnitud() > 0.001 ? diff.normalizar() : new Vector2D(1, 0);
+                        sat.setPosicion(otro.getPosicion().sumar(norm.multiplicar(minOrb)));
+                        if (sat.getRadioOrbita() < minOrb) {
+                            sat.setRadioOrbita(minOrb);
+                        }
+                    }
+                }
+            }
             return;
         }
 

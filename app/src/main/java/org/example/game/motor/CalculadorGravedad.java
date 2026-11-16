@@ -32,24 +32,48 @@ public class CalculadorGravedad {
             CuerpoCeleste ci = cuerpos.get(i);
             for (int j = i + 1; j < n; j++) {
                 CuerpoCeleste cj = cuerpos.get(j);
-                procesarInteraccionPar(ci, cj, softeningCuadrado, asistenteOrbital, listenerMensaje);
+                procesarGravedadPar(ci, cj, softeningCuadrado);
+            }
+        }
+
+        if (asistenteOrbital != null) {
+            for (int i = 0; i < n; i++) {
+                CuerpoCeleste ci = cuerpos.get(i);
+                for (int j = i + 1; j < n; j++) {
+                    CuerpoCeleste cj = cuerpos.get(j);
+                    double distReal = cj.getPosicion().distanciaA(ci.getPosicion());
+                    procesarCapturaOrbital(ci, cj, distReal, asistenteOrbital, listenerMensaje);
+                }
             }
         }
     }
 
-    private void procesarInteraccionPar(CuerpoCeleste ci, CuerpoCeleste cj, double softeningCuadrado,
-                                       AsistenteOrbital asistenteOrbital, Consumer<String> listenerMensaje) {
-        Vector2D r = cj.getPosicion().restar(ci.getPosicion());
-        double distReal = r.magnitud();
+    private boolean esSatelite(CuerpoCeleste c) {
+        return c != null && (c.getTipoCuerpo() == TipoCuerpo.SATELITE || (c.getMasa() > 0 && c.getMasa() < 1e22 && c.permiteReembolso()));
+    }
 
-        if (procesarCapturaOrbital(ci, cj, distReal, asistenteOrbital, listenerMensaje)) {
+    private void procesarGravedadPar(CuerpoCeleste ci, CuerpoCeleste cj, double softeningCuadrado) {
+        if (ci.estaOrbitando(cj) || cj.estaOrbitando(ci)) {
             return;
         }
-
+        boolean ciSat = esSatelite(ci);
+        boolean cjSat = esSatelite(cj);
+        if (ciSat && cjSat) {
+            return;
+        }
+        if (ciSat || cjSat) {
+            CuerpoCeleste sat = ciSat ? ci : cj;
+            CuerpoCeleste otro = ciSat ? cj : ci;
+            if (sat.estaOrbitando() || otro.getMasa() < 1e29) {
+                return;
+            }
+        }
         if (ci.getMasa() <= 10.0 && cj.getMasa() <= 10.0) {
             return;
         }
 
+        Vector2D r = cj.getPosicion().restar(ci.getPosicion());
+        double distReal = r.magnitud();
         aplicarGravedadNewtoniana(ci, cj, r, distReal, softeningCuadrado);
         aplicarAtraccionArcade(ci, cj, distReal);
     }

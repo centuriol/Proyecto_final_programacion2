@@ -16,7 +16,7 @@ public record DetalleCuerpo( boolean transformadoPorEvento, int golpesEscudo, Da
     }
 
     public static DetalleCuerpo dePlaneta(boolean transformado, int golpesEscudo, DatosCivilizacion civilizacion) {
-        return new DetalleCuerpo(transformado, golpesEscudo, civilizacion, 0.0, 0.0, 0.0, false, -1);
+        return new DetalleCuerpo(transformado, golpesEscudo, transformado ? null : civilizacion, 0.0, 0.0, 0.0, false, -1);
     }
 
     public static DetalleCuerpo deSatelite(double cienciaGenerada, double energiaGenerada) {

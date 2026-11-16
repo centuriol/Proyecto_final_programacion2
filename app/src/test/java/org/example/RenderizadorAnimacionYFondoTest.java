@@ -126,4 +126,83 @@ class RenderizadorAnimacionYFondoTest {
                     "Con ventana redimensionada, el desplazamiento debe quedar entre 0 y el nuevo ancho, pero fue: " + despRedim);
         }
     }
+
+    @Test
+    void testFondoSeDesplazaConCamaraParallaxSumandoScrollAutomaticoYVertical() {
+        double ancho = 1000.0;
+        double alto = 600.0;
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(ancho, alto);
+
+        double factorParallax = renderizador.getFactorParallaxFondo();
+        assertTrue(factorParallax >= 0.3 && factorParallax <= 0.5,
+                "El factor parallax debe estar entre 30% y 50%, pero fue: " + factorParallax);
+
+        renderizador.avanzarFondo(10.0, 2.0);
+        double scrollAuto = renderizador.getVelocidadBaseFondo() * 20.0;
+        assertEquals(scrollAuto, renderizador.getDesplazamientoFondoX(), 1e-6);
+        assertEquals(0.0, renderizador.getDesplazamientoFondoY(), 1e-6);
+
+        renderizador.getCamaraZoom().desplazarPorPantalla(200.0, 150.0);
+        double esperadoX = scrollAuto + 200.0 * factorParallax;
+        double esperadoY = 150.0 * factorParallax;
+
+        assertEquals(esperadoX, renderizador.getDesplazamientoFondoX(), 1e-6,
+                "El desplazamiento X del fondo debe sumar el scroll automatico y el parallax de camara");
+        assertEquals(esperadoY, renderizador.getDesplazamientoFondoY(), 1e-6,
+                "El desplazamiento Y del fondo debe reflejar el parallax vertical de la camara");
+
+        renderizador.avanzarFondo(5.0, 3.0);
+        double nuevoScrollAuto = scrollAuto + renderizador.getVelocidadBaseFondo() * 15.0;
+        assertEquals(nuevoScrollAuto + 200.0 * factorParallax, renderizador.getDesplazamientoFondoX(), 1e-6);
+
+        renderizador.getCamaraZoom().resetear();
+        assertEquals(nuevoScrollAuto, renderizador.getDesplazamientoFondoX(), 1e-6,
+                "Al resetear la camara, el scroll automatico acumulado debe conservarse");
+        assertEquals(0.0, renderizador.getDesplazamientoFondoY(), 1e-6);
+    }
+
+    @Test
+    void testParallaxFondoAjustadoAlZoomYantieneNormalizacionEnArrastresExtremos() {
+        double ancho = 1000.0;
+        double alto = 600.0;
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(ancho, alto);
+        double factor = renderizador.getFactorParallaxFondo();
+
+        renderizador.getCamaraZoom().getDesplazamiento().setPosicion(200.0, 100.0);
+
+        renderizador.getCamaraZoom().setNivelZoom(1.0);
+        double despZoom1 = renderizador.getDesplazamientoFondoX();
+        double despYZoom1 = renderizador.getDesplazamientoFondoY();
+        assertEquals(200.0 * 1.0 * factor, despZoom1, 1e-6);
+        assertEquals(100.0 * 1.0 * factor, despYZoom1, 1e-6);
+
+        renderizador.getCamaraZoom().setNivelZoom(1.5);
+        assertEquals(200.0 * 1.5 * factor, renderizador.getDesplazamientoFondoX(), 1e-6,
+                "A mayor zoom, el desplazamiento en pantalla de la camara y su parallax deben escalar proporcionalmente");
+        assertEquals(100.0 * 1.5 * factor, renderizador.getDesplazamientoFondoY(), 1e-6);
+
+        renderizador.getCamaraZoom().setNivelZoom(0.5);
+        assertEquals(200.0 * 0.5 * factor, renderizador.getDesplazamientoFondoX(), 1e-6);
+        assertEquals(100.0 * 0.5 * factor, renderizador.getDesplazamientoFondoY(), 1e-6);
+
+        // Arrastres hacia coordenadas negativas y positivas extremas no deben romper el wrap [0, dimension)
+        renderizador.getCamaraZoom().setNivelZoom(1.0);
+        double[] deltas = {-350.0, -2800.0, 5400.0, -9100.0, 4300.0};
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(ancho, alto);
+        for (double delta : deltas) {
+            renderizador.avanzarFondo(15.0, 2.0);
+            renderizador.getCamaraZoom().desplazarPorPantalla(delta, delta * 0.8);
+            renderizador.renderizarTodo(
+                    canvas.getGraphicsContext2D(), java.util.Collections.emptyList(),
+                    1L, null, null, 1.0, null, java.util.Collections.emptyList(), null
+            );
+
+            double despX = renderizador.getDesplazamientoFondoX();
+            double despY = renderizador.getDesplazamientoFondoY();
+            assertTrue(despX >= 0.0 && despX < ancho,
+                    "desplazamientoFondoX debe mantenerse normalizado en [0, ancho), pero fue: " + despX);
+            assertTrue(despY >= 0.0 && despY < alto,
+                    "desplazamientoFondoY debe mantenerse normalizado en [0, alto), pero fue: " + despY);
+        }
+    }
 }

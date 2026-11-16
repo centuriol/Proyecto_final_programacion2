@@ -134,6 +134,52 @@ class GuardadoYCargaSimulacionTest {
         CuerpoCeleste recuperado = cargada.getSistemaSolar().getCuerpos().get(0);
         assertFalse(recuperado.permiteReembolso());
         assertFalse(((Planeta) recuperado).tieneCivilizacion());
+        assertTrue(((Planeta) recuperado).isTransformadoPorEvento());
+        assertTrue(RegistroCapacidades.obtenerTransformable(recuperado).map(Transformable::isTransformadoPorEvento).orElse(false));
+    }
+
+    @Test
+    void testPlanetaTransformadoALavaNoGeneraRecursosTrasGuardarCargarYAvanzarTick() {
+        SimulacionSolar simOrigen = new SimulacionSolar(1280, 720);
+        Planeta planetaTransformado = new CuerpoCelesteFactory().crearPlanetaRocoso(300, 0, 1.0, Vector2D.cero());
+        planetaTransformado.transformarA(TipoCuerpo.PLANETA_LAVA);
+        planetaTransformado.setNombre("Planeta Lava");
+
+        simOrigen.agregarCuerpo(planetaTransformado);
+        simOrigen.getInventario().getRecursoObj(TipoRecurso.MINERALES).setCantidad(500.0);
+        simOrigen.getInventario().getRecursoObj(TipoRecurso.CIENCIA).setCantidad(250.0);
+        simOrigen.getInventario().getRecursoObj(TipoRecurso.ENERGIA).setCantidad(300.0);
+
+        GestorGuardadoPartida gestor = new GestorGuardadoPartida(new RepositorioPartidasArchivo(tempDir.resolve("lava_transformado")));
+        gestor.guardarPartida("slot_lava", simOrigen, null);
+
+        SimulacionSolar simCargada = new SimulacionSolar(1280, 720);
+        assertTrue(gestor.cargarPartida("slot_lava", simCargada, null));
+
+        Planeta lavaCargado = (Planeta) simCargada.getSistemaSolar().getCuerpos().get(0);
+        assertEquals(TipoCuerpo.PLANETA_LAVA, lavaCargado.getTipoCuerpo());
+        assertTrue(lavaCargado.isTransformadoPorEvento(), "El flag transformadoPorEvento debe restaurarse en Planeta");
+        assertTrue(
+                RegistroCapacidades.obtenerTransformable(lavaCargado)
+                        .map(Transformable::isTransformadoPorEvento)
+                        .orElse(false),
+                "El registro de Transformable debe conservar transformadoPorEvento = true tras cargar"
+        );
+        assertFalse(lavaCargado.permiteReembolso(), "Un planeta transformado por evento no debe permitir reembolso tras cargar");
+        assertTrue(simCargada.getServicioReembolso().calcularReembolso(lavaCargado).isEmpty());
+
+        double mineralesAntes = simCargada.getInventario().getRecurso(TipoRecurso.MINERALES);
+        double cienciaAntes = simCargada.getInventario().getRecurso(TipoRecurso.CIENCIA);
+        double energiaAntes = simCargada.getInventario().getRecurso(TipoRecurso.ENERGIA);
+
+        simCargada.avanzarTicks(20);
+
+        assertEquals(mineralesAntes, simCargada.getInventario().getRecurso(TipoRecurso.MINERALES), 1e-6,
+                "El Planeta Lava transformado no debe generar minerales tras cargar partida y avanzar ticks");
+        assertEquals(cienciaAntes, simCargada.getInventario().getRecurso(TipoRecurso.CIENCIA), 1e-6,
+                "El Planeta Lava transformado no debe generar ciencia tras cargar partida y avanzar ticks");
+        assertEquals(energiaAntes, simCargada.getInventario().getRecurso(TipoRecurso.ENERGIA), 1e-6,
+                "El Planeta Lava transformado no debe generar energia tras cargar partida y avanzar ticks");
     }
 
     @Test

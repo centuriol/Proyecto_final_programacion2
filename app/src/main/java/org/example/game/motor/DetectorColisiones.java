@@ -38,6 +38,30 @@ public class DetectorColisiones {
         });
     }
 
+    private boolean esPlaneta(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return true; }
+            @Override public Boolean visitarLuna(Luna luna) { return false; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
+    private boolean esLuna(CuerpoCeleste c) {
+        if (c == null) return false;
+        return c.aceptar(new VisitanteCuerpo<Boolean>() {
+            @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
+            @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
+            @Override public Boolean visitarLuna(Luna luna) { return true; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return false; }
+            @Override public Boolean visitarMeteorito(Meteorito meteorito) { return false; }
+            @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
+        });
+    }
+
     public void detectarYResolver(List<CuerpoCeleste> simulados, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         interceptarMeteoritosConSatelites(simulados, aEliminar, aAgregar);
 
@@ -48,6 +72,12 @@ public class DetectorColisiones {
             for (int j = i + 1; j < simulados.size(); j++) {
                 CuerpoCeleste b = simulados.get(j);
                 if (aEliminar.contains(b)) continue;
+
+                boolean aSat = esSatelite(a);
+                boolean bSat = esSatelite(b);
+                if (aSat && bSat) {
+                    continue;
+                }
 
                 double dist = a.getPosicion().distanciaA(b.getPosicion());
                 double radioContacto = a.getRadio() + b.getRadio();
@@ -60,6 +90,22 @@ public class DetectorColisiones {
                     if (b.estaOrbitando(a)) {
                         separarContactoOrbital(b, a, dist);
                         continue;
+                    }
+                    if (aSat || bSat) {
+                        CuerpoCeleste sat = aSat ? a : b;
+                        CuerpoCeleste otro = aSat ? b : a;
+                        if (esPlaneta(otro)) {
+                            if (!sat.estaOrbitando()) {
+                                sat.setCuerpoOrbitado(otro);
+                            }
+                            if (sat.estaOrbitando(otro)) {
+                                separarContactoOrbital(sat, otro, dist);
+                            }
+                            continue;
+                        }
+                        if (esLuna(otro)) {
+                            continue;
+                        }
                     }
 
                     resolvedorColisiones.resolverColision(a, b, aEliminar, aAgregar);
@@ -110,8 +156,17 @@ public class DetectorColisiones {
     }
 
     private void separarContactoOrbital(CuerpoCeleste orbitante, CuerpoCeleste orbitado, double dist) {
-        double minOrb = orbitado.getRadio() + orbitante.getRadio() + 4.0;
-        Vector2D norm = dist > 0.001 ? orbitante.getPosicion().restar(orbitado.getPosicion()).normalizar() : new Vector2D(1, 0);
+        double minOrb = AsistenteOrbital.calcularRadioOrbitalMinimo(orbitante, orbitado);
+        Vector2D diff = orbitante.getPosicion().restar(orbitado.getPosicion());
+        Vector2D norm = dist > 0.001 ? diff.normalizar() : new Vector2D(1, 0);
         orbitante.setPosicion(orbitado.getPosicion().sumar(norm.multiplicar(minOrb)));
+        if (orbitante.getRadioOrbita() < minOrb) {
+            orbitante.setRadioOrbita(minOrb);
+        }
+        Vector2D vRel = orbitante.getVelocidad().restar(orbitado.getVelocidad());
+        double vRadial = vRel.productoPunto(norm);
+        if (vRadial < 0) {
+            orbitante.setVelocidad(orbitante.getVelocidad().restar(norm.multiplicar(vRadial)));
+        }
     }
 }

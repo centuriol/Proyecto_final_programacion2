@@ -139,4 +139,33 @@ class ControladorTecladoYComandosTest {
         controladorTeclado.handle(keyMinus);
         assertEquals(factorInicial, simulacion.getGestorColocacion().getFactorMasaColocacion(), 1e-4);
     }
+
+    @Test
+    void testComandoCtrlMOtorga100000DeCadaRecursoYMejoraArbolAl100PorCiento() {
+        simulacion.getInventario().reiniciar();
+        simulacion.getProgresion().reiniciar();
+
+        for (org.example.game.progresion.RamaProgresion rama : org.example.game.progresion.RamaProgresion.values()) {
+            assertFalse(simulacion.getProgresion().esNivelMaximo(rama));
+        }
+
+        double minAntes = simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.MINERALES);
+        double eneAntes = simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA);
+        double cieAntes = simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA);
+
+        KeyEvent ctrlM = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.M, false, true, false, false);
+        controladorTeclado.handle(ctrlM);
+
+        assertEquals(minAntes + 100_000.0, simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.MINERALES), 1e-6);
+        assertEquals(eneAntes + 100_000.0, simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(cieAntes + 100_000.0, simulacion.getInventario().getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA), 1e-6);
+
+        for (org.example.game.progresion.RamaProgresion rama : org.example.game.progresion.RamaProgresion.values()) {
+            assertTrue(simulacion.getProgresion().esNivelMaximo(rama), "La rama " + rama + " debe quedar al 100%");
+        }
+        assertEquals(
+                org.example.game.simulacion.ConfiguracionSimulacion.NIVEL_ESCUDO_MAX,
+                simulacion.getProgresion().getNivelEscudo()
+        );
+    }
 }

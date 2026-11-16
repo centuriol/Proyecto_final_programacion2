@@ -65,9 +65,9 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         Objects.requireNonNull(datos, "Los datos de partida no pueden ser null");
         Objects.requireNonNull(simulacion, "La simulacion destino no puede ser null");
 
-        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion.getBusEventos()::notificarEvento);
         simulacion.limpiarCuerpos();
         simulacion.getGestorColonizacion().limpiar();
+        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion.getBusEventos()::notificarEvento);
 
         aplicarJugadorYReloj(datos, simulacion, zoom);
         aplicarEntidades(cuerpos, datos.naves(), simulacion);
@@ -143,6 +143,7 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
 
     private void aplicarEntidades(List<CuerpoCeleste> cuerpos, List<DatosNaveColonizadora> naves, SimulacionSolar simulacion) {
         for (CuerpoCeleste c : cuerpos) {
+            org.example.game.cuerpo.RegistroCapacidades.asegurarRegistro(c);
             simulacion.getSistemaSolar().agregarCuerpo(c);
         }
         for (DatosNaveColonizadora dn : naves) {

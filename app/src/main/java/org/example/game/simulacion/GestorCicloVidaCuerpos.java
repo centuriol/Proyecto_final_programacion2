@@ -108,6 +108,7 @@ public class GestorCicloVidaCuerpos {
     }
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
+        org.example.game.cuerpo.RegistroCapacidades.asegurarRegistro(cuerpo);
         sistemaSolar.agregarCuerpo(cuerpo);
         busEventos.notificarCambioEstado();
     }

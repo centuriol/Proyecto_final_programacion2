@@ -113,7 +113,10 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     public void restaurarAtributosPlaneta(boolean transformado, int escudo, boolean poseeComponenteCivilizacion) {
         this.transformadoPorEvento = transformado;
         this.golpesEscudo = Math.max(0, escudo);
-        if (!poseeComponenteCivilizacion) {
+        if (transformado || !poseeComponenteCivilizacion) {
+            if (this.civilizacion != null) {
+                this.civilizacion.destruir();
+            }
             this.civilizacion = null;
             this.tieneCivilizacion = false;
         } else {
@@ -122,6 +125,8 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
             }
             this.tieneCivilizacion = this.civilizacion.estaViva();
         }
+        RegistroCapacidades.registrarPlaneta(this);
+        RegistroCapacidades.obtenerTransformable(this).ifPresent(t -> t.setTransformadoPorEvento(transformado));
     }
 
     @Override
@@ -171,8 +176,10 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
             this.transformadoPorEvento = true;
             if (civilizacion != null) {
                 civilizacion.destruir();
+                this.civilizacion = null;
                 this.tieneCivilizacion = false;
             }
+            RegistroCapacidades.registrarPlaneta(this);
         }
     }
 
@@ -189,5 +196,11 @@ public class Planeta extends CuerpoCeleste implements Civilizable, Colonizable, 
     @Override
     public void setTransformadoPorEvento(boolean transformadoPorEvento) {
         this.transformadoPorEvento = transformadoPorEvento;
+        if (transformadoPorEvento && civilizacion != null) {
+            civilizacion.destruir();
+            this.civilizacion = null;
+            this.tieneCivilizacion = false;
+        }
+        RegistroCapacidades.registrarPlaneta(this);
     }
 }

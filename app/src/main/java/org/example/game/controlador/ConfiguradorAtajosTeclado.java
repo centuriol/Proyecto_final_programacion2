@@ -35,6 +35,7 @@ public class ConfiguradorAtajosTeclado {
         controlador.registrarComando(KeyCode.SPACE, new ComandoAlternarPausa(simulacion, controlTiempo));
         controlador.registrarComando(KeyCode.S, new ComandoAvanzarPaso(simulacion, controlTiempo));
         controlador.registrarComando(KeyCode.ESCAPE, new ComandoCancelar(simulacion, hotbar, mouse));
+        controlador.registrarComando(CombinacionTeclas.ctrl(KeyCode.M), new ComandoMaximizarRecursosYArbol(simulacion, hotbar));
     }
 
     private void configurarAtajosHotbar(ControladorTeclado controlador, BarraInventarioHotbar hotbar) {

@@ -150,4 +150,60 @@ class EventosCosmicosYSatelitesTest {
         assertTrue(aEliminar.isEmpty());
         assertTrue(aAgregar.isEmpty());
     }
+
+    @Test
+    void testVariosSatelitesChocandoseEnMismoPlanetaConLunaDurante200TicksMantienenOrbitaPegada() {
+        simulacion.getProgresion().desbloquearTodo();
+        simulacion.getInventario().agregarRecurso(TipoRecurso.MINERALES, 10000);
+        simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 10000);
+
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(260, 0, 1.0, new Vector2D(0, -10.5));
+        planeta.setCuerpoOrbitado(sol);
+        planeta.setRadioOrbita(260.0);
+
+        Luna luna = new CuerpoCelesteFactory().crearLuna(260 + 65, 0, 1.0, new Vector2D(0, -12.0));
+        luna.setCuerpoOrbitado(planeta);
+        luna.setRadioOrbita(65.0);
+
+        simulacion.agregarCuerpo(sol);
+        simulacion.agregarCuerpo(planeta);
+        simulacion.agregarCuerpo(luna);
+
+        // 4 satelites en la misma banda orbital del planeta (incluyendo dos superpuestos y en sentidos opuestos para forzar cruces/choques continuos)
+        Satelite sat1 = new CuerpoCelesteFactory().crearSatelite(260 + 28, 0, 1.0, new Vector2D(0, -9.0));
+        Satelite sat2 = new CuerpoCelesteFactory().crearSatelite(260 + 28, 1, 1.0, new Vector2D(0, -12.0));
+        Satelite sat3 = new CuerpoCelesteFactory().crearSatelite(260 - 28, 0, 1.0, new Vector2D(0, -9.0));
+        Satelite sat4 = new CuerpoCelesteFactory().crearSatelite(260, 22, 1.0, new Vector2D(1.5, -10.5));
+        List<Satelite> satelites = List.of(sat1, sat2, sat3, sat4);
+        for (Satelite s : satelites) {
+            simulacion.agregarCuerpo(s);
+        }
+
+        for (int tick = 1; tick <= 200; tick++) {
+            simulacion.avanzarTick();
+
+            List<CuerpoCeleste> actuales = simulacion.getSistemaSolar().getCuerpos();
+            assertTrue(actuales.contains(planeta), "El planeta debe seguir existiendo en tick " + tick);
+            assertTrue(actuales.contains(luna), "La luna debe seguir existiendo sin chocar en tick " + tick);
+            assertSame(planeta, luna.getCuerpoOrbitado(), "La luna debe conservar su planeta anfitrion en tick " + tick);
+
+            double distLuna = luna.getPosicion().distanciaA(planeta.getPosicion());
+            assertTrue(distLuna >= 55.0, "La luna debe orbitar mas lejos que los satelites en tick " + tick + ", dist=" + distLuna);
+
+            for (Satelite sat : satelites) {
+                assertTrue(actuales.contains(sat), "El satelite " + sat.getNombre() + " no debe ser eliminado en tick " + tick);
+                assertTrue(sat.esSimulado(), "El satelite debe seguir simulado en tick " + tick);
+                assertSame(planeta, sat.getCuerpoOrbitado(),
+                        "El satelite debe conservar su cuerpoOrbitado sin perder su orbita en tick " + tick);
+
+                double distPlaneta = sat.getPosicion().distanciaA(planeta.getPosicion());
+                double radioContactoPlaneta = planeta.getRadio() + sat.getRadio();
+                assertTrue(distPlaneta > radioContactoPlaneta,
+                        "El satelite no debe chocar con el planeta en tick " + tick + " (dist=" + distPlaneta + " <= " + radioContactoPlaneta + ")");
+                assertTrue(distPlaneta < distLuna - luna.getRadio() - sat.getRadio() + 4.0,
+                        "El satelite debe quedar mas pegado al planeta que la luna en tick " + tick + " (distSat=" + distPlaneta + ", distLuna=" + distLuna + ")");
+            }
+        }
+    }
 }

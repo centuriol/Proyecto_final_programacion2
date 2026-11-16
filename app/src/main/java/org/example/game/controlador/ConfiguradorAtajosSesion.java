@@ -44,6 +44,10 @@ public class ConfiguradorAtajosSesion {
         });
 
         registrarAtajosGuardadoYCarga(controladorTeclado, gestorGuardado, simulacion, camaraZoom, coordinadorSesion);
+        controladorTeclado.registrarComando(
+                CombinacionTeclas.ctrl(KeyCode.M),
+                new ComandoMaximizarRecursosYArbol(simulacion, hotbar, arbol != null ? arbol::refrescar : null)
+        );
     }
 
     private void registrarAtajosGuardadoYCarga(

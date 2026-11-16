@@ -23,7 +23,11 @@ public class GestorEconomia {
             if (tipo == null) continue;
 
             // Planetas o cuerpos transformados por evento no generan recursos
-            if (org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(c).map(org.example.game.cuerpo.Transformable::isTransformadoPorEvento).orElse(false)) continue;
+            boolean transformado = !c.permiteReembolso()
+                    || org.example.game.cuerpo.RegistroCapacidades.obtenerTransformable(c)
+                            .map(org.example.game.cuerpo.Transformable::isTransformadoPorEvento)
+                            .orElse(false);
+            if (transformado) continue;
 
             double factorMasa = 1.0;
             if (tipo.masaBase > 0) {

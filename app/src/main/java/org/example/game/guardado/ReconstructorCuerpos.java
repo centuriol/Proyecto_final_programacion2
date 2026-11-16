@@ -93,8 +93,9 @@ public class ReconstructorCuerpos {
     private Planeta reconstruirPlaneta(DatosCuerpo d, List<CuerpoCeleste> ctx, List<Runnable> vinc) {
         Planeta planeta = new Planeta(d.nombre(), d.masa(), d.cinematica().posicion().x(), d.cinematica().posicion().y(), d.tipo());
         DetalleCuerpo det = d.detalle();
-        boolean poseeCiv = det.tieneCivilizacionRegistrada();
-        planeta.restaurarAtributosPlaneta(det.transformadoPorEvento(), det.golpesEscudo(), poseeCiv);
+        boolean transformado = det.transformadoPorEvento();
+        boolean poseeCiv = !transformado && det.tieneCivilizacionRegistrada();
+        planeta.restaurarAtributosPlaneta(transformado, det.golpesEscudo(), poseeCiv);
         if (poseeCiv && planeta.getCivilizacion() != null) {
             DatosCivilizacion civDatos = det.civilizacion();
             CivilizacionComponent civ = planeta.getCivilizacion();
@@ -102,6 +103,8 @@ public class ReconstructorCuerpos {
             civ.restaurarEstadoGeneral(civDatos.estado(), civDatos.ticksEfectoEvento());
             civ.setEmisorEventos(emisorActivo);
         }
+        RegistroCapacidades.registrarPlaneta(planeta);
+        RegistroCapacidades.obtenerTransformable(planeta).ifPresent(t -> t.setTransformadoPorEvento(transformado));
         return planeta;
     }
 

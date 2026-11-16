@@ -115,7 +115,11 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         gestorAgujeroNegro.procesar(simuladosCache, aEliminarCache, listenerMensaje);
         if (!aEliminarCache.isEmpty()) {
             cuerpos.removeAll(aEliminarCache);
+            simuladosCache.removeAll(aEliminarCache);
+            limpiarSatelitesHuerfanos(cuerpos, aEliminarCache);
+            simuladosCache.retainAll(cuerpos);
             for (CuerpoCeleste c : aEliminarCache) {
+                desregistrar(c);
                 notificarColision(c);
             }
         }
@@ -132,8 +136,13 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     }
 
     private void actualizarEntidadesEspeciales(List<CuerpoCeleste> cuerpos) {
-        for (Actualizable act : actualizables.values()) {
-            act.actualizarEntidad(dt);
+        for (CuerpoCeleste c : cuerpos) {
+            if (c != null && c.esSimulado()) {
+                Actualizable act = actualizables.get(c);
+                if (act != null) {
+                    act.actualizarEntidad(dt);
+                }
+            }
         }
     }
 
@@ -149,6 +158,7 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         limpiarSatelitesHuerfanos(todos, aEliminarCache);
 
         for (CuerpoCeleste c : aEliminarCache) {
+            desregistrar(c);
             notificarColision(c);
         }
     }
@@ -156,11 +166,14 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
     private void limpiarSatelitesHuerfanos(List<CuerpoCeleste> todos, Set<CuerpoCeleste> aEliminar) {
         List<CuerpoCeleste> satelitesAEliminar = new ArrayList<>();
         for (CuerpoCeleste c : todos) {
-            if (c.getCuerpoOrbitado() != null && (aEliminar.contains(c.getCuerpoOrbitado()) || !todos.contains(c.getCuerpoOrbitado()))) {
-                if (actualizables.containsKey(c)) {
+            if (c == null || aEliminar.contains(c)) continue;
+            CuerpoCeleste orbitado = c.getCuerpoOrbitado();
+            if (orbitado != null && (aEliminar.contains(orbitado) || !todos.contains(orbitado) || !orbitado.esSimulado())) {
+                if (actualizables.containsKey(c) || c.getTipoCuerpo() == TipoCuerpo.SATELITE) {
                     satelitesAEliminar.add(c);
                     c.setSimulado(false);
                     c.setMasa(0);
+                    desregistrar(c);
                 }
                 c.setCuerpoOrbitado(null);
             }
@@ -168,7 +181,9 @@ public class MotorFisicaPermisiva extends MotorFisicaBase {
         if (!satelitesAEliminar.isEmpty()) {
             todos.removeAll(satelitesAEliminar);
             for (CuerpoCeleste s : satelitesAEliminar) {
-                notificarColision(s);
+                if (!aEliminar.contains(s)) {
+                    notificarColision(s);
+                }
             }
         }
     }

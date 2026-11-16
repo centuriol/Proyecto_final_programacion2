@@ -19,12 +19,17 @@ public class RenderizadorFondo {
     private static final Color COLOR_GRILLA_EJE = Color.web("#5be3ff");
     private static final Color COLOR_NEBULOSA_1 = Color.rgb(40, 20, 60, 0.22);
     private static final Color COLOR_NEBULOSA_2 = Color.rgb(15, 45, 65, 0.18);
+    private static final double FACTOR_PARALLAX_POR_DEFECTO = 0.4;
 
     private Image imagenFondo;
     private final RepositorioSprites repositorioSprites;
+    private ControlZoom camara;
     private double desplazamientoFondoX = 0.0;
+    private double desplazamientoFondoY = 0.0;
     private double velocidadBaseFondo = 1.0;
+    private double factorParallax = FACTOR_PARALLAX_POR_DEFECTO;
     private double anchoCanvas;
+    private double altoCanvas;
 
     private final List<EstrellaFondo> estrellasFondo = new ArrayList<>();
 
@@ -50,12 +55,16 @@ public class RenderizadorFondo {
         this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
         this.imagenFondo = this.repositorioSprites.obtenerImagenFondo();
         this.anchoCanvas = Math.max(0.0, ancho);
+        this.altoCanvas = Math.max(0.0, alto);
         generarEstrellasFondo(ancho, alto);
     }
 
     public void generarEstrellasFondo(double ancho, double alto) {
         if (ancho > 0) {
             this.anchoCanvas = ancho;
+        }
+        if (alto > 0) {
+            this.altoCanvas = alto;
         }
         estrellasFondo.clear();
         Random rand = new Random(42);
@@ -70,27 +79,56 @@ public class RenderizadorFondo {
     }
 
     public void dibujarFondo(GraphicsContext gc, double anchoCanvas, double altoCanvas, long tick) {
+        dibujarFondo(gc, anchoCanvas, altoCanvas, tick, this.camara);
+    }
+
+    public void dibujarFondo(GraphicsContext gc, double anchoCanvas, double altoCanvas, long tick, ControlZoom camara) {
+        if (camara != null) {
+            this.camara = camara;
+        }
         gc.setFill(COLOR_FONDO_ESPACIAL);
         gc.fillRect(0, 0, anchoCanvas, altoCanvas);
 
         Image fondo = getImagenFondo();
         if (fondo != null) {
-            normalizarDesplazamiento(anchoCanvas);
-            double x1 = desplazamientoFondoX;
-            double x2 = desplazamientoFondoX - anchoCanvas;
-            gc.drawImage(fondo, x1, 0, anchoCanvas + 1, altoCanvas);
-            gc.drawImage(fondo, x2, 0, anchoCanvas + 1, altoCanvas);
+            normalizarDesplazamiento(anchoCanvas, altoCanvas);
+            dibujarImagenFondoConWrap(gc, fondo, anchoCanvas, altoCanvas);
         } else {
+            normalizarDesplazamiento(anchoCanvas, altoCanvas);
             dibujarNebulosas(gc, anchoCanvas, altoCanvas, tick);
         }
     }
 
+    private void dibujarImagenFondoConWrap(GraphicsContext gc, Image fondo, double ancho, double alto) {
+        double x1 = getDesplazamientoFondoX();
+        double x2 = x1 - ancho;
+        double y1 = getDesplazamientoFondoY();
+
+        if (y1 <= 1e-6) {
+            gc.drawImage(fondo, x1, 0, ancho + 1, alto);
+            gc.drawImage(fondo, x2, 0, ancho + 1, alto);
+        } else {
+            double y2 = y1 - alto;
+            gc.drawImage(fondo, x1, y1, ancho + 1, alto + 1);
+            gc.drawImage(fondo, x2, y1, ancho + 1, alto + 1);
+            gc.drawImage(fondo, x1, y2, ancho + 1, alto + 1);
+            gc.drawImage(fondo, x2, y2, ancho + 1, alto + 1);
+        }
+    }
+
     public void dibujarNebulosas(GraphicsContext gc, double anchoCanvas, double altoCanvas, long tick) {
+        double despX = getDesplazamientoFondoX();
+        double despY = getDesplazamientoFondoY();
+        double x1 = normalizarValor(anchoCanvas * 0.1 + despX, anchoCanvas);
+        double y1 = normalizarValor(altoCanvas * 0.15 + despY, altoCanvas);
+        double x2 = normalizarValor(anchoCanvas * 0.65 + despX, anchoCanvas);
+        double y2 = normalizarValor(altoCanvas * 0.55 + despY, altoCanvas);
+
         gc.setFill(COLOR_NEBULOSA_1);
-        gc.fillOval(anchoCanvas * 0.1, altoCanvas * 0.15, 450, 300);
+        gc.fillOval(x1, y1, 450, 300);
 
         gc.setFill(COLOR_NEBULOSA_2);
-        gc.fillOval(anchoCanvas * 0.65, altoCanvas * 0.55, 550, 380);
+        gc.fillOval(x2, y2, 550, 380);
     }
 
     public void dibujarGrilla(GraphicsContext gc, double anchoCanvas, double altoCanvas) {
@@ -138,12 +176,16 @@ public class RenderizadorFondo {
     }
 
     public void dibujarEstrellasFondo(GraphicsContext gc, long tick) {
+        double despX = getDesplazamientoFondoX();
+        double despY = getDesplazamientoFondoY();
         for (EstrellaFondo ef : estrellasFondo) {
             double alpha = ef.brilloBase + 0.25 * Math.sin(tick * 0.05 * ef.velocidadParpadeo);
             alpha = Math.max(0.1, Math.min(1.0, alpha));
+            double x = anchoCanvas > 0 ? normalizarValor(ef.x + despX, anchoCanvas) : ef.x + despX;
+            double y = altoCanvas > 0 ? normalizarValor(ef.y + despY, altoCanvas) : ef.y + despY;
 
             gc.setFill(Color.color(0.91, 0.89, 0.85, alpha));
-            gc.fillRect((int) ef.x, (int) ef.y, (int) ef.size, (int) ef.size);
+            gc.fillRect((int) x, (int) y, (int) ef.size, (int) ef.size);
         }
     }
 
@@ -160,21 +202,62 @@ public class RenderizadorFondo {
     public void normalizarDesplazamiento(double ancho) {
         if (ancho > 0) {
             this.anchoCanvas = ancho;
-            desplazamientoFondoX = (desplazamientoFondoX % ancho + ancho) % ancho;
+            desplazamientoFondoX = normalizarValor(desplazamientoFondoX, ancho);
+        }
+    }
+
+    public void normalizarDesplazamiento(double ancho, double alto) {
+        normalizarDesplazamiento(ancho);
+        if (alto > 0) {
+            this.altoCanvas = alto;
+            desplazamientoFondoY = normalizarValor(desplazamientoFondoY, alto);
         }
     }
 
     public void normalizarDesplazamiento() {
-        normalizarDesplazamiento(this.anchoCanvas);
+        normalizarDesplazamiento(this.anchoCanvas, this.altoCanvas);
     }
 
-    public double getDesplazamientoFondoX() { return desplazamientoFondoX; }
+    public double calcularParallaxCamaraX() {
+        if (camara == null || camara.getDesplazamiento() == null) {
+            return 0.0;
+        }
+        return camara.getDesplazamiento().getX() * camara.getNivelZoom() * factorParallax;
+    }
+
+    public double calcularParallaxCamaraY() {
+        if (camara == null || camara.getDesplazamiento() == null) {
+            return 0.0;
+        }
+        return camara.getDesplazamiento().getY() * camara.getNivelZoom() * factorParallax;
+    }
+
+    public double getDesplazamientoFondoX() {
+        return normalizarValor(desplazamientoFondoX + calcularParallaxCamaraX(), anchoCanvas);
+    }
+
     public void setDesplazamientoFondoX(double desplazamiento) {
-        this.desplazamientoFondoX = desplazamiento;
-        if (this.anchoCanvas > 0) {
-            normalizarDesplazamiento(this.anchoCanvas);
+        this.desplazamientoFondoX = normalizarValor(desplazamiento, this.anchoCanvas);
+    }
+
+    public double getDesplazamientoFondoY() {
+        return normalizarValor(desplazamientoFondoY + calcularParallaxCamaraY(), altoCanvas);
+    }
+
+    public double getFactorParallax() {
+        return factorParallax;
+    }
+
+    public void setFactorParallax(double factorParallax) {
+        if (Double.isFinite(factorParallax) && factorParallax >= 0.0 && factorParallax <= 1.0) {
+            this.factorParallax = factorParallax;
         }
     }
+
+    public void setCamara(ControlZoom camara) {
+        this.camara = camara;
+    }
+
     public double getVelocidadBaseFondo() { return velocidadBaseFondo; }
     public void setVelocidadBaseFondo(double vel) { this.velocidadBaseFondo = vel; }
 
@@ -185,4 +268,14 @@ public class RenderizadorFondo {
         return imagenFondo;
     }
     public void setImagenFondo(Image imagenFondo) { this.imagenFondo = imagenFondo; }
+
+    private double normalizarValor(double valor, double dimension) {
+        if (!Double.isFinite(valor)) {
+            return 0.0;
+        }
+        if (!Double.isFinite(dimension) || dimension <= 0.0) {
+            return valor;
+        }
+        return (valor % dimension + dimension) % dimension;
+    }
 }

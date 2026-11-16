@@ -114,6 +114,9 @@ public class GestorColocacionCuerpos {
                 if ((recienEsMenor && cercanoEsPlaneta) || (recienEsPlaneta && cercanoEsMasivo)) {
                     recienCreado.setCuerpoOrbitado(cuerpoCercano);
                     recienCreado.setRadioOrbita(dist);
+                    if (recienEsMenor && cercanoEsPlaneta) {
+                        new org.example.game.motor.AsistenteOrbital().inicializarVelocidadOrbital(recienCreado, cuerpoCercano, dist);
+                    }
                 }
             }
             return spawnedOpt;
