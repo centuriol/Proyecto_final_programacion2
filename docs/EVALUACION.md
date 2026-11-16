@@ -223,6 +223,76 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
     - ¿Los métodos operan sobre estado que podría vivir en un objeto?
     - ¿Se usó clase solo para agrupar funciones sueltas?
 
+### Desglose de la columna S (SRP)
+
+> La columna **S** no es un puntaje: cuenta **señales** de SRP. Aquí suma **46** entrada(s) sobre **43** clase(s) distinta(s).
+> 3 clase(s) acumulan más de una señal: `AsistenteOrbital`, `GestorImagenes`, `TransformadorCuerpos`.
+
+| Señal | Entradas | Regla (perfil exigente) |
+|---|---:|---|
+| Clase grande | 17 | ≥ 200 LOC lógico, o ≥ 15 métodos con lógica y ≥ 100 LOC lógico. No cuentan getters/setters. |
+| Cohesión baja | 24 | < 50 % de los pares de métodos comparten algún campo (con ≥ 4 métodos con lógica y ≥ 3 campos). |
+| Complejidad alta | 5 | Algún método con complejidad ciclomática ≥ 10. |
+
+**Clases grandes (17)**
+
+- `VentanaInspeccion`: clase grande (LOC lógico=225, métodos=12, campos=4)
+- `AsistenteOrbital`: clase grande (LOC lógico=220, métodos=14, campos=3)
+- `ColonizacionYEscudosTest`: clase grande (LOC lógico=218, métodos=12, campos=1)
+- `PantallaMenuPrincipal`: clase grande (LOC lógico=156, métodos=15, campos=17, accesores=10 (no cuentan))
+- `TransformadorCuerpos`: clase grande (LOC lógico=153, métodos=18, campos=22, accesores=19 (no cuentan))
+- `SeccionInfoCuerpo`: clase grande (LOC lógico=147, métodos=17, campos=1)
+- `ControladorMouse`: clase grande (LOC lógico=145, métodos=21, campos=11, accesores=6 (no cuentan))
+- `BarraInventarioHotbar`: clase grande (LOC lógico=140, métodos=17, campos=8, accesores=2 (no cuentan))
+- `SistemaProgresion`: clase grande (LOC lógico=135, métodos=21, campos=2, accesores=2 (no cuentan))
+- `CoordinadorSesionJuego`: clase grande (LOC lógico=129, métodos=18, campos=11, accesores=1 (no cuentan))
+- `RenderizadorFondo`: clase grande (LOC lógico=126, métodos=15, campos=14, accesores=4 (no cuentan))
+- `CivilizacionComponent`: clase grande (LOC lógico=126, métodos=19, campos=14, accesores=10 (no cuentan))
+- `GestorGuardadoPartida`: clase grande (LOC lógico=116, métodos=16, campos=6, accesores=2 (no cuentan))
+- `InventarioJugador`: clase grande (LOC lógico=116, métodos=17, campos=2, accesores=4 (no cuentan))
+- `CuerpoCelesteFactory`: clase grande (LOC lógico=115, métodos=26, campos=4)
+- `Planeta`: clase grande (LOC lógico=113, métodos=20, campos=7, accesores=6 (no cuentan))
+- `ReglaColisionMeteorito`: clase grande (LOC lógico=101, métodos=15, campos=3)
+
+**Clases con baja cohesión (24)**
+
+- `EstrategiaBase`: cohesión baja (0% de pares comparten campos)
+- `RegistroEstrategiasVisuales`: cohesión baja (4% de pares comparten campos)
+- `CuerpoCeleste`: cohesión baja (11% de pares comparten campos)
+- `RenderizadorPixelArt`: cohesión baja (14% de pares comparten campos)
+- `ReconstructorCuerpos`: cohesión baja (17% de pares comparten campos)
+- `Meteorito`: cohesión baja (18% de pares comparten campos)
+- `BusEventos`: cohesión baja (19% de pares comparten campos)
+- `GestorImagenes`: cohesión baja (22% de pares comparten campos)
+- `GestorEfectos`: cohesión baja (25% de pares comparten campos)
+- `MotorFisicaPermisiva`: cohesión baja (27% de pares comparten campos)
+- `EscenaFondoMenu`: cohesión baja (29% de pares comparten campos)
+- `CapaIndicadoresSol`: cohesión baja (29% de pares comparten campos)
+- `UtilidadRender`: cohesión baja (33% de pares comparten campos)
+- `PoliticaRanurasGuardado`: cohesión baja (33% de pares comparten campos)
+- `SlotHotbar`: cohesión baja (33% de pares comparten campos)
+- `App`: cohesión baja (36% de pares comparten campos)
+- `MotorFisicaBase`: cohesión baja (39% de pares comparten campos)
+- `ControlTiempoWidget`: cohesión baja (40% de pares comparten campos)
+- `ControladorColocacion`: cohesión baja (43% de pares comparten campos)
+- `ResolvedorColisiones`: cohesión baja (44% de pares comparten campos)
+- `RepositorioPartidasArchivo`: cohesión baja (46% de pares comparten campos)
+- `VentanaProgresion`: cohesión baja (46% de pares comparten campos)
+- `DesplazamientoCamara`: cohesión baja (47% de pares comparten campos)
+- `SimulacionSolar`: cohesión baja (48% de pares comparten campos)
+
+**Complejidad alta (5)**
+
+- `TransformadorCuerpos`: complejidad alta (máx=16)
+- `GestorImagenes`: complejidad alta (máx=13)
+- `AsistenteOrbital`: complejidad alta (máx=12)
+- `GestorEconomia`: complejidad alta (máx=10)
+- `DetectorColisiones`: complejidad alta (máx=10)
+
+> Los **100** hallazgo(s) de métodos largos o con muchos parámetros se listan en «Métodos/funciones largos o con muchos parámetros» y **no suman** a la columna S.
+
+> El análisis no excluye tests: una clase de test que supere los umbrales también suma.
+
 ## 5. Evolución por commit
 
 Métricas calculadas sobre el estado de `main` en **cada commit** (16 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
