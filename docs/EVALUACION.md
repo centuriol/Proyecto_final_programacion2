@@ -3,7 +3,7 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-11-17.
+> Generado: 2026-11-20.
 
 ## 1. Veredicto
 
@@ -206,6 +206,250 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
     - ¿Los métodos operan sobre estado que podría vivir en un objeto?
     - ¿Se usó clase solo para agrupar funciones sueltas?
 
+### Archivos donde se originan las señales
+
+> Se listan **237** hallazgo(s) localizados en **136** archivo(s). La columna `Línea` es la línea del archivo donde el análisis detectó la señal; `—` indica una señal de nivel repositorio (sin archivo propio).
+
+| Aspecto | Archivo | Línea | Hallazgo |
+|---|---|---:|---|
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java` | 16 | clase 'CivilizacionComponent' grande (LOC lógico=126, métodos=19, campos=14, accesores=10 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/controlador/ControladorMouse.java` | 23 | clase 'ControladorMouse' grande (LOC lógico=145, métodos=21, campos=11, accesores=6 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/controlador/CoordinadorSesionJuego.java` | 20 | clase 'CoordinadorSesionJuego' grande (LOC lógico=129, métodos=18, campos=11, accesores=1 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 14 | clase 'CuerpoCelesteFactory' grande (LOC lógico=115, métodos=26, campos=4) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/cuerpo/Planeta.java` | 7 | clase 'Planeta' grande (LOC lógico=113, métodos=20, campos=7, accesores=6 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/guardado/GestorGuardadoPartida.java` | 18 | clase 'GestorGuardadoPartida' grande (LOC lógico=116, métodos=16, campos=6, accesores=2 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/jugador/InventarioJugador.java` | 8 | clase 'InventarioJugador' grande (LOC lógico=116, métodos=17, campos=2, accesores=4 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/motor/AsistenteOrbital.java` | 13 | clase 'AsistenteOrbital' grande (LOC lógico=220, métodos=14, campos=3) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 23 | clase 'TransformadorCuerpos' grande (LOC lógico=153, métodos=18, campos=22, accesores=19 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/motor/colision/ReglaColisionMeteorito.java` | 13 | clase 'ReglaColisionMeteorito' grande (LOC lógico=101, métodos=15, campos=3) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/progresion/SistemaProgresion.java` | 18 | clase 'SistemaProgresion' grande (LOC lógico=135, métodos=21, campos=2, accesores=2 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/render/RenderizadorFondo.java` | 15 | clase 'RenderizadorFondo' grande (LOC lógico=126, métodos=15, campos=14, accesores=4 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java` | 20 | clase 'BarraInventarioHotbar' grande (LOC lógico=140, métodos=17, campos=8, accesores=2 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/ui/PantallaMenuPrincipal.java` | 26 | clase 'PantallaMenuPrincipal' grande (LOC lógico=156, métodos=15, campos=17, accesores=10 (no cuentan)) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/ui/SeccionInfoCuerpo.java` | 27 | clase 'SeccionInfoCuerpo' grande (LOC lógico=147, métodos=17, campos=1) |
+| Clase demasiado grande (SRP) | `app/src/main/java/org/example/game/ui/VentanaInspeccion.java` | 24 | clase 'VentanaInspeccion' grande (LOC lógico=225, métodos=12, campos=4) |
+| Clase demasiado grande (SRP) | `app/src/test/java/org/example/ColonizacionYEscudosTest.java` | 16 | clase 'ColonizacionYEscudosTest' grande (LOC lógico=218, métodos=12, campos=1) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/App.java` | 29 | clase 'App' con baja cohesión (36%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/controlador/ControladorMouse.java` | 23 | clase 'ControladorMouse' con baja cohesión (43%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/controlador/CoordinadorSesionJuego.java` | 20 | clase 'CoordinadorSesionJuego' con baja cohesión (42%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` | 12 | clase 'CuerpoCeleste' con baja cohesión (11%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 14 | clase 'CuerpoCelesteFactory' con baja cohesión (23%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/cuerpo/Meteorito.java` | 7 | clase 'Meteorito' con baja cohesión (18%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/cuerpo/Planeta.java` | 7 | clase 'Planeta' con baja cohesión (44%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/efectos/GestorEfectos.java` | 17 | clase 'GestorEfectos' con baja cohesión (25%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/guardado/PoliticaRanurasGuardado.java` | 13 | clase 'PoliticaRanurasGuardado' con baja cohesión (33%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/guardado/ReconstructorCuerpos.java` | 14 | clase 'ReconstructorCuerpos' con baja cohesión (17%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/guardado/RepositorioPartidasArchivo.java` | 19 | clase 'RepositorioPartidasArchivo' con baja cohesión (46%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/motor/MotorFisicaBase.java` | 22 | clase 'MotorFisicaBase' con baja cohesión (39%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java` | 20 | clase 'MotorFisicaPermisiva' con baja cohesión (27%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java` | 29 | clase 'ResolvedorColisiones' con baja cohesión (44%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 23 | clase 'TransformadorCuerpos' con baja cohesión (38%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/DesplazamientoCamara.java` | 11 | clase 'DesplazamientoCamara' con baja cohesión (47%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/EscenaFondoMenu.java` | 18 | clase 'EscenaFondoMenu' con baja cohesión (29%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/GestorImagenes.java` | 21 | clase 'GestorImagenes' con baja cohesión (22%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/RegistroEstrategiasVisuales.java` | 18 | clase 'RegistroEstrategiasVisuales' con baja cohesión (4%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/RegistroEstrategiasVisuales.java` | 211 | clase 'EstrategiaBase' con baja cohesión (0%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java` | 20 | clase 'RenderizadorPixelArt' con baja cohesión (14%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/render/UtilidadRender.java` | 9 | clase 'UtilidadRender' con baja cohesión (33%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/simulacion/BusEventos.java` | 9 | clase 'BusEventos' con baja cohesión (19%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/simulacion/ControladorColocacion.java` | 11 | clase 'ControladorColocacion' con baja cohesión (43%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java` | 25 | clase 'SimulacionSolar' con baja cohesión (48%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java` | 20 | clase 'BarraInventarioHotbar' con baja cohesión (29%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/CapaIndicadoresSol.java` | 26 | clase 'CapaIndicadoresSol' con baja cohesión (29%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java` | 23 | clase 'ControlTiempoWidget' con baja cohesión (40%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/PantallaMenuPrincipal.java` | 26 | clase 'PantallaMenuPrincipal' con baja cohesión (22%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/SlotHotbar.java` | 16 | clase 'SlotHotbar' con baja cohesión (33%) |
+| Baja cohesión (LCOM) | `app/src/main/java/org/example/game/ui/VentanaProgresion.java` | 33 | clase 'VentanaProgresion' con baja cohesión (46%) |
+| Complejidad alta | `app/src/main/java/org/example/game/motor/AsistenteOrbital.java` | 108 | método 'AsistenteOrbital.aplicarDinamicaOrbitalEstable' con complejidad 12 |
+| Complejidad alta | `app/src/main/java/org/example/game/motor/AsistenteOrbital.java` | 187 | método 'AsistenteOrbital.aplicarAsistenciaOrbital' con complejidad 11 |
+| Complejidad alta | `app/src/main/java/org/example/game/motor/DetectorColisiones.java` | 41 | método 'DetectorColisiones.detectarYResolver' con complejidad 10 |
+| Complejidad alta | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 205 | método 'TransformadorCuerpos.procesarTransformaciones' con complejidad 16 |
+| Complejidad alta | `app/src/main/java/org/example/game/render/GestorImagenes.java` | 166 | método 'GestorImagenes.cargarImagen' con complejidad 13 |
+| Complejidad alta | `app/src/main/java/org/example/game/simulacion/GestorEconomia.java` | 17 | método 'GestorEconomia.actualizarEconomia' con complejidad 10 |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/civilizacion/CondicionesHabitabilidad.java` | 6 | método 'CondicionesHabitabilidad.CondicionesHabitabilidad' con 9 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java` | 153 | método 'GestorColonizacion.lanzar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java` | 153 | método 'GestorColonizacion.lanzar' de 40 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/controlador/CombinacionTeclas.java` | 9 | método 'CombinacionTeclas.CombinacionTeclas' de 47 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/controlador/SeleccionadorCuerpoMouse.java` | 25 | método 'SeleccionadorCuerpoMouse.encontrarCuerpo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/AgujeroNegro.java` | 9 | método 'AgujeroNegro.AgujeroNegro' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCeleste.java` | 24 | método 'CuerpoCeleste.CuerpoCeleste' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 57 | método 'CuerpoCelesteFactory.crearCuerpo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 80 | método 'CuerpoCelesteFactory.crearPlaneta' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 97 | método 'CuerpoCelesteFactory.crearPlanetaPersonalizado' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 126 | método 'CuerpoCelesteFactory.crearLunaPersonalizada' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 141 | método 'CuerpoCelesteFactory.crearAgujeroNegro' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/DescriptorTipoCuerpo.java` | 12 | método 'DescriptorTipoCuerpo.DescriptorTipoCuerpo' con 11 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 10 | método 'FabricaCuerpos.crearCuerpo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 12 | método 'FabricaCuerpos.crearPlaneta' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 14 | método 'FabricaCuerpos.crearPlanetaPersonalizado' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 24 | método 'FabricaCuerpos.crearLunaPersonalizada' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 28 | método 'FabricaCuerpos.crearAgujeroNegro' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaMeteoritos.java` | 28 | método 'FabricaMeteoritos.crearHaciaObjetivo' de 35 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaPlanetas.java` | 19 | método 'FabricaPlanetas.crearPlaneta' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/FabricaPlanetas.java` | 27 | método 'FabricaPlanetas.crearPlanetaPersonalizado' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/cuerpo/Planeta.java` | 16 | método 'Planeta.Planeta' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/DatosCivilizacion.java` | 7 | método 'DatosCivilizacion.DatosCivilizacion' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/DatosCuerpo.java` | 7 | método 'DatosCuerpo.DatosCuerpo' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/DatosPartida.java` | 11 | método 'DatosPartida.DatosPartida' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/DatosPartida.java` | 11 | método 'DatosPartida.DatosPartida' de 31 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/DetalleCuerpo.java` | 5 | método 'DetalleCuerpo.DetalleCuerpo' con 8 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/EstadoJugadorGuardado.java` | 10 | método 'EstadoJugadorGuardado.EstadoJugadorGuardado' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/EstadoRelojGuardado.java` | 7 | método 'EstadoRelojGuardado.EstadoRelojGuardado' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/GestorGuardadoPartida.java` | 92 | método 'GestorGuardadoPartida.escribirEnSlot' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/guardado/InfoRanuraGuardado.java` | 9 | método 'InfoRanuraGuardado.InfoRanuraGuardado' de 33 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/AsistenteOrbital.java` | 108 | método 'AsistenteOrbital.aplicarDinamicaOrbitalEstable' de 68 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/AsistenteOrbital.java` | 187 | método 'AsistenteOrbital.aplicarAsistenciaOrbital' de 39 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/CalculadorGravedad.java` | 85 | método 'CalculadorGravedad.procesarGravedadPlanetaLuna' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/CalculadorGravedad.java` | 112 | método 'CalculadorGravedad.aplicarGravedadNewtoniana' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/CapturaOrbitalMenorPlaneta.java` | 37 | método 'CapturaOrbitalMenorPlaneta.ejecutarCaptura' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/CapturaOrbitalPlanetaAtractor.java` | 27 | método 'CapturaOrbitalPlanetaAtractor.ejecutarCaptura' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/DetectorColisiones.java` | 41 | método 'DetectorColisiones.detectarYResolver' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/EstrategiaCapturaOrbital.java` | 9 | método 'EstrategiaCapturaOrbital.ejecutarCaptura' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java` | 86 | método 'MotorFisicaPermisiva.avanzarPaso' de 38 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 127 | método 'TransformadorCuerpos.TransformadorCuerpos' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 205 | método 'TransformadorCuerpos.procesarTransformaciones' de 56 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/Vector2D.java` | 7 | método 'Vector2D.Vector2D' de 50 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/colision/ContextoColision.java` | 12 | método 'ContextoColision.ContextoColision' con 7 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/colision/ReglaColisionAgujeroNegro.java` | 34 | método 'ReglaColisionAgujeroNegro.aplica' de 37 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/colision/ReglaColisionAgujeroNegro.java` | 79 | método 'ReglaColisionAgujeroNegro.resolver' de 38 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/motor/colision/ReglaColisionFusionAguaLava.java` | 43 | método 'ReglaColisionFusionAguaLava.resolver' de 32 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/GestorImagenes.java` | 166 | método 'GestorImagenes.cargarImagen' de 47 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/RenderizadorCuerpo.java` | 14 | método 'RenderizadorCuerpo.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/RenderizadorFondo.java` | 36 | método 'EstrellaFondo.EstrellaFondo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/RenderizadorFondo.java` | 36 | método 'RenderizadorFondo.EstrellaFondo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/RenderizadorFondo.java` | 105 | método 'RenderizadorFondo.dibujarGrilla' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java` | 194 | método 'RenderizadorPixelArt.dibujarCuerpoPixelArt' de 38 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/UtilidadRender.java` | 37 | método 'UtilidadRender.discoConContorno' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/UtilidadRender.java` | 56 | método 'UtilidadRender.dibujarDiscoConContorno' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/capa/CapaEscudoPlanetario.java` | 26 | método 'CapaEscudoPlanetario.dibujarCupula' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/capa/CapaGhostPreview.java` | 54 | método 'CapaGhostPreview.dibujarSpriteFantasma' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/capa/CapaGhostPreview.java` | 77 | método 'CapaGhostPreview.dibujarAreaColapsoYReferencias' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/capa/CapaGhostPreview.java` | 96 | método 'CapaGhostPreview.dibujarTagInformacion' con 7 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorAgujeroNegro.java` | 15 | método 'RenderizadorAgujeroNegro.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorEstrella.java` | 21 | método 'RenderizadorEstrella.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorLuna.java` | 21 | método 'RenderizadorLuna.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorMeteorito.java` | 15 | método 'RenderizadorMeteorito.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorPlaneta.java` | 41 | método 'RenderizadorPlaneta.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/render/cuerpo/RenderizadorSatelite.java` | 14 | método 'RenderizadorSatelite.dibujar' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/simulacion/GestorCicloVidaCuerpos.java` | 55 | método 'GestorCicloVidaCuerpos.spawnCuerpo' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/simulacion/GestorCicloVidaCuerpos.java` | 59 | método 'GestorCicloVidaCuerpos.spawnCuerpo' con 6 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/simulacion/GestorColocacionCuerpos.java` | 66 | método 'GestorColocacionCuerpos.confirmarColocacionAutoOrbita' de 37 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/simulacion/GestorEconomia.java` | 17 | método 'GestorEconomia.actualizarEconomia' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java` | 56 | método 'SimulacionSolar.SimulacionSolar' de 39 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java` | 197 | método 'BarraInventarioHotbar.formatearMapaRecursos' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java` | 46 | método 'ControlTiempoWidget.ControlTiempoWidget' de 36 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/InspectorTecnologiaArbol.java` | 43 | método 'InspectorTecnologiaArbol.InspectorTecnologiaArbol' de 49 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/InspectorTecnologiaArbol.java` | 111 | método 'InspectorTecnologiaArbol.actualizar' de 46 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/LienzoArbolOrbital.java` | 83 | método 'LienzoArbolOrbital.refrescar' de 44 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/LienzoArbolOrbital.java` | 213 | método 'LienzoArbolOrbital.crearLineaConectora' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/PantallaArbolProgresion.java` | 29 | método 'NodoArbol.NodoArbol' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/PantallaArbolProgresion.java` | 29 | método 'PantallaArbolProgresion.NodoArbol' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/PantallaArbolProgresion.java` | 43 | método 'PantallaArbolProgresion.PantallaArbolProgresion' de 79 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/ProveedorInfoCuerpo.java` | 32 | método 'ProveedorInfoCuerpo.agregarFilaPropiedad' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/SeccionInfoCuerpo.java` | 152 | método 'SeccionInfoCuerpo.agregarFilaPropiedad' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/SlotHotbar.java` | 30 | método 'SlotHotbar.SlotHotbar' de 39 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/VentanaColocacion.java` | 43 | método 'VentanaColocacion.VentanaColocacion' con 5 parámetros |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/VentanaColocacion.java` | 94 | método 'VentanaColocacion.construirFormulario' de 36 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/VentanaInspeccion.java` | 120 | método 'VentanaInspeccion.construirTarjetaPoblar' de 46 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/main/java/org/example/game/ui/WidgetFactorMasa.java` | 31 | método 'WidgetFactorMasa.WidgetFactorMasa' de 34 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/CivilizacionSinergiaTest.java` | 26 | método 'CivilizacionSinergiaTest.testGeneracionRecursosPorCuerpoYSlowGrowth' de 44 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/ColonizacionYEscudosTest.java` | 237 | método 'ColonizacionYEscudosTest.testCrecimientoMasLentoEnOtrosPlanetasYBonusMaterialesX1_3AlEstarPoblado' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/CorreccionesMeteoritosAutoguardadoEconomiaTest.java` | 74 | método 'CorreccionesMeteoritosAutoguardadoEconomiaTest.testEscombrosDePlanetasDestruidosRepartenMasaRespetandoTopes' de 33 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/CostosProporcionalesYSatelitesMenuTest.java` | 28 | método 'CostosProporcionalesYSatelitesMenuTest.testTablaCostosOrdenCoherenteYProporcionalALaProduccion' de 36 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/CostosProporcionalesYSatelitesMenuTest.java` | 157 | método 'CostosProporcionalesYSatelitesMenuTest.testClicEnSateliteDelMenuIniciaCaidaConGravedadPromedioHastaSalirDePantalla' de 35 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/EasterEggFusionYRadiosTest.java` | 51 | método 'EasterEggFusionYRadiosTest.testEasterEggColisionAguaYLavaFormaPlanetaPorroInerte' de 37 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/EconomiaRecursosTest.java` | 92 | método 'EconomiaRecursosTest.testEspecificacionMaterialesParaPonerYPorTick' de 36 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/GuardadoYCargaSimulacionTest.java` | 29 | método 'GuardadoYCargaSimulacionTest.testGuardarYCargarRestauraSistemaSolarCompletoYRelacionesOrbitales' de 75 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/ProgresionYArbolTest.java` | 28 | método 'ProgresionYArbolTest.testArbolTecnologicoTresRamasYCostosEscalonados' de 43 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/ProgresionYArbolTest.java` | 146 | método 'ProgresionYArbolTest.testItemSateliteDesbloqueoAntesDelEscudoYProduccionFija' de 30 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/ReembolsoYColocacionTest.java` | 148 | método 'ReembolsoYColocacionTest.testNuevosItemsPlanetaAguaYPlanetaLavaYSolX2' de 37 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/RepositorioYSerializacionPartidaTest.java` | 126 | método 'RepositorioYSerializacionPartidaTest.construirPartidaEjemplo' de 39 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/UIWidgetsYFormatoTest.java` | 118 | método 'UIWidgetsYFormatoTest.testControlTiempoWidgetCompactoYVelocidades' de 34 líneas |
+| Métodos/funciones largos o con muchos parámetros | `app/src/test/java/org/example/game/ui/ConstructorFichaInvestigacionTest.java` | 30 | método 'ConstructorFichaInvestigacionTest.construyeFichaInvestigadaDisponibleYBloqueada' de 39 líneas |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/App.java` | 29 | clase 'App' muy acoplada (CBO=32) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/civilizacion/CivilizacionComponent.java` | 16 | clase 'CivilizacionComponent' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/colonizacion/GestorColonizacion.java` | 27 | clase 'GestorColonizacion' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosSesion.java` | 14 | clase 'ConfiguradorAtajosSesion' muy acoplada (CBO=13) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/controlador/ConfiguradorAtajosTeclado.java` | 12 | clase 'ConfiguradorAtajosTeclado' muy acoplada (CBO=16) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/controlador/ControladorMouse.java` | 23 | clase 'ControladorMouse' muy acoplada (CBO=13) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/controlador/ControladorTeclado.java` | 20 | clase 'ControladorTeclado' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/controlador/CoordinadorSesionJuego.java` | 20 | clase 'CoordinadorSesionJuego' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/cuerpo/CuerpoCelesteFactory.java` | 14 | clase 'CuerpoCelesteFactory' muy acoplada (CBO=17) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/cuerpo/RegistroCapacidades.java` | 16 | clase 'RegistroCapacidades' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/CodificadorEntidadesPartida.java` | 9 | clase 'CodificadorEntidadesPartida' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/DiccionarioPropiedades.java` | 11 | clase 'DiccionarioPropiedades' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/ExtractorDatosCuerpo.java` | 11 | clase 'ExtractorDatosCuerpo' muy acoplada (CBO=14) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/GestorGuardadoPartida.java` | 18 | clase 'GestorGuardadoPartida' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/MapeadorEstadoSimulacion.java` | 21 | clase 'MapeadorEstadoSimulacion' muy acoplada (CBO=20) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/ReconstructorCuerpos.java` | 14 | clase 'ReconstructorCuerpos' muy acoplada (CBO=19) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/guardado/SerializadorPartidaTexto.java` | 16 | clase 'SerializadorPartidaTexto' muy acoplada (CBO=14) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/DetectorColisiones.java` | 9 | clase 'DetectorColisiones' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/MotorFisicaPermisiva.java` | 20 | clase 'MotorFisicaPermisiva' muy acoplada (CBO=13) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/ResolvedorColisiones.java` | 29 | clase 'ResolvedorColisiones' muy acoplada (CBO=18) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/TransformadorCuerpos.java` | 23 | clase 'TransformadorCuerpos' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/colision/ReglaColisionAgujeroNegro.java` | 15 | clase 'ReglaColisionAgujeroNegro' muy acoplada (CBO=13) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/colision/ReglaColisionEscudo.java` | 16 | clase 'ReglaColisionEscudo' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/colision/ReglaColisionEstrella.java` | 14 | clase 'ReglaColisionEstrella' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/motor/colision/ReglaColisionMeteorito.java` | 13 | clase 'ReglaColisionMeteorito' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/render/EscenaFondoMenu.java` | 18 | clase 'EscenaFondoMenu' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/render/GestorImagenes.java` | 21 | clase 'GestorImagenes' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/render/RenderizadorPixelArt.java` | 20 | clase 'RenderizadorPixelArt' muy acoplada (CBO=28) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/simulacion/CoordinadorPasoSimulacion.java` | 20 | clase 'CoordinadorPasoSimulacion' muy acoplada (CBO=14) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/simulacion/GestorCicloVidaCuerpos.java` | 20 | clase 'GestorCicloVidaCuerpos' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/simulacion/GestorColocacionCuerpos.java` | 14 | clase 'GestorColocacionCuerpos' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/simulacion/SimulacionSolar.java` | 25 | clase 'SimulacionSolar' muy acoplada (CBO=28) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/BarraInventarioHotbar.java` | 20 | clase 'BarraInventarioHotbar' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/ConstructorOverlayUI.java` | 17 | clase 'ConstructorOverlayUI' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/ControlTiempoWidget.java` | 23 | clase 'ControlTiempoWidget' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/InspectorTecnologiaArbol.java` | 25 | clase 'InspectorTecnologiaArbol' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/LienzoArbolOrbital.java` | 29 | clase 'LienzoArbolOrbital' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/PantallaArbolProgresion.java` | 27 | clase 'PantallaArbolProgresion' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/PantallaGameOver.java` | 17 | clase 'PantallaGameOver' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/PantallaMenuPausa.java` | 15 | clase 'PantallaMenuPausa' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/PantallaMenuPrincipal.java` | 26 | clase 'PantallaMenuPrincipal' muy acoplada (CBO=16) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/SeccionInfoCuerpo.java` | 27 | clase 'SeccionInfoCuerpo' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/VentanaColocacion.java` | 27 | clase 'VentanaColocacion' muy acoplada (CBO=15) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/VentanaDescripcionCuerpo.java` | 13 | clase 'VentanaDescripcionCuerpo' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/VentanaInspeccion.java` | 24 | clase 'VentanaInspeccion' muy acoplada (CBO=18) |
+| Acoplamiento alto (CBO) | `app/src/main/java/org/example/game/ui/VentanaProgresion.java` | 33 | clase 'VentanaProgresion' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/AgujeroNegroFisicaTest.java` | 14 | clase 'AgujeroNegroFisicaTest' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ArrastreCamaraYColocacionTest.java` | 25 | clase 'ArrastreCamaraYColocacionTest' muy acoplada (CBO=13) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ColonizacionYEscudosTest.java` | 16 | clase 'ColonizacionYEscudosTest' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ControladorMouseYHelpersTest.java` | 25 | clase 'ControladorMouseYHelpersTest' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ControladorTecladoYComandosTest.java` | 19 | clase 'ControladorTecladoYComandosTest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/CorreccionesMeteoritosAutoguardadoEconomiaTest.java` | 49 | clase 'CorreccionesMeteoritosAutoguardadoEconomiaTest' muy acoplada (CBO=27) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/CostosProporcionalesYSatelitesMenuTest.java` | 25 | clase 'CostosProporcionalesYSatelitesMenuTest' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/EasterEggFusionYRadiosTest.java` | 4 | clase 'EasterEggFusionYRadiosTest' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/EventosCosmicosYSatelitesTest.java` | 4 | clase 'EventosCosmicosYSatelitesTest' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/Fase2BugsTest.java` | 22 | clase 'Fase2BugsTest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/FondoAnimadoMenuPrincipalTest.java` | 17 | clase 'FondoAnimadoMenuPrincipalTest' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/GuardadoYCargaSimulacionTest.java` | 23 | clase 'GuardadoYCargaSimulacionTest' muy acoplada (CBO=22) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/MecanicasColisionYVidaTest.java` | 4 | clase 'MecanicasColisionYVidaTest' muy acoplada (CBO=11) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/MenuPausaYDisposicionUITest.java` | 22 | clase 'MenuPausaYDisposicionUITest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/MenuPrincipalYDerrotaFlujoTest.java` | 19 | clase 'MenuPrincipalYDerrotaFlujoTest' muy acoplada (CBO=12) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/OrbitasYDinamicaTest.java` | 4 | clase 'OrbitasYDinamicaTest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/RanurasYAutoguardadoTest.java` | 18 | clase 'RanurasYAutoguardadoTest' muy acoplada (CBO=15) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ReembolsoYColocacionTest.java` | 16 | clase 'ReembolsoYColocacionTest' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/RefactorOopModularidadTest.java` | 22 | clase 'RefactorOopModularidadTest' muy acoplada (CBO=24) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/ReglasColisionTest.java` | 9 | clase 'ReglasColisionTest' muy acoplada (CBO=14) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/RendimientoRegresionTest.java` | 21 | clase 'RendimientoRegresionTest' muy acoplada (CBO=9) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/RepositorioYSerializacionPartidaTest.java` | 18 | clase 'RepositorioYSerializacionPartidaTest' muy acoplada (CBO=16) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/SolidAbstraccionesRefactorTest.java` | 27 | clase 'SolidAbstraccionesRefactorTest' muy acoplada (CBO=16) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/TransformacionCuerposTest.java` | 15 | clase 'TransformacionCuerposTest' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/UIWidgetsYFormatoTest.java` | 17 | clase 'UIWidgetsYFormatoTest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/game/motor/colision/DespachoDobleColisionesTest.java` | 21 | clase 'DespachoDobleColisionesTest' muy acoplada (CBO=10) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/game/render/capa/CapaNavesYEscudoTest.java` | 18 | clase 'CapaNavesYEscudoTest' muy acoplada (CBO=8) |
+| Acoplamiento alto (CBO) | `app/src/test/java/org/example/game/ui/FabricaPantallasModalesTest.java` | 16 | clase 'FabricaPantallasModalesTest' muy acoplada (CBO=9) |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/cuerpo/Defensor.java` | 8 | interfaz 'Defensor' con 12 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/cuerpo/FabricaCuerpos.java` | 8 | interfaz 'FabricaCuerpos' con 20 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/motor/CuerpoFisico.java` | 9 | interfaz 'CuerpoFisico' con 14 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/render/ControlZoom.java` | 5 | interfaz 'ControlZoom' con 11 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/render/EstrategiaVisualTipo.java` | 10 | interfaz 'EstrategiaVisualTipo' con 7 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/render/RepositorioSprites.java` | 13 | interfaz 'RepositorioSprites' con 11 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/ui/ProveedorInfoCuerpo.java` | 18 | interfaz 'ProveedorInfoCuerpo' con 13 métodos |
+| Interfaz con demasiados métodos (ISP) | `app/src/main/java/org/example/game/ui/VisualizadorDescripcion.java` | 13 | interfaz 'VisualizadorDescripcion' con 8 métodos |
+| Clase solo con métodos estáticos (utilitaria) | `app/src/main/java/org/example/game/cuerpo/RegistroCapacidades.java` | 16 | clase 'RegistroCapacidades' solo con métodos estáticos (¿utilitaria?) |
+
 ### Desglose de la columna S (SRP)
 
 > La columna **S** no es un puntaje: cuenta **señales** de SRP. Aquí suma **46** entrada(s) sobre **43** clase(s) distinta(s).
@@ -278,14 +522,14 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ## 5. Evolución por commit
 
-Métricas calculadas sobre el estado de `main` en **cada commit** (18 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
+Métricas calculadas sobre el estado de `main` en **cada commit** (19 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
 
 ```mermaid
 xychart-beta
     title "Índice POO/SOLID a lo largo de los commits"
-    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e", "1b7118e", "1dacc07", "4ce6d34", "da0b4ed", "ae8da1f", "a8cddc8", "aad481c", "5fcf7a4", "d1dc1e2", "4dd77de", "90a21eb", "fc53423"]
+    x-axis ["f322f1e", "c2ce669", "9675cae", "3f34b49", "35383e8", "052c78e", "1b7118e", "1dacc07", "4ce6d34", "da0b4ed", "ae8da1f", "a8cddc8", "aad481c", "5fcf7a4", "d1dc1e2", "4dd77de", "90a21eb", "fc53423", "e02655f"]
     y-axis "Índice" 0 --> 100
-    line [0, 0, 67, 65, 69, 67, 66, 70, 68, 67, 67, 67, 67, 67, 67, 67, 67, 67]
+    line [0, 0, 67, 65, 69, 67, 66, 70, 68, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
@@ -308,91 +552,7 @@ xychart-beta
 | 16 | 2026-11-14 | `4dd77de` | dqmdz-etec | 21,534 | 67 | 100% | 0.8% | 0 |
 | 17 | 2026-11-16 | `90a21eb` | dqmdz-etec | 21,534 | 67 | 100% | 0.8% | 0 |
 | 18 | 2026-11-16 | `fc53423` | dqmdz-etec | 21,534 | 67 | 100% | 0.8% | 0 |
-
-<!-- actividad-clases:inicio -->
-## Actividad en días de clase
-
-> Período evaluado **2026-08-14 → 2026-11-17** · **22 clases** (lunes, viernes) · días de clase del calendario, extendidos hasta la fecha de corte.
->
-> `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. El cuadro principal usa sólo las fechas de clase del calendario oficial.
->
-> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-17** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
->
-> Se recorre `git log --all` sobre un mirror (todas las ramas y `refs/pull/*`), con deduplicación por commit. Fecha = fecha de autor en UTC-3. Los commits locales no pusheados no se ven. Si el trabajo fue en pareja y el commit es de otra persona, figura a nombre del autor del commit; para reflejarlo, usar `Co-authored-by` o una nota manual.
->
-> Sección informativa: no modifica el semáforo de aprobación.
-
-### mateovarelac
-
-**5/22 clases con actividad** · 5 commits · 2 merges
-
-| Fecha | Marca | Repositorios | Commits / merges |
-|---|:--:|---|--:|
-| 2026-08-14 | No | sin actividad | 0 / 0 |
-| 2026-08-21 | No | sin actividad | 0 / 0 |
-| 2026-08-24 | No | sin actividad | 0 / 0 |
-| 2026-08-28 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-08-31 | No | sin actividad | 0 / 0 |
-| 2026-09-04 | No | sin actividad | 0 / 0 |
-| 2026-09-07 | No | sin actividad | 0 / 0 |
-| 2026-09-14 | No | sin actividad | 0 / 0 |
-| 2026-09-25 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-| 2026-09-28 | No | sin actividad | 0 / 0 |
-| 2026-10-02 | No | sin actividad | 0 / 0 |
-| 2026-10-05 | No | sin actividad | 0 / 0 |
-| 2026-10-09 | No | sin actividad | 0 / 0 |
-| 2026-10-16 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-19 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-10-23 | No | sin actividad | 0 / 0 |
-| 2026-10-26 | No | sin actividad | 0 / 0 |
-| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
-| 2026-11-02 | No | sin actividad | 0 / 0 |
-| 2026-11-06 | No | sin actividad | 0 / 0 |
-| 2026-11-13 | No | sin actividad | 0 / 0 |
-| 2026-11-16 | No | sin actividad | 0 / 0 |
-
-#### Aportes fuera del calendario de clases — mateovarelac
-
-**mateovarelac — 1 fecha fuera del calendario** · 8 commits · 1 merge
-
-| Alumno | Fecha | Repositorios | Commits / merges |
-|---|---|---|---|
-| mateovarelac (`mateovarelac`) | 2026-10-31 | Proyecto_final_programacion2 | 8 / 1 |
-
-### minibautista14-tech
-
-**12/22 clases con actividad** · 15 commits · 5 merges
-
-| Fecha | Marca | Repositorios | Commits / merges |
-|---|:--:|---|--:|
-| 2026-08-14 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-08-21 | No | sin actividad | 0 / 0 |
-| 2026-08-24 | No | sin actividad | 0 / 0 |
-| 2026-08-28 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-08-31 | No | sin actividad | 0 / 0 |
-| 2026-09-04 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-09-07 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-| 2026-09-14 | No | sin actividad | 0 / 0 |
-| 2026-09-25 | No | sin actividad | 0 / 0 |
-| 2026-09-28 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-02 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-05 | **Sí** | Proyecto_final_programacion2 | 0 / 1 |
-| 2026-10-09 | No | sin actividad | 0 / 0 |
-| 2026-10-16 | No | sin actividad | 0 / 0 |
-| 2026-10-19 | No | sin actividad | 0 / 0 |
-| 2026-10-23 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-| 2026-10-26 | **Sí** | Proyecto_final_programacion2 | 2 / 0 |
-| 2026-10-30 | **Sí** | Proyecto_final_programacion2 | 5 / 1 |
-| 2026-11-02 | No | sin actividad | 0 / 0 |
-| 2026-11-06 | **Sí** | Proyecto_final_programacion2 | 1 / 1 |
-| 2026-11-13 | No | sin actividad | 0 / 0 |
-| 2026-11-16 | **Sí** | Proyecto_final_programacion2 | 1 / 0 |
-
-#### Aportes fuera del calendario de clases — minibautista14-tech
-
-_Sin aportes fuera del calendario de clases para minibautista14-tech._
-
-<!-- actividad-clases:fin -->
+| 19 | 2026-11-17 | `e02655f` | dqmdz-etec | 21,534 | 67 | 100% | 0.8% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
