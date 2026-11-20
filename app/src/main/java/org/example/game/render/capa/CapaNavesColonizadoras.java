@@ -25,18 +25,28 @@ public class CapaNavesColonizadoras {
         if (naves == null || naves.isEmpty()) return;
 
         for (NaveColonizadora nave : naves) {
-            if (nave == null || nave.isCompletada() || nave.isPerdida()) continue;
-            Vector2D pos = nave.getPosicion();
-            double sx = conversor.fisicaAXJavaFX(pos.x(), anchoCanvas);
-            double sy = conversor.fisicaAYJavaFX(pos.y(), altoCanvas);
-
-            gc.save();
-            gc.setFill(UtilidadRender.colorWeb("#50fa7b"));
-            gc.fillOval(sx - 4, sy - 4, 8, 8);
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.0);
-            gc.strokeOval(sx - 5, sy - 5, 10, 10);
-            gc.restore();
+            if (estaActiva(nave)) {
+                dibujarNave(gc, nave, conversor, anchoCanvas, altoCanvas);
+            }
         }
+    }
+
+    private boolean estaActiva(NaveColonizadora nave) {
+        return nave != null && !nave.isCompletada() && !nave.isPerdida();
+    }
+
+    private void dibujarNave(GraphicsContext gc, NaveColonizadora nave, ConversorCoordenadas conversor,
+                             double anchoCanvas, double altoCanvas) {
+        Vector2D pos = nave.getPosicion();
+        double sx = conversor.fisicaAXJavaFX(pos.x(), anchoCanvas);
+        double sy = conversor.fisicaAYJavaFX(pos.y(), altoCanvas);
+
+        gc.save();
+        gc.setFill(UtilidadRender.colorWeb("#50fa7b"));
+        gc.fillOval(sx - 4, sy - 4, 8, 8);
+        gc.setStroke(Color.WHITE);
+        gc.setLineWidth(1.0);
+        gc.strokeOval(sx - 5, sy - 5, 10, 10);
+        gc.restore();
     }
 }

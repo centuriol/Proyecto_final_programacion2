@@ -143,6 +143,12 @@ class ControladorTecladoYComandosTest {
     @Test
     void testComandoCtrlMOtorgaCienMilDeCadaRecurso() {
         var inv = simulacion.getInventario();
+        var prog = simulacion.getProgresion();
+        prog.reiniciar();
+        assertFalse(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.PLANETAS));
+        assertFalse(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.MASA));
+        assertFalse(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.CANTIDAD_PLANETAS));
+
         double minAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.MINERALES);
         double eneAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA);
         double cieAntes = inv.getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA);
@@ -155,5 +161,12 @@ class ControladorTecladoYComandosTest {
         assertEquals(eneAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA), 1e-4);
         assertEquals(cieAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA), 1e-4);
         assertEquals(pobAntes + 100_000.0, inv.getRecurso(org.example.game.jugador.TipoRecurso.POBLACION), 1e-4);
+        assertTrue(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.PLANETAS));
+        assertTrue(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.MASA));
+        assertTrue(prog.esNivelMaximo(org.example.game.progresion.RamaProgresion.CANTIDAD_PLANETAS));
+        assertEquals(org.example.game.simulacion.ConfiguracionSimulacion.NIVEL_ESCUDO_MAX, prog.getNivelEscudo());
+        for (org.example.game.progresion.MejoraSecundaria m : org.example.game.progresion.MejoraSecundaria.values()) {
+            assertTrue(prog.estaInvestigada(m), "Ctrl+M debe investigar la mejora secundaria " + m.id());
+        }
     }
 }

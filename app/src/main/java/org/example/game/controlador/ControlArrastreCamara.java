@@ -1,8 +1,8 @@
 package org.example.game.controlador;
-import org.example.game.render.ControlZoom;
+import org.example.game.render.NavegacionCamara;
 /**
  * Gestiona el gesto de mantener clic izquierdo y arrastrar para desplazar la camara
- * sin interferir con clicks simples de inspeccion ni con el modo de colocacion (SRP).
+ * sin interferir con clicks simples de inspeccion ni con el modo de colocacion (SRP / ISP).
  */
 public class ControlArrastreCamara {
 
@@ -24,7 +24,7 @@ public class ControlArrastreCamara {
         this.ultimoY = pantallaY;
     }
 
-    public boolean arrastrar(double pantallaX, double pantallaY, ControlZoom camara) {
+    public boolean arrastrar(double pantallaX, double pantallaY, NavegacionCamara camara) {
         if (!activo || camara == null) {
             return false;
         }

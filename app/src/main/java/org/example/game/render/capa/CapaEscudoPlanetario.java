@@ -2,25 +2,26 @@ package org.example.game.render.capa;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import org.example.game.render.GestorImagenes;
-import org.example.game.render.RepositorioSprites;
+import org.example.game.render.CatalogoSprites;
+import org.example.game.render.FabricaRender;
 import org.example.game.render.UtilidadRender;
 
 /**
- * Responsable de renderizar la cúpula visual y pulso de escudos planetarios (SRP).
+ * Responsable de renderizar la cúpula visual y pulso de escudos planetarios (SRP / ISP / DIP).
  */
 public class CapaEscudoPlanetario {
 
     public static final String NOMBRE_SPRITE_ESCUDO = "escudo_planeta_posta";
+    private static final FabricaRender FABRICA = new FabricaRender();
 
-    private final RepositorioSprites repositorioSprites;
+    private final CatalogoSprites catalogoSprites;
 
-    public CapaEscudoPlanetario(RepositorioSprites repositorioSprites) {
-        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
+    public CapaEscudoPlanetario(CatalogoSprites catalogoSprites) {
+        this.catalogoSprites = catalogoSprites != null ? catalogoSprites : FABRICA.crearRepositorioSprites();
     }
 
     public CapaEscudoPlanetario() {
-        this(new GestorImagenes());
+        this(FABRICA.crearRepositorioSprites());
     }
 
     public void dibujarCupula(GraphicsContext gc, double cx, double cy, double r, long tick) {
@@ -28,7 +29,7 @@ public class CapaEscudoPlanetario {
         double rEfectivo = Math.max(16.0, r * 1.5);
         double pulso = 0.85 + 0.15 * Math.sin(tick * 0.2);
 
-        Image imgEscudo = repositorioSprites.obtenerImagenPorNombre(NOMBRE_SPRITE_ESCUDO);
+        Image imgEscudo = catalogoSprites.obtenerImagenPorNombre(NOMBRE_SPRITE_ESCUDO);
         if (imgEscudo != null) {
             gc.setFill(UtilidadRender.colorRgb(91, 227, 255, 0.12 * pulso));
             gc.fillOval(cx - rEfectivo, cy - rEfectivo, rEfectivo * 2, rEfectivo * 2);

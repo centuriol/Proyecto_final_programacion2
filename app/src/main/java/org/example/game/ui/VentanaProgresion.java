@@ -17,31 +17,15 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.example.game.jugador.TipoRecurso;
 import org.example.game.progresion.RamaProgresion;
-import org.example.game.progresion.SistemaProgresion;
-import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
 
 /**
- * Ventana dedicada del Arbol de Investigacion y Progresion Cientifica.
- *
- * Principios SOLID:
- * - SRP: Encapsula el ciclo de vida y presentacion del arbol tecnologico en una clase cohesiva.
- * - DIP: Interactua con el modelo exclusivamente mediante abstracciones publicas.
+ * Ventana dedicada del Árbol de Investigación y Progresión Científica (SRP / DIP).
  */
 public class VentanaProgresion {
 
     private static Stage stageActivo = null;
-
-    private final SimulacionSolar simulacion;
-    private final Window owner;
-    private Stage stage;
-
-    private final Label lblCienciaPill = new Label();
-    private final Label lblPlanetasPill = new Label();
-    private final Label lblMasaPill = new Label();
-    private final HBox ramasBox = new HBox(14);
 
     private static final ConstructorFichaInvestigacion.NodoInfo[] NODOS_PLANETAS = new ConstructorFichaInvestigacion.NodoInfo[] {
             new ConstructorFichaInvestigacion.NodoInfo(0, "Sol & Planeta de Agua", "Cuerpos elementales iniciales para fundar el sistema.", 0.0),
@@ -69,22 +53,37 @@ public class VentanaProgresion {
             new ConstructorFichaInvestigacion.NodoInfo(5, "Gran Sistema (12 Planetas)", "Capacidad maxima para una mega-estructura solar.", 500.0)
     };
 
-    private final ConstructorFichaInvestigacion constructorFichas;
+    private static class ContextoVentanaProgresion {
+        final SimulacionSolar simulacion;
+        final Window owner;
+        final ConstructorFichaInvestigacion constructorFichas;
+        final BarraResumenProgresion barraResumen = new BarraResumenProgresion(false);
+        final HBox ramasBox = new HBox(14);
+        Stage stage;
+
+        ContextoVentanaProgresion(SimulacionSolar sim, Window owner, ConstructorFichaInvestigacion fichas) {
+            this.simulacion = sim;
+            this.owner = owner;
+            this.constructorFichas = fichas != null ? fichas : new ConstructorFichaInvestigacion();
+        }
+
+        void cerrarSiAbierta() {
+            if (stage != null) stage.close();
+        }
+    }
+
+    private final ContextoVentanaProgresion ctx;
 
     public VentanaProgresion(SimulacionSolar simulacion, Window owner) {
         this(simulacion, owner, new ConstructorFichaInvestigacion());
     }
 
     public VentanaProgresion(SimulacionSolar simulacion, Window owner, ConstructorFichaInvestigacion constructorFichas) {
-        this.simulacion = simulacion;
-        this.owner = owner;
-        this.constructorFichas = constructorFichas != null ? constructorFichas : new ConstructorFichaInvestigacion();
+        this.ctx = new ContextoVentanaProgresion(simulacion, owner, constructorFichas);
     }
 
     public static void mostrar(SimulacionSolar simulacion, Window owner) {
-        if (simulacion == null) {
-            return;
-        }
+        if (simulacion == null) return;
         if (stageActivo != null && stageActivo.isShowing()) {
             stageActivo.toFront();
             return;
@@ -93,37 +92,29 @@ public class VentanaProgresion {
     }
 
     public void abrir() {
-        stage = new Stage();
-        stageActivo = stage;
-        stage.initModality(Modality.NONE);
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
-        stage.setTitle("Arbol de Investigacion Cientifica - Proyecto Orbita");
+        ctx.stage = new Stage();
+        stageActivo = ctx.stage;
+        ctx.stage.initModality(Modality.NONE);
+        if (ctx.owner != null) ctx.stage.initOwner(ctx.owner);
+        ctx.stage.setTitle("Arbol de Investigacion Cientifica - Proyecto Orbita");
 
-        VBox root = construirContenedorPrincipal();
-        Scene scene = new Scene(root, 1020, 680);
+        Scene scene = new Scene(construirContenedorPrincipal(), 1020, 680);
         scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ESCAPE || e.getCode() == KeyCode.P) {
-                stage.close();
-            }
+            if (e.getCode() == KeyCode.ESCAPE || e.getCode() == KeyCode.P) ctx.cerrarSiAbierta();
         });
 
         Runnable listenerSimulacion = () -> javafx.application.Platform.runLater(() -> {
-            if (stage.isShowing()) {
-                refrescar();
-            }
+            if (ctx.stage.isShowing()) refrescar();
         });
-        simulacion.getBusEventos().agregarListenerUI(listenerSimulacion);
-
-        stage.setOnHidden(e -> {
-            simulacion.getBusEventos().removerListenerUI(listenerSimulacion);
+        ctx.simulacion.getBusEventos().agregarListenerUI(listenerSimulacion);
+        ctx.stage.setOnHidden(e -> {
+            ctx.simulacion.getBusEventos().removerListenerUI(listenerSimulacion);
             stageActivo = null;
         });
 
         refrescar();
-        stage.setScene(scene);
-        stage.show();
+        ctx.stage.setScene(scene);
+        ctx.stage.show();
     }
 
     private VBox construirContenedorPrincipal() {
@@ -131,20 +122,16 @@ public class VentanaProgresion {
         root.setPadding(new Insets(16, 20, 16, 20));
         root.setStyle("-fx-background-color: #0d0f17; -fx-border-color: #5be3ff; -fx-border-width: 2px; -fx-background-radius: 4px;");
 
-        VBox cabecera = construirCabecera();
-        HBox pillsBar = construirPillsBar();
+        ctx.ramasBox.setAlignment(Pos.TOP_CENTER);
+        HBox.setHgrow(ctx.ramasBox, Priority.ALWAYS);
 
-        ramasBox.setAlignment(Pos.TOP_CENTER);
-        HBox.setHgrow(ramasBox, Priority.ALWAYS);
-
-        ScrollPane scroll = new ScrollPane(ramasBox);
+        ScrollPane scroll = new ScrollPane(ctx.ramasBox);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 0;");
         scroll.setPrefHeight(450);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
-        HBox bottomBar = construirBottomBar();
-        root.getChildren().addAll(cabecera, pillsBar, new Separator(), scroll, new Separator(), bottomBar);
+        root.getChildren().addAll(construirCabecera(), ctx.barraResumen, new Separator(), scroll, new Separator(), construirBottomBar());
         return root;
     }
 
@@ -156,26 +143,7 @@ public class VentanaProgresion {
         Label lblSubtitulo = new Label("Elegi libremente que rama tecnologica investigar con Ciencia [CIE]. Cada avance potencia tu sistema solar.");
         lblSubtitulo.setFont(Font.font("Monospace", FontWeight.NORMAL, 11));
         lblSubtitulo.setTextFill(Color.web("#8c92a4"));
-
         return new VBox(4, lblTitulo, lblSubtitulo);
-    }
-
-    private HBox construirPillsBar() {
-        HBox pillsBar = new HBox(12);
-        pillsBar.setAlignment(Pos.CENTER_LEFT);
-
-        configurarPill(lblCienciaPill, "#172a38", "#5be3ff");
-        configurarPill(lblPlanetasPill, "#2b2617", "#ffd700");
-        configurarPill(lblMasaPill, "#261a38", "#d2a8ff");
-
-        pillsBar.getChildren().addAll(lblCienciaPill, lblPlanetasPill, lblMasaPill);
-        return pillsBar;
-    }
-
-    private void configurarPill(Label label, String fondo, String colorBorde) {
-        label.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
-        label.setPadding(new Insets(4, 10, 4, 10));
-        label.setStyle("-fx-background-color: " + fondo + "; -fx-text-fill: " + colorBorde + "; -fx-border-color: " + colorBorde + "; -fx-border-width: 1px; -fx-background-radius: 4px;");
     }
 
     private HBox construirBottomBar() {
@@ -185,28 +153,18 @@ public class VentanaProgresion {
         Button btnCerrar = new Button("Cerrar [ESC / P]");
         btnCerrar.setFont(Font.font("Monospace", FontWeight.BOLD, 11));
         btnCerrar.setStyle("-fx-background-color: #2b2d3a; -fx-text-fill: #e8e4d8; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: 6 16 6 16;");
-        btnCerrar.setOnAction(e -> {
-            if (stage != null) {
-                stage.close();
-            }
-        });
+        btnCerrar.setOnAction(e -> ctx.cerrarSiAbierta());
 
         bottomBar.getChildren().add(btnCerrar);
         return bottomBar;
     }
 
     private void refrescar() {
-        var inv = simulacion.getInventario();
-        var prog = simulacion.getProgresion();
-        double ciencia = inv != null ? inv.getRecurso(TipoRecurso.CIENCIA) : 0.0;
-
-        lblCienciaPill.setText(String.format("Ciencia: %.1f CIE", ciencia));
-        lblPlanetasPill.setText(String.format("Planetas: %d / %d", simulacion.getGestorCicloVida().getCantidadPlanetasActuales(), prog.getLimitePlanetas()));
-        lblMasaPill.setText(String.format("Limite Masa: %.1fx", prog.getLimiteMasaActual()));
-
-        ramasBox.getChildren().clear();
-        ramasBox.getChildren().add(constructorFichas.construirColumnaRama(RamaProgresion.PLANETAS, "[RAMA PLANETAS]", "#5be3ff", NODOS_PLANETAS, prog.getNivel(RamaProgresion.PLANETAS), ciencia, simulacion, this::refrescar));
-        ramasBox.getChildren().add(constructorFichas.construirColumnaRama(RamaProgresion.MASA, "[RAMA MASA]", "#d2a8ff", NODOS_MASA, prog.getNivel(RamaProgresion.MASA), ciencia, simulacion, this::refrescar));
-        ramasBox.getChildren().add(constructorFichas.construirColumnaRama(RamaProgresion.CANTIDAD_PLANETAS, "[RAMA CAPACIDAD]", "#ffd700", NODOS_CANTIDAD, prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS), ciencia, simulacion, this::refrescar));
+        double ciencia = ctx.barraResumen.actualizar(ctx.simulacion);
+        var prog = ctx.simulacion.getProgresion();
+        ctx.ramasBox.getChildren().clear();
+        ctx.ramasBox.getChildren().add(ctx.constructorFichas.construirColumnaRama(RamaProgresion.PLANETAS, "[RAMA PLANETAS]", "#5be3ff", NODOS_PLANETAS, prog.getNivel(RamaProgresion.PLANETAS), ciencia, ctx.simulacion, this::refrescar));
+        ctx.ramasBox.getChildren().add(ctx.constructorFichas.construirColumnaRama(RamaProgresion.MASA, "[RAMA MASA]", "#d2a8ff", NODOS_MASA, prog.getNivel(RamaProgresion.MASA), ciencia, ctx.simulacion, this::refrescar));
+        ctx.ramasBox.getChildren().add(ctx.constructorFichas.construirColumnaRama(RamaProgresion.CANTIDAD_PLANETAS, "[RAMA CAPACIDAD]", "#ffd700", NODOS_CANTIDAD, prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS), ciencia, ctx.simulacion, this::refrescar));
     }
 }

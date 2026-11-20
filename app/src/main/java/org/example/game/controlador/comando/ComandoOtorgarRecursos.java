@@ -33,12 +33,17 @@ public class ComandoOtorgarRecursos implements Comando {
             inventario.agregarRecurso(tipo, cantidad);
         }
 
+        if (simulacion.getProgresion() != null) {
+            simulacion.getProgresion().desbloquearTodo();
+            simulacion.getProgresion().desbloquearMejorasSecundarias();
+        }
+
         if (simulacion.getBusEventos() != null) {
             simulacion.getBusEventos().notificarCambioEstado();
             simulacion.getBusEventos().notificarListenersUI();
         }
         simulacion.notificarEvento(
-                String.format("+%.0f de cada recurso otorgados.", cantidad),
+                String.format("+%.0f de cada recurso otorgados y árbol mejorado al 100%%.", cantidad),
                 MensajeEvento.TipoMensaje.EXITO
         );
     }

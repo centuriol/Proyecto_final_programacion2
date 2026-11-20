@@ -247,4 +247,51 @@ class TransformacionCuerposTest {
         assertTrue(luna.estaOrbitando(agua), "El planeta transformado debe tener gravedad normal y capturar lunas en orbita");
         assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(luna));
     }
+
+    @Test
+    void testPlanetaPorroColocadoMuyCercaDelSolSeConvierteEnPlanetaLavaInerteSinGenerarRecursos() {
+        simulacion.limpiarCuerpos();
+        simulacion.getProgresion().desbloquearTodo();
+        simulacion.getInventario().agregarRecurso(org.example.game.jugador.TipoRecurso.MINERALES, 50000);
+        simulacion.getInventario().agregarRecurso(org.example.game.jugador.TipoRecurso.ENERGIA, 50000);
+
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        simulacion.agregarCuerpo(sol);
+
+        // Colocar Planeta Porro muy cerca del Sol (a 95 px) usando el flujo real de colocación interactiva
+        simulacion.getGestorColocacion().entrarModoColocacion(TipoCuerpo.PLANETA_ROCOSO, 1.0, "PorroCercano");
+        org.example.game.motor.ConversorCoordenadas conversor = new org.example.game.motor.TransformadorCoordenadas();
+        simulacion.getGestorColocacion().actualizarPosicionPreview(
+                conversor.fisicaAXJavaFX(95.0, 1920),
+                conversor.fisicaAYJavaFX(0.0, 1080)
+        );
+        var optPorro = simulacion.getGestorColocacion().confirmarColocacionAutoOrbita(simulacion);
+        assertTrue(optPorro.isPresent());
+        Planeta planeta = (Planeta) optPorro.get();
+
+        for (int i = 0; i < ConfiguracionSimulacion.TICKS_ESPERA_TRANSFORMACION_EASTER_EGG + ConfiguracionSimulacion.TICKS_MIGRACION_ORBITA; i++) {
+            simulacion.avanzarTick();
+        }
+
+        assertEquals(TipoCuerpo.PLANETA_LAVA, planeta.getTipoCuerpo(), "El Planeta Porro muy cerca del Sol debe transformarse en Planeta Lava");
+        assertEquals("Planeta Lava", planeta.getNombre());
+        assertTrue(planeta.isTransformadoPorEvento());
+        assertFalse(planeta.permiteReembolso());
+        assertFalse(planeta.tieneCivilizacion());
+        assertTrue(planeta.estaOrbitando(sol));
+        assertEquals(160.0, planeta.getPosicion().distanciaA(sol.getPosicion()), 2.0);
+
+        // Verificar que el Planeta Lava transformado no genera recursos propios
+        org.example.game.jugador.InventarioJugador invSoloLava = new org.example.game.jugador.InventarioJugador();
+        invSoloLava.getRecursoObj(org.example.game.jugador.TipoRecurso.MINERALES).setCantidad(0);
+        invSoloLava.getRecursoObj(org.example.game.jugador.TipoRecurso.ENERGIA).setCantidad(0);
+        invSoloLava.getRecursoObj(org.example.game.jugador.TipoRecurso.CIENCIA).setCantidad(0);
+        invSoloLava.getRecursoObj(org.example.game.jugador.TipoRecurso.POBLACION).setCantidad(0);
+
+        new org.example.game.simulacion.GestorEconomia().actualizarEconomia(List.of(planeta), invSoloLava);
+        assertEquals(0.0, invSoloLava.getRecurso(org.example.game.jugador.TipoRecurso.MINERALES), 1e-6);
+        assertEquals(0.0, invSoloLava.getRecurso(org.example.game.jugador.TipoRecurso.ENERGIA), 1e-6);
+        assertEquals(0.0, invSoloLava.getRecurso(org.example.game.jugador.TipoRecurso.CIENCIA), 1e-6);
+        assertEquals(0.0, invSoloLava.getRecurso(org.example.game.jugador.TipoRecurso.POBLACION), 1e-6);
+    }
 }

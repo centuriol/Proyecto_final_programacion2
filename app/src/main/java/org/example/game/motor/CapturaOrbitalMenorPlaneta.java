@@ -9,28 +9,40 @@ public class CapturaOrbitalMenorPlaneta implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsMenor = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().puedeOrbitarPlanetas();
-        boolean cjEsMenor = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().puedeOrbitarPlanetas();
+        boolean ciEsMenor = esMenorOrbital(ci);
+        boolean cjEsMenor = esMenorOrbital(cj);
+        if (!(ciEsMenor ^ cjEsMenor)) return false;
 
-        if (ciEsMenor ^ cjEsMenor) {
-            CuerpoCeleste menor = ciEsMenor ? ci : cj;
-            CuerpoCeleste planeta = ciEsMenor ? cj : ci;
+        CuerpoCeleste menor = ciEsMenor ? ci : cj;
+        CuerpoCeleste planeta = ciEsMenor ? cj : ci;
+        if (!esPlaneta(planeta) || esLunaAbsorbiblePorMasa(menor, planeta)) return false;
 
-            if (planeta.getTipoCuerpo() != null && planeta.getTipoCuerpo().esPlaneta()) {
-                boolean esLuna = menor.getTipoCuerpo() == TipoCuerpo.LUNA;
-                if (esLuna && planeta.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * menor.getMasa()) {
-                    return false;
-                }
-                double radioCaptura = esLuna
-                        ? Math.max(planeta.getRadioAtraccion() * 3.0, 160.0)
-                        : Math.max(planeta.getRadioAtraccion(), 65.0);
+        double radioCaptura = calcularRadioCaptura(menor, planeta);
+        return distReal <= radioCaptura && estaDisponibleParaCaptura(menor);
+    }
 
-                boolean disponible = !menor.estaOrbitando()
-                        || (menor.getCuerpoOrbitado() != null && menor.getCuerpoOrbitado().getTipoCuerpo() == TipoCuerpo.ESTRELLA);
-                return distReal <= radioCaptura && disponible;
-            }
-        }
-        return false;
+    private boolean esMenorOrbital(CuerpoCeleste c) {
+        return c != null && c.getTipoCuerpo() != null && c.getTipoCuerpo().puedeOrbitarPlanetas();
+    }
+
+    private boolean esPlaneta(CuerpoCeleste c) {
+        return c != null && c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta();
+    }
+
+    private boolean esLunaAbsorbiblePorMasa(CuerpoCeleste menor, CuerpoCeleste planeta) {
+        return menor.getTipoCuerpo() == TipoCuerpo.LUNA
+                && planeta.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * menor.getMasa();
+    }
+
+    private double calcularRadioCaptura(CuerpoCeleste menor, CuerpoCeleste planeta) {
+        return menor.getTipoCuerpo() == TipoCuerpo.LUNA
+                ? Math.max(planeta.getRadioAtraccion() * 3.0, 160.0)
+                : Math.max(planeta.getRadioAtraccion() * 2.5, 140.0);
+    }
+
+    private boolean estaDisponibleParaCaptura(CuerpoCeleste menor) {
+        CuerpoCeleste host = menor.getCuerpoOrbitado();
+        return !menor.estaOrbitando() || host == null || !host.esSimulado() || host.getTipoCuerpo() == TipoCuerpo.ESTRELLA;
     }
 
     @Override

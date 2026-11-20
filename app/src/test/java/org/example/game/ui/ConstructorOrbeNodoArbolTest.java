@@ -1,6 +1,7 @@
 package org.example.game.ui;
 
 import javafx.scene.layout.VBox;
+import org.example.game.progresion.MejoraSecundaria;
 import org.example.game.progresion.RamaProgresion;
 import org.example.game.simulacion.ConfiguracionEconomia;
 import org.example.game.simulacion.SimulacionSolar;
@@ -39,5 +40,21 @@ class ConstructorOrbeNodoArbolTest {
         VBox orbeBloqueado = constructor.construir(RamaProgresion.PLANETAS, nodo3, 1, 0, sim, null, null, new HashMap<>(), new HashMap<>());
         assertNotNull(orbeBloqueado);
         assertEquals(3, orbeBloqueado.getChildren().size());
+
+        // Orbes secundarios (sinapsis de dendrita)
+        VBox secDisponible = constructor.construirSecundaria(
+                MejoraSecundaria.PLANETAS_T1_MINERIA, 1, false, 5000, sim, null, null, new HashMap<>());
+        assertNotNull(secDisponible);
+        assertEquals(3, secDisponible.getChildren().size());
+
+        VBox secInvestigada = constructor.construirSecundaria(
+                MejoraSecundaria.PLANETAS_T1_MINERIA, 1, true, 0, sim, null, null, new HashMap<>());
+        assertNotNull(secInvestigada);
+        assertEquals(3, secInvestigada.getChildren().size());
+
+        VBox secBloqueada = constructor.construirSecundaria(
+                MejoraSecundaria.PLANETAS_T2_COSTO, 1, false, 5000, sim, null, null, new HashMap<>());
+        assertNotNull(secBloqueada);
+        assertEquals(3, secBloqueada.getChildren().size());
     }
 }

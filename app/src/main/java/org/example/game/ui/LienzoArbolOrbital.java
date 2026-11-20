@@ -1,30 +1,23 @@
 package org.example.game.ui;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import org.example.game.jugador.TipoRecurso;
+import org.example.game.progresion.MejoraSecundaria;
 import org.example.game.progresion.RamaProgresion;
 import org.example.game.simulacion.ConfiguracionEconomia;
-import org.example.game.simulacion.MensajeEvento;
 import org.example.game.simulacion.SimulacionSolar;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
- * Lienzo orbital con nodos circulares y geometría cósmica para el Árbol de Investigación (SRP).
+ * Lienzo estilo neurona biológica-cósmica con soma central, 3 dendritas principales curvas
+ * (PLANETAS, MASA, CANTIDAD_PLANETAS) y bifurcaciones sinápticas secundarias por nivel (SRP).
  */
 public class LienzoArbolOrbital extends Pane {
 
@@ -52,171 +45,176 @@ public class LienzoArbolOrbital extends Pane {
             new PantallaArbolProgresion.NodoArbol(5, "12 PLAN", "Gran Sistema (12)", "Capacidad máxima de civilización interestelar: permite hasta 12 mundos girando en armonía cósmica.", ConfiguracionEconomia.COSTO_CIENCIA_NIVEL_5)
     };
 
-    private final SimulacionSolar simulacion;
-    private final BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSeleccionarNodo;
-    private final Runnable onInvestigado;
-    private final ConstructorOrbeNodoArbol constructorOrbe;
+    private static final double[] Y_DENDRITA_PLANETAS = {92.0, 74.0, 96.0, 76.0, 90.0};
+    private static final double[] Y_DENDRITA_MASA = {284.0, 304.0, 282.0, 302.0, 288.0};
+    private static final double[] Y_DENDRITA_CANTIDAD = {488.0, 508.0, 486.0, 506.0, 492.0};
+    private static final RenderizadorGeometriaArbol GEOMETRIA = new RenderizadorGeometriaArbol();
 
-    private final Map<RamaProgresion, Button> botonesInvestigar = new EnumMap<>(RamaProgresion.class);
-    private final Map<RamaProgresion, Double> costosBotones = new EnumMap<>(RamaProgresion.class);
+    private static class EstadoLienzoArbol {
+        final SimulacionSolar simulacion;
+        final BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSeleccionarNodo;
+        Consumer<MejoraSecundaria> onSeleccionarMejora;
+        final Runnable onInvestigado;
+        final ConstructorOrbeNodoArbol constructorOrbe;
+        final Map<RamaProgresion, Button> botonesInvestigar = new EnumMap<>(RamaProgresion.class);
+        final Map<RamaProgresion, Double> costosBotones = new EnumMap<>(RamaProgresion.class);
+        final Map<MejoraSecundaria, Button> botonesSecundarias = new EnumMap<>(MejoraSecundaria.class);
+        int ultimoHashNiveles = -1;
+
+        EstadoLienzoArbol(SimulacionSolar sim, BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSel,
+                          Consumer<MejoraSecundaria> onSelSec, Runnable onInv, ConstructorOrbeNodoArbol orbe) {
+            this.simulacion = sim;
+            this.onSeleccionarNodo = onSel;
+            this.onSeleccionarMejora = onSelSec;
+            this.onInvestigado = onInv;
+            this.constructorOrbe = orbe != null ? orbe : new ConstructorOrbeNodoArbol();
+        }
+
+        void limpiarBotones() {
+            botonesInvestigar.clear();
+            costosBotones.clear();
+            botonesSecundarias.clear();
+        }
+
+        int calcularHashNiveles() {
+            var prog = simulacion != null ? simulacion.getProgresion() : null;
+            if (prog == null) return -1;
+            return prog.getNivel(RamaProgresion.PLANETAS) * 10000
+                    + prog.getNivel(RamaProgresion.MASA) * 1000
+                    + prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS) * 100
+                    + prog.getNivelEscudo() * 10
+                    + prog.getMejorasSecundariasInvestigadas().size();
+        }
+    }
+
+    private final EstadoLienzoArbol estado;
 
     public LienzoArbolOrbital(SimulacionSolar simulacion,
                               BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSeleccionarNodo,
                               Runnable onInvestigado) {
-        this(simulacion, onSeleccionarNodo, onInvestigado, new ConstructorOrbeNodoArbol());
+        this(simulacion, onSeleccionarNodo, null, onInvestigado, new ConstructorOrbeNodoArbol());
     }
 
     public LienzoArbolOrbital(SimulacionSolar simulacion,
                               BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSeleccionarNodo,
                               Runnable onInvestigado,
                               ConstructorOrbeNodoArbol constructorOrbe) {
-        this.simulacion = simulacion;
-        this.onSeleccionarNodo = onSeleccionarNodo;
-        this.onInvestigado = onInvestigado;
-        this.constructorOrbe = constructorOrbe != null ? constructorOrbe : new ConstructorOrbeNodoArbol();
+        this(simulacion, onSeleccionarNodo, null, onInvestigado, constructorOrbe);
+    }
 
+    public LienzoArbolOrbital(SimulacionSolar simulacion,
+                              BiConsumer<RamaProgresion, PantallaArbolProgresion.NodoArbol> onSeleccionarNodo,
+                              Consumer<MejoraSecundaria> onSeleccionarMejora,
+                              Runnable onInvestigado,
+                              ConstructorOrbeNodoArbol constructorOrbe) {
+        this.estado = new EstadoLienzoArbol(simulacion, onSeleccionarNodo, onSeleccionarMejora, onInvestigado, constructorOrbe);
         setStyle("-fx-background-color: transparent;");
-        setPrefSize(780, 430);
-        setMinSize(780, 430);
+        setPrefSize(940, 615);
+        setMinSize(940, 615);
+    }
+
+    public void setOnSeleccionarMejora(Consumer<MejoraSecundaria> onSeleccionarMejora) {
+        estado.onSeleccionarMejora = onSeleccionarMejora;
     }
 
     public void refrescar() {
-        botonesInvestigar.clear();
-        costosBotones.clear();
+        estado.limpiarBotones();
         getChildren().clear();
 
-        var inv = simulacion.getInventario();
-        var prog = simulacion.getProgresion();
+        var inv = estado.simulacion.getInventario();
+        var prog = estado.simulacion.getProgresion();
         double ciencia = inv != null ? inv.getRecurso(TipoRecurso.CIENCIA) : 0.0;
 
-        double rootCenterX = 55;
-        double rootCenterY = 215;
-        double rootDiameter = 62;
+        getChildren().addAll(GEOMETRIA.crearAnillosSinapticosFondo());
+        renderizarDendritaRama(RamaProgresion.PLANETAS, NODOS_PLANETAS, Y_DENDRITA_PLANETAS, prog.getNivel(RamaProgresion.PLANETAS), ciencia, "#5be3ff");
+        renderizarDendritaRama(RamaProgresion.MASA, NODOS_MASA, Y_DENDRITA_MASA, prog.getNivel(RamaProgresion.MASA), ciencia, "#d2a8ff");
+        renderizarDendritaRama(RamaProgresion.CANTIDAD_PLANETAS, NODOS_CANTIDAD, Y_DENDRITA_CANTIDAD, prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS), ciencia, "#ffd700");
+        getChildren().add(GEOMETRIA.crearSomaNeuronal());
 
-        double[] radiosOrbitales = {120, 245, 370, 495, 620};
-        for (int i = 0; i < radiosOrbitales.length; i++) {
-            Circle orbitaPunteada = new Circle(rootCenterX, rootCenterY, radiosOrbitales[i]);
-            orbitaPunteada.setFill(Color.TRANSPARENT);
-            orbitaPunteada.setStroke(Color.web("#171d2b"));
-            orbitaPunteada.setStrokeWidth(1.0);
-            orbitaPunteada.getStrokeDashArray().addAll(5.0, 7.0);
-            getChildren().add(orbitaPunteada);
+        estado.ultimoHashNiveles = estado.calcularHashNiveles();
+    }
 
-            Label lblOrbita = new Label("T" + (i + 1));
-            lblOrbita.setFont(Font.font("Monospace", FontWeight.NORMAL, 8.5));
-            lblOrbita.setTextFill(Color.web("#30384d"));
-            lblOrbita.setLayoutX(rootCenterX + radiosOrbitales[i] - 15);
-            lblOrbita.setLayoutY(rootCenterY - 10);
-            getChildren().add(lblOrbita);
+    private void renderizarDendritaRama(RamaProgresion rama, PantallaArbolProgresion.NodoArbol[] nodos,
+                                        double[] yCoords, int nivelActual, double ciencia, String colorRamaHex) {
+        double prevCenterX = RenderizadorGeometriaArbol.SOMA_X;
+        double prevCenterY = RenderizadorGeometriaArbol.SOMA_Y;
+
+        for (int i = 0; i < nodos.length; i++) {
+            PantallaArbolProgresion.NodoArbol nodo = nodos[i];
+            double x = RenderizadorGeometriaArbol.START_X + i * RenderizadorGeometriaArbol.STEP_X;
+            double y = yCoords[i];
+            double centerX = x + 43.0;
+            double centerY = y + 25.0;
+
+            boolean activa = (i == 0) || (nodo.nivel() <= nivelActual);
+            getChildren().add(GEOMETRIA.crearDendritaCurva(prevCenterX, prevCenterY, centerX, centerY, i % 2 == 0 ? -24.0 : 24.0, activa));
+            renderizarBifurcacionesSecundarias(rama, nodo.nivel(), centerX, centerY, nivelActual, ciencia, colorRamaHex);
+
+            VBox orbePrincipal = estado.constructorOrbe.construir(
+                    rama, nodo, nivelActual, ciencia, estado.simulacion,
+                    estado.onSeleccionarNodo, estado.onInvestigado, estado.botonesInvestigar, estado.costosBotones
+            );
+            orbePrincipal.setLayoutX(x);
+            orbePrincipal.setLayoutY(y);
+            getChildren().add(orbePrincipal);
+
+            prevCenterX = centerX;
+            prevCenterY = centerY;
         }
+    }
 
-        VBox rootNode = crearNodoCircularRaiz(rootDiameter);
-        rootNode.setLayoutX(rootCenterX - rootDiameter / 2.0);
-        rootNode.setLayoutY(rootCenterY - rootDiameter / 2.0);
+    private void renderizarBifurcacionesSecundarias(RamaProgresion rama, int tier, double mainCenterX, double mainCenterY,
+                                                    int nivelActual, double ciencia, String colorRamaHex) {
+        List<MejoraSecundaria> secundarias = MejoraSecundaria.deRamaYTier(rama, tier);
+        var prog = estado.simulacion.getProgresion();
 
-        double startX = 145;
-        double stepX = 125;
+        for (int idx = 0; idx < secundarias.size(); idx++) {
+            MejoraSecundaria mejora = secundarias.get(idx);
+            double[] offset = GEOMETRIA.calcularOffsetBifurcacion(rama, tier, idx, secundarias.size());
+            double secCenterX = mainCenterX + offset[0];
+            double secCenterY = mainCenterY + offset[1];
 
-        double yRamaPlanetas = 65;
-        double yRamaMasa = 190;
-        double yRamaCantidad = 315;
+            boolean investigada = prog.estaInvestigada(mejora);
+            getChildren().add(GEOMETRIA.crearEspinaBifurcacion(mainCenterX, mainCenterY, secCenterX, secCenterY, investigada, nivelActual >= tier, colorRamaHex));
 
-        getChildren().add(crearLineaConectora(rootCenterX, rootCenterY, startX + 26, yRamaPlanetas + 26, true));
-        getChildren().add(crearLineaConectora(rootCenterX, rootCenterY, startX + 26, yRamaMasa + 26, true));
-        getChildren().add(crearLineaConectora(rootCenterX, rootCenterY, startX + 26, yRamaCantidad + 26, true));
-
-        renderizarRamaCircular(RamaProgresion.PLANETAS, NODOS_PLANETAS, startX, yRamaPlanetas, stepX,
-                prog.getNivel(RamaProgresion.PLANETAS), ciencia);
-
-        renderizarRamaCircular(RamaProgresion.MASA, NODOS_MASA, startX, yRamaMasa, stepX,
-                prog.getNivel(RamaProgresion.MASA), ciencia);
-
-        renderizarRamaCircular(RamaProgresion.CANTIDAD_PLANETAS, NODOS_CANTIDAD, startX, yRamaCantidad, stepX,
-                prog.getNivel(RamaProgresion.CANTIDAD_PLANETAS), ciencia);
-
-        getChildren().add(rootNode);
+            VBox orbeSec = estado.constructorOrbe.construirSecundaria(
+                    mejora, nivelActual, investigada, ciencia,
+                    estado.simulacion, estado.onSeleccionarMejora, estado.onInvestigado, estado.botonesSecundarias
+            );
+            orbeSec.setLayoutX(secCenterX - 37.0);
+            orbeSec.setLayoutY(secCenterY - 17.0);
+            getChildren().add(orbeSec);
+        }
     }
 
     public void actualizarEstadosBotones(double ciencia) {
-        for (var entry : botonesInvestigar.entrySet()) {
-            RamaProgresion rama = entry.getKey();
+        if (estado.calcularHashNiveles() != estado.ultimoHashNiveles) {
+            refrescar();
+            return;
+        }
+        for (var entry : estado.botonesInvestigar.entrySet()) {
             Button btn = entry.getValue();
-            Double costo = costosBotones.get(rama);
+            Double costo = estado.costosBotones.get(entry.getKey());
             if (btn != null && costo != null) {
-                boolean puedePagar = ciencia >= costo;
-                if (btn.isDisable() == puedePagar) {
-                    btn.setDisable(!puedePagar);
-                    btn.setStyle(puedePagar
-                            ? "-fx-background-color: #1e3a47; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1.2px; -fx-cursor: hand; -fx-padding: 2 5 2 5; -fx-background-radius: 4px; -fx-border-radius: 4px;"
-                            : "-fx-background-color: #1a1c26; -fx-text-fill: #777777; -fx-border-color: #333333; -fx-border-width: 1px; -fx-padding: 2 5 2 5; -fx-background-radius: 4px; -fx-border-radius: 4px;");
-                }
+                aplicarEstiloBotonDisponible(btn, ciencia >= costo, true);
+            }
+        }
+        for (var entry : estado.botonesSecundarias.entrySet()) {
+            Button btn = entry.getValue();
+            MejoraSecundaria mejora = entry.getKey();
+            if (btn != null && mejora != null) {
+                aplicarEstiloBotonDisponible(btn, ciencia >= mejora.costo(), false);
             }
         }
     }
 
-    private void renderizarRamaCircular(RamaProgresion rama, PantallaArbolProgresion.NodoArbol[] nodos,
-                                        double startX, double y, double stepX, int nivelActual, double ciencia) {
-        for (int i = 0; i < nodos.length; i++) {
-            PantallaArbolProgresion.NodoArbol nodo = nodos[i];
-            double x = startX + i * stepX;
-
-            if (i > 0) {
-                double prevX = startX + (i - 1) * stepX;
-                boolean activa = nodo.nivel() <= nivelActual;
-                getChildren().add(crearLineaConectora(prevX + 26, y + 26, x + 26, y + 26, activa));
-            }
-
-            VBox circularCard = crearOrbeCircularNodo(rama, nodo, nivelActual, ciencia);
-            circularCard.setLayoutX(x);
-            circularCard.setLayoutY(y);
-
-            getChildren().add(circularCard);
+    private void aplicarEstiloBotonDisponible(Button btn, boolean puedePagar, boolean principal) {
+        if (btn.isDisable() == puedePagar) {
+            btn.setDisable(!puedePagar);
+            String pad = principal ? "2 5 2 5" : "1 3 1 3";
+            btn.setStyle(puedePagar
+                    ? "-fx-background-color: #1e3a47; -fx-text-fill: #5be3ff; -fx-border-color: #5be3ff; -fx-border-width: 1px; -fx-cursor: hand; -fx-padding: " + pad + "; -fx-background-radius: 3px; -fx-border-radius: 3px;"
+                    : "-fx-background-color: #1a1c26; -fx-text-fill: #777777; -fx-border-color: #333333; -fx-border-width: 1px; -fx-padding: " + pad + "; -fx-background-radius: 3px; -fx-border-radius: 3px;");
         }
-    }
-
-    private VBox crearNodoCircularRaiz(double diameter) {
-        VBox box = new VBox(3);
-        box.setAlignment(Pos.CENTER);
-        box.setPrefWidth(diameter + 24);
-
-        StackPane circle = new StackPane();
-        circle.setPrefSize(diameter, diameter);
-        circle.setMaxSize(diameter, diameter);
-        circle.setStyle("-fx-background-color: #102619; -fx-background-radius: 50%; -fx-border-color: #50fa7b; -fx-border-width: 2.5px; -fx-border-radius: 50%;");
-
-        VBox inside = new VBox(1);
-        inside.setAlignment(Pos.CENTER);
-
-        Label lblIcon = new Label("[SOL]");
-        lblIcon.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
-        lblIcon.setTextFill(Color.web("#ffd700"));
-
-        Label lblBase = new Label("BASE");
-        lblBase.setFont(Font.font("Monospace", FontWeight.BOLD, 8.5));
-        lblBase.setTextFill(Color.web("#50fa7b"));
-
-        inside.getChildren().addAll(lblIcon, lblBase);
-        circle.getChildren().add(inside);
-
-        Label lblNombre = new Label("Sol & Agua");
-        lblNombre.setFont(Font.font("Monospace", FontWeight.BOLD, 9.5));
-        lblNombre.setTextFill(Color.web("#e8e4d8"));
-
-        box.getChildren().addAll(circle, lblNombre);
-        return box;
-    }
-
-    private VBox crearOrbeCircularNodo(RamaProgresion rama, PantallaArbolProgresion.NodoArbol nodo, int nivelActual, double ciencia) {
-        return constructorOrbe.construir(rama, nodo, nivelActual, ciencia, simulacion, onSeleccionarNodo, onInvestigado, botonesInvestigar, costosBotones);
-    }
-
-    private Line crearLineaConectora(double x1, double y1, double x2, double y2, boolean activa) {
-        Line line = new Line(x1, y1, x2, y2);
-        line.setStrokeWidth(activa ? 2.0 : 1.2);
-        line.setStroke(activa ? Color.web("#50fa7b") : Color.web("#2b3149"));
-        if (!activa) {
-            line.getStrokeDashArray().addAll(5.0, 5.0);
-        }
-        return line;
     }
 }

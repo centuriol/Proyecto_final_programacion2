@@ -1,12 +1,14 @@
 package org.example.game.simulacion;
+
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
+
 import java.util.List;
+
 /**
- * Controla la lógica de selección, preview y parámetros para colocación de cuerpos (SRP).
+ * Controla el estado de selección, preview y parámetros para colocación de cuerpos (SRP / DIP).
  */
 public class ControladorColocacion {
 
@@ -14,140 +16,73 @@ public class ControladorColocacion {
         NINGUNO, COLOCANDO
     }
 
-    private ModoColocacion modoColocacion = ModoColocacion.NINGUNO;
-    private TipoCuerpo tipoColocacion = null;
-    private double factorMasaColocacion = 1.0;
-    private String nombreColocacion = null;
-    private Vector2D posicionPreview = null;
+    private static final FabricaSimulacion FABRICA_SIM = new FabricaSimulacion();
+    private static final CalculadorOrbitaPreview CALCULADOR_ORBITA = new CalculadorOrbitaPreview();
+
+    private static class EstadoPreviewColocacion {
+        ModoColocacion modo = ModoColocacion.NINGUNO;
+        TipoCuerpo tipo = null;
+        double factorMasa = 1.0;
+        String nombre = null;
+        Vector2D posicionPreview = null;
+
+        void entrar(TipoCuerpo t, double fm, String nom, double maxMasa) {
+            this.modo = ModoColocacion.COLOCANDO;
+            this.tipo = t;
+            this.factorMasa = Math.max(ConfiguracionSimulacion.MASA_FACTOR_MIN, Math.min(maxMasa, fm));
+            this.nombre = nom;
+        }
+
+        void salir() {
+            this.modo = ModoColocacion.NINGUNO;
+            this.tipo = null;
+            this.nombre = null;
+            this.factorMasa = 1.0;
+            this.posicionPreview = null;
+        }
+    }
+
+    private final EstadoPreviewColocacion estado = new EstadoPreviewColocacion();
     private final ConversorCoordenadas conversor;
 
     public ControladorColocacion() {
-        this(new TransformadorCoordenadas());
+        this(FABRICA_SIM.crearConversorCoordenadas());
     }
 
     public ControladorColocacion(ConversorCoordenadas conversor) {
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+        this.conversor = conversor != null ? conversor : FABRICA_SIM.crearConversorCoordenadas();
     }
 
     public void entrarModoColocacion(TipoCuerpo tipo, double factorMasa, String nombre, double maxMasaPermitida) {
-        this.modoColocacion = ModoColocacion.COLOCANDO;
-        this.tipoColocacion = tipo;
-        setFactorMasaColocacion(factorMasa, maxMasaPermitida);
-        this.nombreColocacion = nombre;
+        estado.entrar(tipo, factorMasa, nombre, maxMasaPermitida);
     }
 
-    public void salirModoColocacion() {
-        this.modoColocacion = ModoColocacion.NINGUNO;
-        this.tipoColocacion = null;
-        this.nombreColocacion = null;
-        this.factorMasaColocacion = 1.0;
-        this.posicionPreview = null;
-    }
+    public void salirModoColocacion() { estado.salir(); }
 
     public void actualizarPosicionPreview(double xJavaFX, double yJavaFX, double anchoMundo, double altoMundo) {
-        double xFisica = conversor.javaFXAFisicaX(xJavaFX, anchoMundo);
-        double yFisica = conversor.javaFXAFisica(yJavaFX, altoMundo);
-        this.posicionPreview = new Vector2D(xFisica, yFisica);
-    }
-
-    public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica, List<CuerpoCeleste> cuerpos) {
-        CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posFisica, cuerpos);
-        if (cuerpoCercano != null) {
-            boolean esMenorOrbital = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
-            boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
-            if (esMenorOrbital && cercanoEsPlaneta) {
-                Vector2D r = posFisica.restar(cuerpoCercano.getPosicion());
-                double dist = Math.max(1.0, r.magnitud());
-                double masaBase = cuerpoCercano.getTipoCuerpo() != null ? cuerpoCercano.getTipoCuerpo().masaBase : 1.0;
-                double factorMasa = (masaBase > 0)
-                        ? Math.max(0.2, cuerpoCercano.getMasa() / masaBase)
-                        : 1.0;
-                double vOrb = Math.sqrt(75.0 * factorMasa / dist);
-                Vector2D uRadial = r.dividir(dist);
-                Vector2D uTangencial = new Vector2D(-uRadial.y(), uRadial.x());
-                return cuerpoCercano.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
-            }
-            return org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(cuerpoCercano, posFisica, false);
-        }
-        return Vector2D.cero();
-    }
-
-    public CuerpoCeleste encontrarCuerpoGravitatorioCercano(Vector2D pos, List<CuerpoCeleste> cuerpos) {
-        boolean priorizarPlaneta = tipoColocacion != null && tipoColocacion.puedeOrbitarPlanetas();
-        if (priorizarPlaneta) {
-            CuerpoCeleste planetaCercano = buscarPlanetaMasCercano(pos, cuerpos);
-            if (planetaCercano != null) {
-                return planetaCercano;
-            }
-        }
-        CuerpoCeleste mejor = null;
-        double maxFuerza = 0;
-
-        for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.METEORITO || c.getMasa() < 1e22) {
-                continue;
-            }
-
-            double dist = pos.distanciaA(c.getPosicion());
-            if (dist < 10.0) continue;
-
-            double atraccion = c.getMasa() / (dist * dist + 100.0);
-            if (atraccion > maxFuerza) {
-                maxFuerza = atraccion;
-                mejor = c;
-            }
-        }
-        return mejor;
-    }
-
-    private CuerpoCeleste buscarPlanetaMasCercano(Vector2D pos, List<CuerpoCeleste> cuerpos) {
-        CuerpoCeleste mejorPlaneta = null;
-        double menorDist = Double.MAX_VALUE;
-        for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == null || !c.getTipoCuerpo().esPlaneta()) {
-                continue;
-            }
-            double dist = pos.distanciaA(c.getPosicion());
-            if (dist < menorDist) {
-                menorDist = dist;
-                mejorPlaneta = c;
-            }
-        }
-        return mejorPlaneta;
-    }
-
-    public void setFactorMasaColocacion(double f, double maxPermitido) {
-        this.factorMasaColocacion = Math.max(
-                ConfiguracionSimulacion.MASA_FACTOR_MIN,
-                Math.min(maxPermitido, f)
+        estado.posicionPreview = new Vector2D(
+                conversor.javaFXAFisicaX(xJavaFX, anchoMundo),
+                conversor.javaFXAFisica(yJavaFX, altoMundo)
         );
     }
 
-    public ModoColocacion getModoColocacion() {
-        return modoColocacion;
+    public Vector2D calcularVelocidadOrbitalAsistida(Vector2D posFisica, List<CuerpoCeleste> cuerpos) {
+        return CALCULADOR_ORBITA.calcularVelocidadOrbitalAsistida(estado.tipo, posFisica, cuerpos);
     }
 
-    public TipoCuerpo getTipoColocacion() {
-        return tipoColocacion;
+    public CuerpoCeleste encontrarCuerpoGravitatorioCercano(Vector2D pos, List<CuerpoCeleste> cuerpos) {
+        return CALCULADOR_ORBITA.encontrarCuerpoGravitatorioCercano(estado.tipo, pos, cuerpos);
     }
 
-    public double getFactorMasaColocacion() {
-        return factorMasaColocacion;
+    public void setFactorMasaColocacion(double f, double maxPermitido) {
+        estado.factorMasa = Math.max(ConfiguracionSimulacion.MASA_FACTOR_MIN, Math.min(maxPermitido, f));
     }
 
-    public String getNombreColocacion() {
-        return nombreColocacion;
-    }
-
-    public void setNombreColocacion(String nombreColocacion) {
-        this.nombreColocacion = nombreColocacion;
-    }
-
-    public Vector2D getPosicionPreview() {
-        return posicionPreview;
-    }
-
-    public void setPosicionPreview(Vector2D posicionPreview) {
-        this.posicionPreview = posicionPreview;
-    }
+    public ModoColocacion getModoColocacion() { return estado.modo; }
+    public TipoCuerpo getTipoColocacion() { return estado.tipo; }
+    public double getFactorMasaColocacion() { return estado.factorMasa; }
+    public String getNombreColocacion() { return estado.nombre; }
+    public void setNombreColocacion(String nombre) { estado.nombre = nombre; }
+    public Vector2D getPosicionPreview() { return estado.posicionPreview; }
+    public void setPosicionPreview(Vector2D pos) { estado.posicionPreview = pos; }
 }

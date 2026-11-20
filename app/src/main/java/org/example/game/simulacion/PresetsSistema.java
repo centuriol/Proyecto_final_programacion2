@@ -9,14 +9,15 @@ import org.example.game.motor.Vector2D;
  */
 public class PresetsSistema {
 
+    private static final FabricaSimulacion FABRICA_SIM = new FabricaSimulacion();
     private final FabricaCuerpos fabricaCuerpos;
 
     public PresetsSistema() {
-        this(new CuerpoCelesteFactory());
+        this(FABRICA_SIM.crearFabricaCuerpos());
     }
 
     public PresetsSistema(FabricaCuerpos fabricaCuerpos) {
-        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new CuerpoCelesteFactory();
+        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : FABRICA_SIM.crearFabricaCuerpos();
     }
 
     public void cargarPresetSistemaBasico(SimulacionSolar simulacion) {

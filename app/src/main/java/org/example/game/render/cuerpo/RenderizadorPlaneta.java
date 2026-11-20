@@ -7,15 +7,15 @@ import org.example.game.civilizacion.SistemaCivilizaciones;
 import org.example.game.cuerpo.Civilizable;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.CatalogoSprites;
 import org.example.game.render.EstrategiaVisualTipo;
 import org.example.game.render.RegistroEstrategiasVisuales;
 import org.example.game.render.RenderizadorCuerpo;
-import org.example.game.render.RepositorioSprites;
 
 import java.util.Objects;
 
 /**
- * Renderizador Pixel Art para planetas delegando en estrategias visuales por tipo (SRP / OCP).
+ * Renderizador Pixel Art para planetas delegando en estrategias visuales por tipo (SRP / OCP / ISP).
  */
 public class RenderizadorPlaneta implements RenderizadorCuerpo {
 
@@ -31,9 +31,9 @@ public class RenderizadorPlaneta implements RenderizadorCuerpo {
             470_000.0, 570_000.0, 670_000.0, 780_000.0, 890_000.0, 1_000_000.0
     };
 
-    private final RepositorioSprites repositorioSprites;
+    private final CatalogoSprites repositorioSprites;
 
-    public RenderizadorPlaneta(RepositorioSprites repositorioSprites) {
+    public RenderizadorPlaneta(CatalogoSprites repositorioSprites) {
         this.repositorioSprites = repositorioSprites;
     }
 

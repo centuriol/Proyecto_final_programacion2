@@ -58,29 +58,31 @@ public class ServicioReembolso {
 
         boolean permiteReembolso = cuerpo.permiteReembolso();
         Map<TipoRecurso, Double> reembolso = permiteReembolso ? calcularReembolso(cuerpo) : Collections.emptyMap();
-
-        if (permiteReembolso && simulacion.getInventario() != null) {
-            for (Map.Entry<TipoRecurso, Double> entry : reembolso.entrySet()) {
-                simulacion.getInventario().agregarRecurso(entry.getKey(), entry.getValue());
-            }
-        }
+        acreditarReembolso(simulacion, permiteReembolso, reembolso);
 
         simulacion.getGestorCicloVida().eliminarCuerpo(cuerpo);
+        simulacion.notificarEvento(
+                "Cuerpo eliminado: " + cuerpo.getNombre() + ". " + formatearDetalleReembolso(permiteReembolso, reembolso),
+                MensajeEvento.TipoMensaje.INFO
+        );
+        return true;
+    }
 
+    private void acreditarReembolso(SimulacionSolar simulacion, boolean permiteReembolso, Map<TipoRecurso, Double> reembolso) {
+        if (!permiteReembolso || simulacion.getInventario() == null) return;
+        for (Map.Entry<TipoRecurso, Double> entry : reembolso.entrySet()) {
+            simulacion.getInventario().agregarRecurso(entry.getKey(), entry.getValue());
+        }
+    }
+
+    private String formatearDetalleReembolso(boolean permiteReembolso, Map<TipoRecurso, Double> reembolso) {
+        if (!permiteReembolso) return "Sin reembolso (cuerpo no reembolsable).";
+        if (reembolso.isEmpty()) return "Sin materiales reembolsados.";
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<TipoRecurso, Double> entry : reembolso.entrySet()) {
             if (!sb.isEmpty()) sb.append(", ");
             sb.append(String.format("+%.1f %s", entry.getValue(), entry.getKey().nombre));
         }
-
-        String detalle = !permiteReembolso
-                ? "Sin reembolso (cuerpo no reembolsable)."
-                : (sb.isEmpty() ? "Sin materiales reembolsados." : "Reembolsado 50%: " + sb);
-
-        simulacion.notificarEvento(
-                "Cuerpo eliminado: " + cuerpo.getNombre() + ". " + detalle,
-                MensajeEvento.TipoMensaje.INFO
-        );
-        return true;
+        return "Reembolsado 50%: " + sb;
     }
 }

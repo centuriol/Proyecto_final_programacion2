@@ -4,28 +4,31 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
-import org.example.game.render.RepositorioSprites;
+import org.example.game.render.CatalogoSprites;
+import org.example.game.render.FabricaRender;
+import org.example.game.render.MetricasVisualesTipo;
+import org.example.game.render.RegistroEstrategiasVisuales;
 import org.example.game.render.UtilidadRender;
 /**
- * Capa de renderizado para el fantasma (ghost preview) y guía de colocación en tiempo real (SRP).
+ * Capa de renderizado para el fantasma (ghost preview) y guía de colocación en tiempo real (SRP / ISP / DIP).
  */
 public class CapaGhostPreview {
 
-    private final RepositorioSprites repositorioSprites;
+    private static final FabricaRender FABRICA = new FabricaRender();
+    private final CatalogoSprites catalogoSprites;
     private final ConversorCoordenadas conversor;
     private static final Color COLOR_ACENTO_CYAN = UtilidadRender.colorWeb("#5be3ff");
     private static final Color COLOR_TEXTO_ETIQUETA = UtilidadRender.colorWeb("#e8e4d8");
     private static final Color COLOR_VERDE_EXITO = UtilidadRender.colorWeb("#50fa7b");
 
-    public CapaGhostPreview(RepositorioSprites repositorioSprites) {
-        this(repositorioSprites, new TransformadorCoordenadas());
+    public CapaGhostPreview(CatalogoSprites catalogoSprites) {
+        this(catalogoSprites, FABRICA.crearConversorCoordenadas());
     }
 
-    public CapaGhostPreview(RepositorioSprites repositorioSprites, ConversorCoordenadas conversor) {
-        this.repositorioSprites = repositorioSprites;
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+    public CapaGhostPreview(CatalogoSprites catalogoSprites, ConversorCoordenadas conversor) {
+        this.catalogoSprites = catalogoSprites;
+        this.conversor = conversor != null ? conversor : FABRICA.crearConversorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, Vector2D posFisica, TipoCuerpo tipo, double factorMasa,
@@ -52,10 +55,10 @@ public class CapaGhostPreview {
     }
 
     private void dibujarSpriteFantasma(GraphicsContext gc, TipoCuerpo tipo, double r, double x, double y, double tiempoAnimacion) {
-        Image imgGhost = repositorioSprites != null ? repositorioSprites.obtenerImagen(tipo) : null;
+        Image imgGhost = catalogoSprites != null ? catalogoSprites.obtenerImagen(tipo) : null;
         if (imgGhost != null) {
             gc.setGlobalAlpha(0.65);
-            org.example.game.render.EstrategiaVisualTipo est = org.example.game.render.RegistroEstrategiasVisuales.get(tipo);
+            MetricasVisualesTipo est = RegistroEstrategiasVisuales.get(tipo);
             double tamGhost = est.calcularTamanoGhost(r);
             double angulo = 0.0;
             if (est.tieneRotacionAnimada()) {
@@ -75,7 +78,7 @@ public class CapaGhostPreview {
     }
 
     private void dibujarAreaColapsoYReferencias(GraphicsContext gc, TipoCuerpo tipo, double factorMasa, double x, double y) {
-        org.example.game.render.EstrategiaVisualTipo est = org.example.game.render.RegistroEstrategiasVisuales.get(tipo);
+        MetricasVisualesTipo est = RegistroEstrategiasVisuales.get(tipo);
         double rAtraccion = est.calcularRadioAtraccionPreview(factorMasa);
 
         gc.setStroke(UtilidadRender.colorRgb(255, 255, 255, 0.20));

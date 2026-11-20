@@ -1,10 +1,10 @@
 package org.example.game.motor.colision;
-import org.example.game.cuerpo.Civilizable;
+import org.example.game.cuerpo.CreadorMeteoritos;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
 import org.example.game.cuerpo.Meteorito;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.CuerpoFisico;
+import org.example.game.motor.FabricaMotorFisica;
 import org.example.game.motor.Vector2D;
 import org.example.game.simulacion.ConfiguracionColisiones;
 import java.util.List;
@@ -14,14 +14,15 @@ import java.util.Set;
  */
 public class UtilidadColision {
 
-    private final org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos;
+    private static final FabricaMotorFisica FABRICA = new FabricaMotorFisica();
+    private final CreadorMeteoritos creadorMeteoritos;
 
     public UtilidadColision() {
-        this(new org.example.game.cuerpo.CuerpoCelesteFactory());
+        this(FABRICA.crearCreadorMeteoritosPorDefecto());
     }
 
-    public UtilidadColision(org.example.game.cuerpo.FabricaCuerpos fabricaCuerpos) {
-        this.fabricaCuerpos = fabricaCuerpos != null ? fabricaCuerpos : new org.example.game.cuerpo.CuerpoCelesteFactory();
+    public UtilidadColision(CreadorMeteoritos creadorMeteoritos) {
+        this.creadorMeteoritos = creadorMeteoritos != null ? creadorMeteoritos : FABRICA.crearCreadorMeteoritosPorDefecto();
     }
 
     public double calcularRatioMasas(CuerpoCeleste a, CuerpoCeleste b) {
@@ -92,7 +93,7 @@ public class UtilidadColision {
         double masaRepartible = Math.min(masaNeta, numFragmentos * topeMasaFragmento);
         double masaPorFragmento = Math.min(topeMasaFragmento, masaRepartible / numFragmentos);
         for (int i = 0; i < numFragmentos; i++) {
-            Meteorito fragmento = fabricaCuerpos.crearFragmentoColision(
+            Meteorito fragmento = creadorMeteoritos.crearFragmentoColision(
                     destruido.getPosicion().x(), destruido.getPosicion().y(),
                     destruido.getVelocidad(), masaPorFragmento
             );

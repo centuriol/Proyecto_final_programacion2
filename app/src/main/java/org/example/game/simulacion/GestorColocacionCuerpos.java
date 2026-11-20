@@ -13,6 +13,9 @@ import java.util.function.DoubleSupplier;
  */
 public class GestorColocacionCuerpos {
 
+    private static final FabricaSimulacion FABRICA_SIM = new FabricaSimulacion();
+    private static final VinculadorAutoOrbita VINCULADOR_AUTO_ORBITA = FABRICA_SIM.crearVinculadorAutoOrbita();
+
     private final ControladorColocacion controlador;
     private final GestorCicloVidaCuerpos cicloVida;
     private final DoubleSupplier anchoSupplier;
@@ -24,7 +27,7 @@ public class GestorColocacionCuerpos {
 
     public GestorColocacionCuerpos(ControladorColocacion controlador, GestorCicloVidaCuerpos cicloVida,
                                    DoubleSupplier anchoSupplier, DoubleSupplier altoSupplier) {
-        this.controlador = controlador != null ? controlador : new ControladorColocacion();
+        this.controlador = controlador != null ? controlador : FABRICA_SIM.crearControladorColocacion();
         this.cicloVida = cicloVida;
         this.anchoSupplier = anchoSupplier != null ? anchoSupplier : () -> 2000.0;
         this.altoSupplier = altoSupplier != null ? altoSupplier : () -> 2000.0;
@@ -64,58 +67,31 @@ public class GestorColocacionCuerpos {
     }
 
     public Optional<CuerpoCeleste> confirmarColocacionAutoOrbita(SimulacionSolar simulacion) {
-        if (controlador.getModoColocacion() == ControladorColocacion.ModoColocacion.COLOCANDO
-                && controlador.getPosicionPreview() != null && controlador.getTipoColocacion() != null) {
-            Vector2D posPreview = controlador.getPosicionPreview();
-            Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreview, simulacion.getSistemaSolar().getCuerpos());
-            CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreview, simulacion.getSistemaSolar().getCuerpos());
-
-            Optional<CuerpoCeleste> spawnedOpt = cicloVida.spawnCuerpo(
-                    controlador.getTipoColocacion(),
-                    controlador.getNombreColocacion(),
-                    posPreview.x(), posPreview.y(),
-                    controlador.getFactorMasaColocacion(),
-                    velOrbital,
-                    simulacion::notificarEvento,
-                    controlador::salirModoColocacion
-            );
-
-            if (spawnedOpt.isPresent() && cuerpoCercano != null) {
-                CuerpoCeleste recienCreado = spawnedOpt.get();
-                boolean recienEsMenor = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().puedeOrbitarPlanetas();
-                boolean cercanoEsPlaneta = cuerpoCercano.getTipoCuerpo() != null && cuerpoCercano.getTipoCuerpo().esPlaneta();
-                boolean recienEsPlaneta = recienCreado.getTipoCuerpo() != null && recienCreado.getTipoCuerpo().esPlaneta();
-                boolean cercanoEsMasivo = cuerpoCercano.getMasa() >= 1e29;
-
-                double dist = posPreview.distanciaA(cuerpoCercano.getPosicion());
-                boolean lunaComidaPorMasa = recienCreado.getTipoCuerpo() == TipoCuerpo.LUNA
-                        && cercanoEsPlaneta
-                        && cuerpoCercano.getMasa() >= ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * recienCreado.getMasa();
-                if ((recienEsMenor && cercanoEsPlaneta && !lunaComidaPorMasa) || (recienEsPlaneta && cercanoEsMasivo)) {
-                    recienCreado.setCuerpoOrbitado(cuerpoCercano);
-                    double radioOrbita = (recienEsPlaneta && cuerpoCercano.getTipoCuerpo() == TipoCuerpo.ESTRELLA)
-                            ? org.example.game.motor.CalculadorOrbital.ajustarARanuraSolar(dist)
-                            : Math.max(dist, org.example.game.motor.AsistenteOrbital.calcularRadioOrbitalMinimo(recienCreado, cuerpoCercano));
-                    recienCreado.setRadioOrbita(radioOrbita);
-                }
-            }
-            return spawnedOpt;
+        if (controlador.getModoColocacion() != ControladorColocacion.ModoColocacion.COLOCANDO
+                || controlador.getPosicionPreview() == null
+                || controlador.getTipoColocacion() == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        Vector2D posPreview = controlador.getPosicionPreview();
+        List<CuerpoCeleste> cuerpos = simulacion.getSistemaSolar().getCuerpos();
+        Vector2D velOrbital = calcularVelocidadOrbitalAsistida(posPreview, cuerpos);
+        CuerpoCeleste cuerpoCercano = encontrarCuerpoGravitatorioCercano(posPreview, cuerpos);
+
+        Optional<CuerpoCeleste> spawnedOpt = cicloVida.spawnCuerpo(
+                controlador.getTipoColocacion(), controlador.getNombreColocacion(),
+                posPreview.x(), posPreview.y(), controlador.getFactorMasaColocacion(),
+                velOrbital, simulacion::notificarEvento, controlador::salirModoColocacion
+        );
+        spawnedOpt.ifPresent(cuerpo -> VINCULADOR_AUTO_ORBITA.vincularSiCorresponde(cuerpo, cuerpoCercano, posPreview));
+        return spawnedOpt;
     }
 
     public Optional<CuerpoCeleste> confirmarColocacionConImpulso(SimulacionSolar simulacion, Vector2D posFisica, Vector2D velFisica) {
-        if (controlador.getTipoColocacion() != null) {
-            return cicloVida.spawnCuerpo(
-                    controlador.getTipoColocacion(),
-                    controlador.getNombreColocacion(),
-                    posFisica.x(), posFisica.y(),
-                    controlador.getFactorMasaColocacion(),
-                    velFisica,
-                    simulacion::notificarEvento,
-                    controlador::salirModoColocacion
-            );
-        }
-        return Optional.empty();
+        if (controlador.getTipoColocacion() == null) return Optional.empty();
+        return cicloVida.spawnCuerpo(
+                controlador.getTipoColocacion(), controlador.getNombreColocacion(),
+                posFisica.x(), posFisica.y(), controlador.getFactorMasaColocacion(),
+                velFisica, simulacion::notificarEvento, controlador::salirModoColocacion
+        );
     }
 }

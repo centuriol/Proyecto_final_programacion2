@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public class VentanaColocacion {
 
+    private static final FabricaUI FABRICA_UI = new FabricaUI();
+
     private final TipoCuerpo tipo;
     private final SimulacionSolar simulacion;
     private final Window owner;
@@ -45,11 +47,11 @@ public class VentanaColocacion {
         this.simulacion = simulacion;
         this.owner = owner;
         this.onConfirmado = onConfirmado;
-        this.seccionInfo = seccionInfo != null ? seccionInfo : new SeccionInfoCuerpo();
+        this.seccionInfo = seccionInfo != null ? seccionInfo : FABRICA_UI.crearProveedorInfoCuerpo();
     }
 
     public VentanaColocacion(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {
-        this(tipo, simulacion, owner, onConfirmado, new SeccionInfoCuerpo());
+        this(tipo, simulacion, owner, onConfirmado, FABRICA_UI.crearProveedorInfoCuerpo());
     }
 
     public static void mostrar(TipoCuerpo tipo, SimulacionSolar simulacion, Window owner, Runnable onConfirmado) {

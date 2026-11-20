@@ -156,4 +156,105 @@ class EventosCosmicosYSatelitesTest {
         assertTrue(aEliminar.isEmpty());
         assertTrue(aAgregar.isEmpty());
     }
+
+    @Test
+    void testVariosSatelitesEnMismoPlanetaChocandoseDurante200TicksMantienenOrbita() {
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(0, 0, 1.0, Vector2D.cero());
+        Luna luna = new CuerpoCelesteFactory().crearLuna(65, 0, 0.8, new Vector2D(0, -1.07));
+        luna.setCuerpoOrbitado(planeta);
+        List<Satelite> satelites = List.of(
+                new CuerpoCelesteFactory().crearSatelite(28, 0, 1.0, new Vector2D(0, 1.6)),
+                new CuerpoCelesteFactory().crearSatelite(28, 2, 1.0, new Vector2D(0, -1.6)),
+                new CuerpoCelesteFactory().crearSatelite(12, 0, 1.0, new Vector2D(0, 1.6)),
+                new CuerpoCelesteFactory().crearSatelite(58, 0, 1.0, new Vector2D(0, -1.5))
+        );
+        simulacion.agregarCuerpo(planeta);
+        simulacion.agregarCuerpo(luna);
+        satelites.forEach(simulacion::agregarCuerpo);
+
+        for (int tick = 0; tick < 200; tick++) {
+            assertDoesNotThrow(() -> simulacion.avanzarTick());
+        }
+
+        double distLuna = luna.getPosicion().distanciaA(planeta.getPosicion());
+        assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(luna) && luna.estaOrbitando(planeta));
+        assertTrue(distLuna >= 60.0);
+        for (Satelite sat : satelites) {
+            double distSat = sat.getPosicion().distanciaA(planeta.getPosicion());
+            assertTrue(simulacion.getSistemaSolar().getCuerpos().contains(sat) && sat.esSimulado());
+            assertSame(planeta, sat.getCuerpoOrbitado());
+            assertTrue(distSat > planeta.getRadio() + sat.getRadio());
+            assertTrue(distSat + sat.getRadio() < distLuna - luna.getRadio());
+            assertTrue(sat.getVelocidad().magnitud() < 10.0);
+        }
+    }
+
+    @Test
+    void testLunaNoEsInterrumpidaPorSatelitesAlEntrarEnOrbitaNiAlOrbitarPlanetaEnMovimiento() {
+        simulacion.getProgresion().desbloquearTodo();
+        simulacion.getInventario().agregarRecurso(TipoRecurso.MINERALES, 50000);
+        simulacion.getInventario().agregarRecurso(TipoRecurso.ENERGIA, 50000);
+
+        Estrella sol = new CuerpoCelesteFactory().crearEstrella(0, 0, 1.0);
+        Vector2D posPlaneta = new Vector2D(175, 0);
+        Vector2D velPlaneta = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, posPlaneta, false);
+        Planeta planeta = new CuerpoCelesteFactory().crearPlanetaRocoso(posPlaneta.x(), posPlaneta.y(), 1.0, velPlaneta);
+        planeta.setCuerpoOrbitado(sol);
+        planeta.setRadioOrbita(175.0);
+
+        Vector2D posPlaneta2 = new Vector2D(290, 0);
+        Vector2D velPlaneta2 = org.example.game.motor.CalculadorOrbital.calcularVelocidadOrbitalVector(sol, posPlaneta2, false);
+        Planeta planeta2 = new CuerpoCelesteFactory().crearPlanetaAgua(posPlaneta2.x(), posPlaneta2.y(), 2.0, velPlaneta2);
+        planeta2.setCuerpoOrbitado(sol);
+        planeta2.setRadioOrbita(290.0);
+
+        simulacion.agregarCuerpo(sol);
+        simulacion.agregarCuerpo(planeta);
+        simulacion.agregarCuerpo(planeta2);
+
+        // Satélites ya orbitando el planeta
+        List<Satelite> satelites = List.of(
+                new CuerpoCelesteFactory().crearSatelite(posPlaneta.x() + 28, posPlaneta.y(), 1.0, velPlaneta),
+                new CuerpoCelesteFactory().crearSatelite(posPlaneta.x() - 28, posPlaneta.y(), 1.0, velPlaneta),
+                new CuerpoCelesteFactory().crearSatelite(posPlaneta.x(), posPlaneta.y() + 28, 1.0, velPlaneta)
+        );
+        satelites.forEach(simulacion::agregarCuerpo);
+        simulacion.avanzarTicks(5);
+
+        // Colocar Luna justo sobre la zona de los satélites (dist=28px) para verificar que entra en órbita sin ser interrumpida
+        Luna luna = new CuerpoCelesteFactory().crearLuna(
+                planeta.getPosicion().x() + 28, planeta.getPosicion().y(), 1.0, planeta.getVelocidad());
+        simulacion.agregarCuerpo(luna);
+
+        simulacion.avanzarTick();
+        assertTrue(luna.estaOrbitando(planeta), "La luna debe entrar en órbita del planeta sin ser bloqueada por los satélites");
+
+        Vector2D rRelPrev = luna.getPosicion().restar(planeta.getPosicion());
+        double anguloPrev = Math.atan2(rRelPrev.y(), rRelPrev.x());
+        double avanceAngularTotal = 0.0;
+
+        for (int tick = 0; tick < 300; tick++) {
+            simulacion.avanzarTick();
+            assertTrue(luna.esSimulado() && luna.estaOrbitando(planeta), "La luna no debe perder su órbita en el tick " + tick);
+
+            Vector2D rRel = luna.getPosicion().restar(planeta.getPosicion());
+            double distLuna = rRel.magnitud();
+            assertTrue(distLuna >= 60.0 - 1e-3, "La luna debe mantenerse en su carril exterior en el tick " + tick);
+
+            double anguloActual = Math.atan2(rRel.y(), rRel.x());
+            double deltaAngulo = anguloActual - anguloPrev;
+            while (deltaAngulo <= -Math.PI) deltaAngulo += 2 * Math.PI;
+            while (deltaAngulo > Math.PI) deltaAngulo -= 2 * Math.PI;
+            assertTrue(Math.abs(deltaAngulo) > 1e-4, "La luna debe avanzar continuamente sin quedarse trabada");
+            avanceAngularTotal += Math.abs(deltaAngulo);
+            anguloPrev = anguloActual;
+
+            for (Satelite sat : satelites) {
+                assertTrue(sat.esSimulado() && sat.estaOrbitando(planeta));
+                double distSat = sat.getPosicion().distanciaA(planeta.getPosicion());
+                assertTrue(distSat + sat.getRadio() < distLuna - luna.getRadio());
+            }
+        }
+        assertTrue(avanceAngularTotal > Math.PI, "La luna debe completar un recorrido orbital continuo alrededor del planeta");
+    }
 }

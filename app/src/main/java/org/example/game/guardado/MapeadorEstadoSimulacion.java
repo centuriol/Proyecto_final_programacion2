@@ -20,16 +20,16 @@ import java.util.Objects;
  */
 public class MapeadorEstadoSimulacion implements MapeadorPartida {
 
-    private final ReconstructorCuerpos reconstructorCuerpos;
+    private final ReconstructorCuerpo reconstructorCuerpos;
 
     public MapeadorEstadoSimulacion() {
-        this(new ReconstructorCuerpos());
+        this(new FabricaGuardado().crearReconstructorPorDefecto());
     }
 
-    public MapeadorEstadoSimulacion(ReconstructorCuerpos reconstructorCuerpos) {
+    public MapeadorEstadoSimulacion(ReconstructorCuerpo reconstructorCuerpos) {
         this.reconstructorCuerpos = reconstructorCuerpos != null
                 ? reconstructorCuerpos
-                : new ReconstructorCuerpos();
+                : new FabricaGuardado().crearReconstructorPorDefecto();
     }
 
     @Override
@@ -65,9 +65,9 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         Objects.requireNonNull(datos, "Los datos de partida no pueden ser null");
         Objects.requireNonNull(simulacion, "La simulacion destino no puede ser null");
 
-        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion.getBusEventos()::notificarEvento);
         simulacion.limpiarCuerpos();
         simulacion.getGestorColonizacion().limpiar();
+        List<CuerpoCeleste> cuerpos = reconstructorCuerpos.reconstruirTodos(datos.cuerpos(), simulacion.getBusEventos()::notificarEvento);
 
         aplicarJugadorYReloj(datos, simulacion, zoom);
         aplicarEntidades(cuerpos, datos.naves(), simulacion);
@@ -117,7 +117,7 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         for (RamaProgresion rama : RamaProgresion.values()) {
             ramas.put(rama, prog.getNivel(rama));
         }
-        return new EstadoJugadorGuardado(recursos, ramas, prog.getNivelEscudo());
+        return new EstadoJugadorGuardado(recursos, ramas, prog.getNivelEscudo(), prog.getMejorasSecundariasInvestigadas());
     }
 
     private void aplicarJugadorYReloj(DatosPartida datos, SimulacionSolar simulacion, ControlZoom zoom) {
@@ -125,7 +125,7 @@ public class MapeadorEstadoSimulacion implements MapeadorPartida {
         for (TipoRecurso tr : TipoRecurso.values()) {
             simulacion.getInventario().getRecursoObj(tr).setCantidad(jugador.obtenerRecurso(tr));
         }
-        simulacion.getProgresion().restaurarEstado(jugador.nivelesProgresion(), jugador.nivelEscudo());
+        simulacion.getProgresion().restaurarEstado(jugador.nivelesProgresion(), jugador.nivelEscudo(), jugador.mejorasSecundarias());
 
         EstadoRelojGuardado reloj = datos.reloj();
         simulacion.getReloj().restaurar(reloj.tickActual(), reloj.enPausa(), reloj.velocidadSimulacion());

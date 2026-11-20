@@ -1,201 +1,130 @@
 package org.example.game.simulacion;
 
+import org.example.game.colonizacion.GestorColonizacion;
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.CuerpoCelesteFactory;
-import org.example.game.cuerpo.FabricaCuerpos;
 import org.example.game.cuerpo.ServicioEscudo;
 import org.example.game.cuerpo.SistemaSolar;
-import org.example.game.motor.MotorFisica;
-import org.example.game.motor.MotorFisicaPermisiva;
-import org.example.game.motor.TrayectoriaPredictor;
-import org.example.game.motor.TransformadorCuerpos;
-import org.example.game.colonizacion.GestorColonizacion;
 import org.example.game.efectos.GestorEfectos;
 import org.example.game.jugador.InventarioJugador;
 import org.example.game.jugador.ServicioReembolso;
+import org.example.game.motor.TransformadorCuerpos;
+import org.example.game.motor.TrayectoriaPredictor;
 import org.example.game.progresion.SistemaProgresion;
 
 /**
- * Orquestador principal de la simulacion "Orbita".
- * Principios SOLID:
- * - SRP: Delega paso a CoordinadorPasoSimulacion, ciclo de vida a GestorCicloVidaCuerpos,
- *   colocacion a GestorColocacionCuerpos y tiempo a RelojSimulacion.
- * - DIP: Depende de subsistemas modulares inyectados o creados con responsabilidades unicas.
+ * Orquestador principal de la simulación "Órbita" (SRP / DIP).
  */
 public class SimulacionSolar {
 
-    private final SistemaSolar sistemaSolar;
-    private final MotorFisica motorFisica;
-    private final InventarioJugador inventario;
-    private final TrayectoriaPredictor predictor;
-    private final TransformadorCuerpos transformadorCuerpos;
-    private final GestorEconomia gestorEconomia;
-    private final GeneradorEventosCosmicos generadorEventosCosmicos;
-    private final SistemaProgresion progresion;
-    private final GestorColonizacion gestorColonizacion;
-    private final GestorEfectos gestorEfectos;
-    private final RelojSimulacion reloj;
-    private final BusEventos busEventos;
-    private final ControladorColocacion controladorColocacion;
-    private final EvaluadorCondicionDerrota evaluadorCondicionDerrota;
-    private final ValidadorColocacionCuerpos validadorColocacionCuerpos;
-    private final PresetsSistema presetsSistema;
-    private final ServicioEscudo servicioEscudo;
-    private final ServicioReembolso servicioReembolso;
-    private final CalculadorAmenazaMeteorito escaladorAmenaza;
-    private final FabricaCuerpos fabricaCuerpos;
+    private static class EstadoMundo {
+        boolean gameOverDisparado = false;
+        double anchoMundo;
+        double altoMundo;
 
-    private final CoordinadorPasoSimulacion coordinadorPaso;
-    private final GestorCicloVidaCuerpos gestorCicloVida;
-    private final GestorColocacionCuerpos gestorColocacion;
+        EstadoMundo(double ancho, double alto) {
+            this.anchoMundo = ancho;
+            this.altoMundo = alto;
+        }
 
-    private boolean gameOverDisparado = false;
-    private double anchoMundo;
-    private double altoMundo;
-
-    public SimulacionSolar(double anchoMundo, double altoMundo) {
-        this.anchoMundo = anchoMundo;
-        this.altoMundo = altoMundo;
-        this.motorFisica = new MotorFisicaPermisiva(Math.max(anchoMundo, altoMundo));
-        this.sistemaSolar = new SistemaSolar(this.motorFisica);
-        this.inventario = new InventarioJugador();
-        this.predictor = new TrayectoriaPredictor();
-        this.transformadorCuerpos = new TransformadorCuerpos();
-        this.gestorEconomia = new GestorEconomia();
-        this.generadorEventosCosmicos = new GeneradorEventosCosmicos();
-        this.progresion = new SistemaProgresion();
-        this.gestorColonizacion = new GestorColonizacion();
-        this.gestorEfectos = new GestorEfectos();
-        this.reloj = new RelojSimulacion();
-        this.busEventos = new BusEventos();
-        this.controladorColocacion = new ControladorColocacion();
-        this.evaluadorCondicionDerrota = new EvaluadorCondicionDerrota();
-        this.validadorColocacionCuerpos = new ValidadorColocacionCuerpos();
-        this.presetsSistema = new PresetsSistema();
-        this.servicioEscudo = new ServicioEscudo();
-        this.servicioReembolso = new ServicioReembolso();
-        this.escaladorAmenaza = new EscaladorAmenazaMeteorito();
-        this.fabricaCuerpos = new CuerpoCelesteFactory(this.escaladorAmenaza);
-
-        this.coordinadorPaso = new CoordinadorPasoSimulacion(
-                this.motorFisica, this.sistemaSolar, this.transformadorCuerpos,
-                this.gestorEconomia, this.inventario, this.gestorColonizacion,
-                this.gestorEfectos, this.generadorEventosCosmicos, this.progresion,
-                this.escaladorAmenaza
-        );
-        this.gestorCicloVida = new GestorCicloVidaCuerpos(
-                this.sistemaSolar, this.validadorColocacionCuerpos,
-                this.progresion, this.inventario, this.busEventos, this.fabricaCuerpos
-        );
-        this.gestorColocacion = new GestorColocacionCuerpos(
-                this.controladorColocacion, this.gestorCicloVida,
-                () -> this.anchoMundo, () -> this.altoMundo
-        );
-
-        configurarNotificadores();
+        void actualizarDimensiones(double ancho, double alto) {
+            if (ancho > 0 && alto > 0) {
+                this.anchoMundo = ancho;
+                this.altoMundo = alto;
+            }
+        }
     }
 
-    private void configurarNotificadores() {
-        this.transformadorCuerpos.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-        if (this.motorFisica != null) {
-            this.motorFisica.setListenerMensaje(msg -> notificarEvento(msg, MensajeEvento.TipoMensaje.EXITO));
-            this.motorFisica.agregarListenerColision(busEventos::notificarCambioEstado);
-            this.motorFisica.setListenerNotificacion(this::notificarEvento);
-            this.motorFisica.setListenerExplosion(this.gestorEfectos::agregarExplosion);
-            this.motorFisica.setProveedorProgreso(() -> this.escaladorAmenaza.factorProgreso(this.progresion));
-        }
+    private static final FabricaSimulacion FABRICA_SIM = new FabricaSimulacion();
+
+    private final EstadoMundo mundo;
+    private final SubsistemaSimulacion sub;
+
+    public SimulacionSolar(double anchoMundo, double altoMundo) {
+        this.mundo = new EstadoMundo(anchoMundo, altoMundo);
+        this.sub = FABRICA_SIM.crearSubsistemaPorDefecto(
+                anchoMundo, altoMundo,
+                () -> this.mundo.anchoMundo,
+                () -> this.mundo.altoMundo,
+                this::notificarEvento
+        );
+    }
+
+    public SimulacionSolar(double anchoMundo, double altoMundo, SubsistemaSimulacion subsistema) {
+        this.mundo = new EstadoMundo(anchoMundo, altoMundo);
+        this.sub = subsistema != null ? subsistema : FABRICA_SIM.crearSubsistemaPorDefecto(
+                anchoMundo, altoMundo,
+                () -> this.mundo.anchoMundo,
+                () -> this.mundo.altoMundo,
+                this::notificarEvento
+        );
     }
 
     public void notificarEvento(String mensaje, MensajeEvento.TipoMensaje tipo) {
-        busEventos.notificarEvento(mensaje, tipo, reloj.getTickActual());
+        sub.busEventos.notificarEvento(mensaje, tipo, sub.reloj.getTickActual());
     }
 
     public void avanzarTick() {
-        if (!reloj.debeAvanzar()) return;
-
-        reloj.avanzarTick();
-        long tickActual = reloj.getTickActual();
-
-        coordinadorPaso.ejecutarPaso(tickActual, anchoMundo, altoMundo, busEventos::notificarEvento, this::agregarCuerpo);
+        if (!sub.reloj.debeAvanzar()) return;
+        sub.reloj.avanzarTick();
+        sub.coordinadorPaso.ejecutarPaso(
+                sub.reloj.getTickActual(), mundo.anchoMundo, mundo.altoMundo,
+                sub.busEventos::notificarEvento, this::agregarCuerpo
+        );
         verificarDerrota();
-
-        busEventos.notificarCambioEstado();
-        reloj.finalizarTick();
+        sub.busEventos.notificarCambioEstado();
+        sub.reloj.finalizarTick();
     }
 
     public void avanzarTicks(int cantidad) {
-        for (int i = 0; i < cantidad; i++) {
-            avanzarTick();
-        }
+        for (int i = 0; i < cantidad; i++) avanzarTick();
     }
 
     public void step() {
-        reloj.step();
+        sub.reloj.step();
         avanzarTick();
     }
 
     private void verificarDerrota() {
-        if (estaPerdida() && !gameOverDisparado) {
-            gameOverDisparado = true;
-            reloj.pause();
-            busEventos.notificarGameOver();
+        if (estaPerdida() && !mundo.gameOverDisparado) {
+            mundo.gameOverDisparado = true;
+            sub.reloj.pause();
+            sub.busEventos.notificarGameOver();
         }
     }
 
-    public void agregarCuerpo(CuerpoCeleste cuerpo) {
-        gestorCicloVida.agregarCuerpo(cuerpo);
-    }
-
-    public void limpiarCuerpos() {
-        gestorCicloVida.limpiarCuerpos();
-    }
-
-    public boolean estaPerdida() {
-        return evaluadorCondicionDerrota.estaPerdida(sistemaSolar.getCuerpos());
-    }
+    public void agregarCuerpo(CuerpoCeleste cuerpo) { sub.gestorCicloVida.agregarCuerpo(cuerpo); }
+    public void limpiarCuerpos() { sub.gestorCicloVida.limpiarCuerpos(); }
+    public boolean estaPerdida() { return sub.evaluadorCondicionDerrota.estaPerdida(sub.sistemaSolar.getCuerpos()); }
 
     public void reiniciar() {
-        limpiarCuerpos();
-        gestorColonizacion.limpiar();
-        gestorEfectos.limpiar();
-        inventario.reiniciar();
-        progresion.reiniciar();
-        reloj.reiniciar();
-        gameOverDisparado = false;
-        this.fabricaCuerpos.resetearContador();
-        gestorColocacion.salirModoColocacion();
-        busEventos.notificarListenersUI();
+        sub.reiniciarTodo();
+        mundo.gameOverDisparado = false;
         notificarEvento("Simulacion reiniciada por completo.", MensajeEvento.TipoMensaje.INFO);
     }
 
     public void sincronizarTrasCarga() {
-        this.gameOverDisparado = estaPerdida();
-        gestorColocacion.salirModoColocacion();
-        gestorEfectos.limpiar();
-        busEventos.notificarCambioEstado();
-        busEventos.notificarListenersUI();
+        mundo.gameOverDisparado = estaPerdida();
+        sub.gestorColocacion.salirModoColocacion();
+        sub.gestorEfectos.limpiar();
+        sub.busEventos.notificarCambioEstado();
+        sub.busEventos.notificarListenersUI();
     }
 
-    public void setDimensionesMundo(double ancho, double alto) {
-        if (ancho > 0 && alto > 0) {
-            this.anchoMundo = ancho;
-            this.altoMundo = alto;
-        }
-    }
+    public void setDimensionesMundo(double ancho, double alto) { mundo.actualizarDimensiones(ancho, alto); }
 
-    public SistemaSolar getSistemaSolar() { return sistemaSolar; }
-    public InventarioJugador getInventario() { return inventario; }
-    public SistemaProgresion getProgresion() { return progresion; }
-    public GestorColonizacion getGestorColonizacion() { return gestorColonizacion; }
-    public GestorEfectos getGestorEfectos() { return gestorEfectos; }
-    public TrayectoriaPredictor getPredictor() { return predictor; }
-    public TransformadorCuerpos getTransformadorCuerpos() { return transformadorCuerpos; }
-    public RelojSimulacion getReloj() { return reloj; }
-    public BusEventos getBusEventos() { return busEventos; }
-    public GestorColocacionCuerpos getGestorColocacion() { return gestorColocacion; }
-    public GestorCicloVidaCuerpos getGestorCicloVida() { return gestorCicloVida; }
-    public PresetsSistema getPresetsSistema() { return presetsSistema; }
-    public ServicioEscudo getServicioEscudo() { return servicioEscudo; }
-    public ServicioReembolso getServicioReembolso() { return servicioReembolso; }
-    public CoordinadorPasoSimulacion getCoordinadorPaso() { return coordinadorPaso; }
+    public SistemaSolar getSistemaSolar() { return sub.sistemaSolar; }
+    public InventarioJugador getInventario() { return sub.inventario; }
+    public SistemaProgresion getProgresion() { return sub.progresion; }
+    public GestorColonizacion getGestorColonizacion() { return sub.gestorColonizacion; }
+    public GestorEfectos getGestorEfectos() { return sub.gestorEfectos; }
+    public TrayectoriaPredictor getPredictor() { return sub.predictor; }
+    public TransformadorCuerpos getTransformadorCuerpos() { return sub.transformadorCuerpos; }
+    public RelojSimulacion getReloj() { return sub.reloj; }
+    public BusEventos getBusEventos() { return sub.busEventos; }
+    public GestorColocacionCuerpos getGestorColocacion() { return sub.gestorColocacion; }
+    public GestorCicloVidaCuerpos getGestorCicloVida() { return sub.gestorCicloVida; }
+    public PresetsSistema getPresetsSistema() { return sub.presetsSistema; }
+    public ServicioEscudo getServicioEscudo() { return sub.servicioEscudo; }
+    public ServicioReembolso getServicioReembolso() { return sub.servicioReembolso; }
+    public CoordinadorPasoSimulacion getCoordinadorPaso() { return sub.coordinadorPaso; }
 }

@@ -4,7 +4,7 @@ import java.util.List;
 /**
  * Responsable de la integración numérica del movimiento de los cuerpos celestes (SRP).
  */
-public class IntegradorMovimiento {
+public class IntegradorMovimiento implements IntegradorFisico {
 
     private final double dt;
     private final double velocidadMaxima;
@@ -19,17 +19,47 @@ public class IntegradorMovimiento {
     }
 
     public void integrar(List<CuerpoCeleste> cuerpos) {
-        double[] radiosPrevios = new double[cuerpos.size()];
-        for (int i = 0; i < cuerpos.size(); i++) {
+        int n = cuerpos.size();
+        double[] radiosPrevios = new double[n];
+        Vector2D[] rRelPrevios = new Vector2D[n];
+        Vector2D[] vRelPrevios = new Vector2D[n];
+
+        for (int i = 0; i < n; i++) {
             CuerpoCeleste c = cuerpos.get(i);
-            radiosPrevios[i] = c.getCuerpoOrbitado() != null
-                    ? c.getPosicion().distanciaA(c.getCuerpoOrbitado().getPosicion())
-                    : 0.0;
-            integrarCuerpoIndividual(c);
+            CuerpoCeleste anfitrion = c.getCuerpoOrbitado();
+            if (anfitrion != null && anfitrion.esSimulado()) {
+                Vector2D rRel = c.getPosicion().restar(anfitrion.getPosicion());
+                radiosPrevios[i] = rRel.magnitud();
+                rRelPrevios[i] = rRel;
+                vRelPrevios[i] = c.getVelocidad().restar(anfitrion.getVelocidad());
+            }
         }
-        for (int i = 0; i < cuerpos.size(); i++) {
-            fijarEnCarrilOrbital(cuerpos.get(i), radiosPrevios[i]);
+        for (int i = 0; i < n; i++) {
+            integrarCuerpoIndividual(cuerpos.get(i));
         }
+        // Primero fijar planetas en órbita solar para que su posición y velocidad sean definitivas
+        for (int i = 0; i < n; i++) {
+            CuerpoCeleste c = cuerpos.get(i);
+            if (!esOrbitaPlanetaria(c)) {
+                fijarEnCarrilOrbital(c, radiosPrevios[i], rRelPrevios[i], vRelPrevios[i]);
+            }
+        }
+        // Luego fijar lunas y satélites respecto a la posición y velocidad final de su planeta anfitrión
+        for (int i = 0; i < n; i++) {
+            CuerpoCeleste c = cuerpos.get(i);
+            if (esOrbitaPlanetaria(c)) {
+                fijarEnCarrilOrbital(c, radiosPrevios[i], rRelPrevios[i], vRelPrevios[i]);
+            }
+        }
+    }
+
+    private boolean esOrbitaPlanetaria(CuerpoCeleste c) {
+        if (c == null || c.getTipoCuerpo() == null || !c.getTipoCuerpo().puedeOrbitarPlanetas()) {
+            return false;
+        }
+        CuerpoCeleste anfitrion = c.getCuerpoOrbitado();
+        return anfitrion != null && anfitrion.esSimulado()
+                && anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().esPlaneta();
     }
 
     private void integrarCuerpoIndividual(CuerpoCeleste c) {
@@ -53,23 +83,37 @@ public class IntegradorMovimiento {
         c.setVelocidad(nuevaVel);
     }
 
-    private void fijarEnCarrilOrbital(CuerpoCeleste c, double radioActual) {
+    private void fijarEnCarrilOrbital(CuerpoCeleste c, double radioActual, Vector2D rRelPrevio, Vector2D vRelPrevio) {
         CuerpoCeleste anfitrion = c.getCuerpoOrbitado();
-        if (anfitrion == null || c.getTipoCuerpo() == null || anfitrion.getTipoCuerpo() == null) return;
+        if (!esAnfitrionValido(c, anfitrion)) return;
+        if (esOrbitaPlanetaria(c)) {
+            avanzarEnCarrilPlanetario(c, anfitrion, radioActual, rRelPrevio, vRelPrevio);
+            return;
+        }
+        if (esOrbitaSolar(c, anfitrion)) {
+            fijarEnCarrilSolar(c, anfitrion, radioActual);
+        }
+    }
 
-        boolean esSolar = anfitrion.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA
+    private boolean esAnfitrionValido(CuerpoCeleste c, CuerpoCeleste anfitrion) {
+        return anfitrion != null && anfitrion.esSimulado()
+                && c.getTipoCuerpo() != null && anfitrion.getTipoCuerpo() != null;
+    }
+
+    private boolean esOrbitaSolar(CuerpoCeleste c, CuerpoCeleste anfitrion) {
+        return anfitrion.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA
                 && c.getTipoCuerpo().esPlaneta()
                 && c.getRadioOrbita() >= CalculadorOrbital.RADIOS_RANURAS_SOL[0] - 1.0;
-        boolean esPlanetario = anfitrion.getTipoCuerpo().esPlaneta() && c.getTipoCuerpo().puedeOrbitarPlanetas();
-        if (!esSolar && !esPlanetario) return;
+    }
 
+    private void fijarEnCarrilSolar(CuerpoCeleste c, CuerpoCeleste anfitrion, double radioActual) {
         double rOrb = c.getRadioOrbita() > 0 ? c.getRadioOrbita() : radioActual;
         Vector2D r = c.getPosicion().restar(anfitrion.getPosicion());
         double dist = r.magnitud();
-        if (dist <= 0.001 || radioActual <= 0.001) return;
+        Vector2D uRadial = dist > 0.001 ? r.dividir(dist) : new Vector2D(1, 0);
 
-        double radioEfectivo = Math.abs(radioActual - rOrb) <= 0.8 ? rOrb : radioActual;
-        Vector2D uRadial = r.dividir(dist);
+        double radioBase = radioActual > 0.001 ? radioActual : rOrb;
+        double radioEfectivo = Math.abs(radioBase - rOrb) <= 0.8 ? rOrb : radioBase;
         c.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(radioEfectivo)));
 
         Vector2D vRel = c.getVelocidad().restar(anfitrion.getVelocidad());
@@ -77,9 +121,37 @@ public class IntegradorMovimiento {
         Vector2D uTangencial = (cross < -1e-4)
                 ? new Vector2D(uRadial.y(), -uRadial.x())
                 : new Vector2D(-uRadial.y(), uRadial.x());
-        double vIdeal = esSolar
-                ? CalculadorOrbital.calcularRapidezOrbital(anfitrion.getMasa(), rOrb)
-                : Math.sqrt(75.0 * Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase) / Math.max(10.0, radioEfectivo));
+        double vIdeal = CalculadorOrbital.calcularRapidezOrbital(anfitrion.getMasa(), rOrb);
+        c.setVelocidad(anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vIdeal)));
+    }
+
+    private void avanzarEnCarrilPlanetario(CuerpoCeleste c, CuerpoCeleste anfitrion, double radioActual,
+                                           Vector2D rRelPrevio, Vector2D vRelPrevio) {
+        double rOrb = AsistenteOrbital.acotarRadioOrbital(c, anfitrion, c.getRadioOrbita() > 0 ? c.getRadioOrbita() : radioActual);
+        c.setRadioOrbita(rOrb);
+
+        Vector2D rBase = (rRelPrevio != null && rRelPrevio.magnitud() > 0.001)
+                ? rRelPrevio
+                : c.getPosicion().restar(anfitrion.getPosicion());
+        Vector2D vBase = (vRelPrevio != null)
+                ? vRelPrevio
+                : c.getVelocidad().restar(anfitrion.getVelocidad());
+
+        double distBase = rBase.magnitud();
+        double theta = distBase > 0.001 ? Math.atan2(rBase.y(), rBase.x()) : 0.0;
+        double cross = rBase.x() * vBase.y() - rBase.y() * vBase.x();
+        boolean horario = cross < -1e-4;
+
+        double vIdeal = Math.sqrt(75.0 * Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase) / Math.max(10.0, rOrb));
+        double omega = (horario ? -1.0 : 1.0) * (vIdeal / Math.max(10.0, rOrb));
+        double thetaNuevo = theta + omega * dt;
+
+        Vector2D uRadial = new Vector2D(Math.cos(thetaNuevo), Math.sin(thetaNuevo));
+        Vector2D uTangencial = horario
+                ? new Vector2D(uRadial.y(), -uRadial.x())
+                : new Vector2D(-uRadial.y(), uRadial.x());
+
+        c.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(rOrb)));
         c.setVelocidad(anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vIdeal)));
     }
 

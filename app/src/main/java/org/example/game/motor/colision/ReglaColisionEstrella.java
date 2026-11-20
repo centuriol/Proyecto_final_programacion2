@@ -41,7 +41,7 @@ public class ReglaColisionEstrella implements ReglaColision {
             @Override public Boolean visitarEstrella(Estrella estrella) { return false; }
             @Override public Boolean visitarPlaneta(Planeta planeta) { return false; }
             @Override public Boolean visitarLuna(Luna luna) { return false; }
-            @Override public Boolean visitarSatelite(Satelite satelite) { return true; }
+            @Override public Boolean visitarSatelite(Satelite satelite) { return !satelite.estaOrbitando(); }
             @Override public Boolean visitarMeteorito(Meteorito meteorito) { return true; }
             @Override public Boolean visitarAgujeroNegro(AgujeroNegro agujeroNegro) { return false; }
         });
