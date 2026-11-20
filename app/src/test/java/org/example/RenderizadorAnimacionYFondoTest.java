@@ -1,5 +1,7 @@
 package org.example;
+import javafx.scene.canvas.Canvas;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.RenderizadorFondo;
 import org.example.game.render.RenderizadorPixelArt;
 import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.BarraInventarioHotbar;
@@ -8,6 +10,7 @@ import org.example.game.ui.VentanaDescripcionCuerpo;
 import org.example.test.JavaFXExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(JavaFXExtension.class)
 class RenderizadorAnimacionYFondoTest {
@@ -125,5 +128,74 @@ class RenderizadorAnimacionYFondoTest {
             assertTrue(despRedim >= 0.0 && despRedim <= nuevoAncho,
                     "Con ventana redimensionada, el desplazamiento debe quedar entre 0 y el nuevo ancho, pero fue: " + despRedim);
         }
+    }
+
+    @Test
+    void testParallaxFondoSeSumaAlScrollAutomaticoHorizontalYVertical() {
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(1000.0, 600.0);
+        double factor = renderizador.getFactorParallaxFondo();
+        assertTrue(factor >= 0.3 && factor <= 0.5, "El factor parallax debe estar entre 30% y 50%");
+
+        renderizador.avanzarFondo(10.0, 2.0);
+        double scrollAuto = renderizador.getVelocidadBaseFondo() * 20.0;
+        assertEquals(scrollAuto, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(0.0, renderizador.getDesplazamientoFondoY(), 1e-4);
+
+        renderizador.getCamaraZoom().desplazarPorPantalla(250.0, 150.0);
+        assertEquals(scrollAuto + 250.0 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(150.0 * factor, renderizador.getDesplazamientoFondoY(), 1e-4);
+
+        renderizador.avanzarFondo(5.0, 1.0);
+        double nuevoScrollAuto = scrollAuto + renderizador.getVelocidadBaseFondo() * 5.0;
+        assertEquals(nuevoScrollAuto + 250.0 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+
+        renderizador.getCamaraZoom().resetear();
+        assertEquals(nuevoScrollAuto, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(0.0, renderizador.getDesplazamientoFondoY(), 1e-4);
+    }
+
+    @Test
+    void testParallaxFondoAjustadoAlZoom() {
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(1000.0, 600.0);
+        double factor = RenderizadorFondo.FACTOR_PARALLAX_POR_DEFECTO;
+        renderizador.getCamaraZoom().getDesplazamiento().setPosicion(300.0, 200.0);
+
+        renderizador.getCamaraZoom().setNivelZoom(0.5);
+        assertEquals(300.0 * 0.5 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(200.0 * 0.5 * factor, renderizador.getDesplazamientoFondoY(), 1e-4);
+
+        renderizador.getCamaraZoom().setNivelZoom(1.0);
+        assertEquals(300.0 * 1.0 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(200.0 * 1.0 * factor, renderizador.getDesplazamientoFondoY(), 1e-4);
+
+        renderizador.getCamaraZoom().setNivelZoom(1.5);
+        assertEquals(300.0 * 1.5 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(200.0 * 1.5 * factor, renderizador.getDesplazamientoFondoY(), 1e-4);
+    }
+
+    @Test
+    void testParallaxFondoMantieneWrapNormalizacionEnDesplazamientosNegativosYMasivos() {
+        double ancho = 1000.0;
+        double alto = 600.0;
+        RenderizadorPixelArt renderizador = new RenderizadorPixelArt(ancho, alto);
+        double factor = renderizador.getFactorParallaxFondo();
+
+        renderizador.avanzarFondo(10.0, 1.0);
+        renderizador.getCamaraZoom().desplazarPorPantalla(-300.0, -200.0);
+        assertEquals(ancho + 10.0 - 300.0 * factor, renderizador.getDesplazamientoFondoX(), 1e-4);
+        assertEquals(alto - 200.0 * factor, renderizador.getDesplazamientoFondoY(), 1e-4);
+
+        for (int i = -15; i <= 15; i++) {
+            renderizador.getCamaraZoom().getDesplazamiento().setPosicion(i * 1250.0, -i * 980.0);
+            renderizador.avanzarFondo(45.0, 2.0);
+            assertTrue(renderizador.getDesplazamientoFondoX() >= 0.0 && renderizador.getDesplazamientoFondoX() < ancho);
+            assertTrue(renderizador.getDesplazamientoFondoY() >= 0.0 && renderizador.getDesplazamientoFondoY() < alto);
+        }
+
+        Canvas canvas = new Canvas(ancho, alto);
+        assertDoesNotThrow(() -> renderizador.renderizarTodo(
+                canvas.getGraphicsContext2D(), Collections.emptyList(), 5L,
+                null, null, 1.0, null, Collections.emptyList(), null
+        ));
     }
 }

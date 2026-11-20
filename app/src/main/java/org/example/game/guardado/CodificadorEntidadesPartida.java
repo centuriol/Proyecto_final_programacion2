@@ -6,7 +6,7 @@ import org.example.game.motor.Vector2D;
  * Codifica y decodifica las entidades individuales (cuerpos celestes y naves colonizadoras)
  * dentro de un DiccionarioPropiedades empleando prefijos configurables (SRP).
  */
-public class CodificadorEntidadesPartida {
+public class CodificadorEntidadesPartida implements CodificadorEntidades {
 
     private final String prefijoCuerpo;
     private final String prefijoNave;
@@ -111,5 +111,30 @@ public class CodificadorEntidadesPartida {
         String p = prefijoNave + indice + ".";
         Vector2D pos = new Vector2D(dic.leerReal(p + "posX"), dic.leerReal(p + "posY"));
         return new DatosNaveColonizadora(pos, dic.leerEntero(p + "destino"), dic.leerReal(p + "colonos"));
+    }
+
+    public void escribirMejorasSecundarias(DiccionarioPropiedades dic, String clave, java.util.Set<String> mejoras) {
+        if (dic == null || clave == null || clave.isBlank()) return;
+        if (mejoras == null || mejoras.isEmpty()) {
+            return;
+        }
+        dic.guardar(clave, String.join(",", mejoras));
+    }
+
+    public java.util.Set<String> leerMejorasSecundarias(DiccionarioPropiedades dic, String clave) {
+        if (dic == null || clave == null || !dic.contiene(clave)) {
+            return java.util.Collections.emptySet();
+        }
+        String raw = dic.leerTexto(clave);
+        if (raw == null || raw.isBlank()) {
+            return java.util.Collections.emptySet();
+        }
+        java.util.Set<String> resultado = new java.util.LinkedHashSet<>();
+        for (String parte : raw.split(",")) {
+            if (parte != null && !parte.isBlank()) {
+                resultado.add(parte.trim());
+            }
+        }
+        return java.util.Collections.unmodifiableSet(resultado);
     }
 }

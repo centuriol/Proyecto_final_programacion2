@@ -17,16 +17,16 @@ public class SerializadorPartidaTexto implements SerializadorPartida {
 
     public static final int VERSION_FORMATO = 1;
 
-    private final CodificadorEntidadesPartida codificadorEntidades;
+    private final CodificadorEntidades codificadorEntidades;
 
     public SerializadorPartidaTexto() {
-        this(new CodificadorEntidadesPartida());
+        this(new FabricaGuardado().crearCodificadorPorDefecto());
     }
 
-    public SerializadorPartidaTexto(CodificadorEntidadesPartida codificadorEntidades) {
+    public SerializadorPartidaTexto(CodificadorEntidades codificadorEntidades) {
         this.codificadorEntidades = codificadorEntidades != null
                 ? codificadorEntidades
-                : new CodificadorEntidadesPartida();
+                : new FabricaGuardado().crearCodificadorPorDefecto();
     }
 
     @Override
@@ -95,6 +95,7 @@ public class SerializadorPartidaTexto implements SerializadorPartida {
         for (RamaProgresion rama : RamaProgresion.values()) {
             dic.guardar("progresion.rama." + rama.name(), jugador.obtenerNivelRama(rama));
         }
+        codificadorEntidades.escribirMejorasSecundarias(dic, "progresion.mejorasSecundarias", jugador.mejorasSecundarias());
     }
 
     private EstadoJugadorGuardado leerJugador(DiccionarioPropiedades dic) {
@@ -107,7 +108,8 @@ public class SerializadorPartidaTexto implements SerializadorPartida {
             ramas.put(rama, dic.leerEntero("progresion.rama." + rama.name()));
         }
         int escudo = dic.leerEntero("progresion.nivelEscudo");
-        return new EstadoJugadorGuardado(recursos, ramas, escudo);
+        java.util.Set<String> mejoras = codificadorEntidades.leerMejorasSecundarias(dic, "progresion.mejorasSecundarias");
+        return new EstadoJugadorGuardado(recursos, ramas, escudo, mejoras);
     }
 
     private void escribirColecciones(DiccionarioPropiedades dic, List<DatosCuerpo> cuerpos, List<DatosNaveColonizadora> naves) {

@@ -3,30 +3,34 @@ package org.example.game.render.capa;
 import javafx.scene.canvas.GraphicsContext;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
+import org.example.game.render.FabricaRender;
 import org.example.game.render.UtilidadRender;
 
 import java.util.List;
 
 /**
- * Capa de renderizado para zonas y órbitas de referencia alrededor de estrellas (SRP).
+ * Capa de renderizado para zonas y órbitas de referencia alrededor de estrellas (SRP / DIP).
  */
 public class CapaZonasHabitables {
 
+    private static final FabricaRender FABRICA = new FabricaRender();
     private static final double[] RADIOS_REFERENCIA_ORBITAL = org.example.game.motor.CalculadorOrbital.RADIOS_RANURAS_SOL;
     private final ConversorCoordenadas conversor;
 
     public CapaZonasHabitables() {
-        this(new TransformadorCoordenadas());
+        this(FABRICA.crearConversorCoordenadas());
     }
 
     public CapaZonasHabitables(ConversorCoordenadas conversor) {
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+        this.conversor = conversor != null ? conversor : FABRICA.crearConversorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {
         for (CuerpoCeleste c : cuerpos) {
-            if (c != null && c.esSimulado() && c.getMasa() >= 1e29 && c.getMasa() < 1e31) {
+            boolean esEstrella = c != null && c.esSimulado()
+                    && (c.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA
+                    || (c.getMasa() >= 1e29 && c.getMasa() < 1e31 && !org.example.game.motor.GestorAgujeroNegro.esAgujeroNegro(c)));
+            if (esEstrella) {
                 double sx = conversor.fisicaAXJavaFX(c.getPosicion().x(), anchoCanvas);
                 double sy = conversor.fisicaAYJavaFX(c.getPosicion().y(), altoCanvas);
 

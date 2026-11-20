@@ -1,28 +1,23 @@
 package org.example.game.motor;
+
 import org.example.game.cuerpo.CuerpoCeleste;
-import org.example.game.cuerpo.TipoCuerpo;
 import java.util.List;
 import java.util.function.Consumer;
-/**
- * Encapsula la lógica de asistencia orbital, captura gravitacional y estabilización dinámica de órbitas.
- *
- * Principios SOLID:
- * - SRP: Responsable exclusivo de la dinámica orbital permisiva y cálculo de órbitas estables.
- * - DIP / OCP: Utiliza estrategias para la captura orbital.
- */
-public class AsistenteOrbital {
 
-    private final double G;
+/**
+ * Orquesta la captura gravitacional y delega límites y estabilización orbital (SRP / DIP / OCP).
+ */
+public class AsistenteOrbital implements AsistenciaOrbital {
+
+    private static final LimitesOrbitales LIMITES_DEFECTO = new LimitesOrbitales();
+    private static final FabricaMotorFisica FABRICA = new FabricaMotorFisica();
+
     private final List<EstrategiaCapturaOrbital> estrategiasCaptura;
-    private final CalculadorOrbital calculadorOrbital;
+    private final EstabilizadorOrbital estabilizador;
 
     public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura, CalculadorOrbital calculadorOrbital) {
-        this.G = G;
-        this.calculadorOrbital = calculadorOrbital != null ? calculadorOrbital : new CalculadorOrbital();
-        this.estrategiasCaptura = estrategiasCaptura != null ? estrategiasCaptura : List.of(
-                new CapturaOrbitalMenorPlaneta(),
-                new CapturaOrbitalPlanetaAtractor()
-        );
+        this.estrategiasCaptura = estrategiasCaptura != null ? estrategiasCaptura : FABRICA.crearEstrategiasCapturaPorDefecto();
+        this.estabilizador = new EstabilizadorOrbital(G, calculadorOrbital, LIMITES_DEFECTO);
     }
 
     public AsistenteOrbital(double G, List<EstrategiaCapturaOrbital> estrategiasCaptura) {
@@ -37,245 +32,52 @@ public class AsistenteOrbital {
         this(ConstantesFisicas.G_ESCALADO, null, new CalculadorOrbital());
     }
 
-    /**
-     * Intenta capturar dos cuerpos en órbita asistida (Luna-Planeta o Planeta-Estrella/BH).
-     * Retorna el cuerpo orbitando si se estableció un enlace orbital, o null.
-     */
     public CuerpoCeleste[] verificarYCapturarOrbita(CuerpoCeleste ci, CuerpoCeleste cj, double distReal, Consumer<String> listenerMensaje) {
-        if (debeRomperOrbitaPorMasa(ci, cj)) {
+        if (LIMITES_DEFECTO.debeRomperOrbitaPorMasa(ci, cj)) {
             if (ci.estaOrbitando(cj)) ci.setCuerpoOrbitado(null);
             if (cj.estaOrbitando(ci)) cj.setCuerpoOrbitado(null);
             return null;
         }
-        if (ci.estaOrbitando(cj)) {
-            return new CuerpoCeleste[]{ci, cj};
-        } else if (cj.estaOrbitando(ci)) {
-            return new CuerpoCeleste[]{cj, ci};
-        }
+        if (ci.estaOrbitando(cj)) return new CuerpoCeleste[]{ci, cj};
+        if (cj.estaOrbitando(ci)) return new CuerpoCeleste[]{cj, ci};
 
         for (EstrategiaCapturaOrbital estrategia : estrategiasCaptura) {
             if (estrategia.puedeCapturar(ci, cj, distReal)) {
                 return estrategia.ejecutarCaptura(ci, cj, distReal, listenerMensaje, this);
             }
         }
-
         return null;
     }
 
-    private static boolean debeRomperOrbitaPorMasa(CuerpoCeleste a, CuerpoCeleste b) {
-        if (a.getTipoCuerpo() == TipoCuerpo.LUNA && b.getTipoCuerpo() != null && b.getTipoCuerpo().esPlaneta()) {
-            return b.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * a.getMasa();
-        }
-        if (b.getTipoCuerpo() == TipoCuerpo.LUNA && a.getTipoCuerpo() != null && a.getTipoCuerpo().esPlaneta()) {
-            return a.getMasa() >= org.example.game.simulacion.ConfiguracionColisiones.RATIO_ABSORCION_PLANETA_LUNA * b.getMasa();
-        }
-        return false;
+    public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
+        return LIMITES_DEFECTO.calcularRadioMinimo(orbitando, anfitrion);
     }
 
-    public static double calcularRadioOrbitalMinimo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
-        boolean esMenorEnPlaneta = orbitando.getTipoCuerpo() != null
-                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
-                && anfitrion.getTipoCuerpo() != null
-                && anfitrion.getTipoCuerpo().esPlaneta();
-        if (esMenorEnPlaneta) {
-            return Math.max(60.0, anfitrion.getRadio() + orbitando.getRadio() + 35.0);
-        }
-        return anfitrion.getRadio() + orbitando.getRadio() + 5.0;
+    public static double calcularRadioOrbitalMaximo(CuerpoCeleste orbitando, CuerpoCeleste anfitrion) {
+        return LIMITES_DEFECTO.calcularRadioMaximo(orbitando, anfitrion);
+    }
+
+    public static double acotarRadioOrbital(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double radioDeseado) {
+        return LIMITES_DEFECTO.acotarRadio(orbitando, anfitrion, radioDeseado);
     }
 
     public void inicializarVelocidadOrbital(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
-        Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
-        double d = r.magnitud();
-        double minOrb = calcularRadioOrbitalMinimo(orbitando, anfitrion);
-        if (d < minOrb) {
-            d = minOrb;
-            Vector2D norm = (r.magnitud() > 0.001) ? r.normalizar() : new Vector2D(1, 0);
-            orbitando.setPosicion(anfitrion.getPosicion().sumar(norm.multiplicar(d)));
-            r = norm.multiplicar(d);
-        }
-
-        orbitando.setRadioOrbita(d);
-
-        Vector2D uRadial = r.dividir(Math.max(0.1, d));
-        Vector2D vRel = orbitando.getVelocidad().restar(anfitrion.getVelocidad());
-        Vector2D uTangencial = calcularUnitarioTangencial(r, uRadial, vRel);
-
-        double vOrb = calcularVelocidadOrbitalIdeal(orbitando, anfitrion, d);
-        Vector2D vFinal = anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vOrb));
-        orbitando.setVelocidad(vFinal);
+        estabilizador.inicializarVelocidadOrbital(orbitando, anfitrion, distReal);
     }
 
     public void aplicarDinamicaOrbitalEstable(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double distReal) {
-        double limiteEscape;
-        boolean esMenorAlrededorDePlaneta = orbitando.getTipoCuerpo() != null
-                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
-                && anfitrion.getTipoCuerpo() != null
-                && anfitrion.getTipoCuerpo().esPlaneta();
-        if (esMenorAlrededorDePlaneta) {
-            limiteEscape = Math.max(anfitrion.getRadioAtraccion() * 4.0, 350.0);
-        } else {
-            limiteEscape = 1500.0;
-        }
-
-        if (distReal > limiteEscape) {
-            orbitando.setCuerpoOrbitado(null);
-            return;
-        }
-
-        Vector2D r = orbitando.getPosicion().restar(anfitrion.getPosicion());
-        double d = Math.max(0.1, r.magnitud());
-        Vector2D uRadial = r.dividir(d);
-
-        double rDeseado = orbitando.getRadioOrbita();
-        boolean esPlanetaEnSol = anfitrion.getTipoCuerpo() == TipoCuerpo.ESTRELLA
-                && orbitando.getTipoCuerpo() != null
-                && orbitando.getTipoCuerpo().esPlaneta();
-        if (rDeseado <= 0 || (esPlanetaEnSol && Math.abs(d - rDeseado) > 250.0)) {
-            rDeseado = (esPlanetaEnSol && d > org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA)
-                    ? CalculadorOrbital.ajustarARanuraSolar(d)
-                    : d;
-            orbitando.setRadioOrbita(rDeseado);
-        }
-
-        double minOrb = calcularRadioOrbitalMinimo(orbitando, anfitrion);
-        if (rDeseado < minOrb) {
-            rDeseado = minOrb;
-            orbitando.setRadioOrbita(rDeseado);
-        }
-
-        boolean enRanuraSolar = esPlanetaEnSol && rDeseado >= CalculadorOrbital.RADIOS_RANURAS_SOL[0] - 1.0;
-        if (enRanuraSolar) {
-            double diff = rDeseado - d;
-            if (Math.abs(diff) <= 0.8) {
-                d = rDeseado;
-            } else {
-                double paso = diff * 0.15;
-                if (Math.abs(paso) < 0.8) {
-                    paso = Math.copySign(0.8, diff);
-                }
-                d = d + paso;
-            }
-            orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(d)));
-        } else if (Math.abs(d - rDeseado) > 0.01) {
-            double dAjustado = d + (rDeseado - d) * 0.15;
-            orbitando.setPosicion(anfitrion.getPosicion().sumar(uRadial.multiplicar(dAjustado)));
-            d = dAjustado;
-        }
-
-        Vector2D vRel = orbitando.getVelocidad().restar(anfitrion.getVelocidad());
-        Vector2D uTangencial = calcularUnitarioTangencial(r, uRadial, vRel);
-
-        double vOrbIdeal = calcularVelocidadOrbitalIdeal(orbitando, anfitrion, rDeseado);
-
-        Vector2D vDeseada = anfitrion.getVelocidad().sumar(uTangencial.multiplicar(vOrbIdeal));
-        if (enRanuraSolar || esMenorAlrededorDePlaneta) {
-            orbitando.setVelocidad(vDeseada);
-        } else {
-            orbitando.setVelocidad(orbitando.getVelocidad().sumar(vDeseada.restar(orbitando.getVelocidad()).multiplicar(0.15)));
-        }
-
-        double aCentripeta = (vOrbIdeal * vOrbIdeal) / Math.max(1.0, d);
-        Vector2D fCentripeta = uRadial.multiplicar(-1.0 * orbitando.getMasa() * aCentripeta);
-        orbitando.aplicarFuerza(fCentripeta);
-
-        if (anfitrion.getMasa() > 0) {
-            Vector2D aAnfitrion = anfitrion.getFuerza().dividir(anfitrion.getMasa());
-            orbitando.aplicarFuerza(aAnfitrion.multiplicar(orbitando.getMasa()));
-        }
+        estabilizador.aplicarDinamicaOrbitalEstable(orbitando, anfitrion, distReal);
     }
 
     public void aplicarAsistenciaOrbital(List<CuerpoCeleste> cuerpos, double asistenciaOrbital) {
-        if (asistenciaOrbital <= 0) return;
-
-        for (CuerpoCeleste c : cuerpos) {
-            if (c.getTipoCuerpo() == TipoCuerpo.METEORITO) {
-                continue;
-            }
-            if (c.getTipoCuerpo() != null && c.getTipoCuerpo().puedeOrbitarPlanetas()) {
-                continue;
-            }
-            if (c.getMasa() >= TipoCuerpo.ESTRELLA.masaBase * 0.5) {
-                continue;
-            }
-            if (c.estaOrbitando()) {
-                continue;
-            }
-
-            CuerpoCeleste primario = encontrarCuerpoDominante(c, cuerpos);
-            if (primario != null) {
-                Vector2D r = c.getPosicion().restar(primario.getPosicion());
-                double dist = r.magnitud();
-                if (dist > 30.0 && dist < 1200.0) {
-                    double vIdeal = Math.sqrt(G * primario.getMasa() / dist);
-                    Vector2D vRel = c.getVelocidad().restar(primario.getVelocidad());
-                    double speedRel = vRel.magnitud();
-
-                    if (speedRel > 0.1) {
-                        double cross = r.x() * vRel.y() - r.y() * vRel.x();
-                        boolean horario = cross < 0;
-
-                        Vector2D unitRadial = r.dividir(dist);
-                        Vector2D unitTangencial = horario
-                                ? new Vector2D(unitRadial.y(), -unitRadial.x())
-                                : new Vector2D(-unitRadial.y(), unitRadial.x());
-
-                        Vector2D vObjetivo = unitTangencial.multiplicar(vIdeal);
-                        double asistenciaEfectiva = calcularAsistenciaEfectiva(c.getMasa(), asistenciaOrbital);
-
-                        Vector2D correccion = vObjetivo.restar(vRel).multiplicar(c.getMasa() * asistenciaEfectiva);
-                        c.aplicarFuerza(correccion);
-                    }
-                }
-            }
-        }
+        estabilizador.aplicarAsistenciaOrbital(cuerpos, asistenciaOrbital);
     }
 
     public double calcularAsistenciaEfectiva(double masa, double asistenciaOrbital) {
-        double factorMasaCuerpo = masa / TipoCuerpo.PLANETA_ROCOSO.masaBase;
-        return asistenciaOrbital / (1.0 + Math.log10(Math.max(1.0, factorMasaCuerpo)));
+        return estabilizador.calcularAsistenciaEfectiva(masa, asistenciaOrbital);
     }
 
     public double calcularVelocidadOrbitalIdeal(CuerpoCeleste orbitando, CuerpoCeleste anfitrion, double rOrb) {
-        double d = Math.max(10.0, rOrb);
-        boolean esCuerpoMenorOrbital = orbitando.getTipoCuerpo() != null
-                && orbitando.getTipoCuerpo().puedeOrbitarPlanetas()
-                && anfitrion.getTipoCuerpo() != null
-                && anfitrion.getTipoCuerpo().esPlaneta();
-        if (esCuerpoMenorOrbital) {
-            double factorMasa = (anfitrion.getTipoCuerpo() != null && anfitrion.getTipoCuerpo().masaBase > 0)
-                    ? Math.max(0.2, anfitrion.getMasa() / anfitrion.getTipoCuerpo().masaBase)
-                    : 1.0;
-            return Math.sqrt(75.0 * factorMasa / d);
-        }
-        return calculadorOrbital.calcularRapidezOrbital(anfitrion.getMasa(), d, G);
-    }
-
-    private CuerpoCeleste encontrarCuerpoDominante(CuerpoCeleste cuerpo, List<CuerpoCeleste> todos) {
-        CuerpoCeleste dominante = null;
-        double maxAtraccion = 0;
-
-        for (CuerpoCeleste otro : todos) {
-            if (otro == cuerpo || !otro.esSimulado()) continue;
-            if (otro.getMasa() < TipoCuerpo.ESTRELLA.masaBase * 0.1) continue;
-
-            double dist = cuerpo.getPosicion().distanciaA(otro.getPosicion());
-            if (dist < 1.0) continue;
-
-            double atraccion = otro.getMasa() / (dist * dist);
-            if (atraccion > maxAtraccion) {
-                maxAtraccion = atraccion;
-                dominante = otro;
-            }
-        }
-
-        return dominante;
-    }
-
-    private Vector2D calcularUnitarioTangencial(Vector2D r, Vector2D uRadial, Vector2D vRel) {
-        double cross = r.x() * vRel.y() - r.y() * vRel.x();
-        boolean horario = cross < -1e-4;
-        return horario
-                ? new Vector2D(uRadial.y(), -uRadial.x())
-                : new Vector2D(-uRadial.y(), uRadial.x());
+        return estabilizador.calcularVelocidadOrbitalIdeal(orbitando, anfitrion, rOrb);
     }
 }

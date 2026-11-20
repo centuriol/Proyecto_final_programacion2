@@ -12,14 +12,16 @@ import org.example.game.simulacion.SimulacionSolar;
  */
 public class VentanaDescripcionCuerpo implements VisualizadorDescripcion {
 
+    private static final FabricaUI FABRICA_UI = new FabricaUI();
+
     private final ProveedorInfoCuerpo infoCuerpo;
 
     public VentanaDescripcionCuerpo() {
-        this(new SeccionInfoCuerpo());
+        this(FABRICA_UI.crearProveedorInfoCuerpo());
     }
 
     public VentanaDescripcionCuerpo(ProveedorInfoCuerpo infoCuerpo) {
-        this.infoCuerpo = infoCuerpo != null ? infoCuerpo : new SeccionInfoCuerpo();
+        this.infoCuerpo = infoCuerpo != null ? infoCuerpo : FABRICA_UI.crearProveedorInfoCuerpo();
     }
 
     @Override

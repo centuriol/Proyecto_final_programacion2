@@ -3,17 +3,17 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
+import org.example.game.render.CatalogoSprites;
 import org.example.game.render.RenderizadorCuerpo;
-import org.example.game.render.RepositorioSprites;
 import org.example.game.render.UtilidadRender;
 /**
- * Renderizador Pixel Art para estrellas (Sol) (SRP / OCP).
+ * Renderizador Pixel Art para estrellas (Sol) (SRP / OCP / ISP).
  */
 public class RenderizadorEstrella implements RenderizadorCuerpo {
 
-    private final RepositorioSprites repositorioSprites;
+    private final CatalogoSprites repositorioSprites;
 
-    public RenderizadorEstrella(RepositorioSprites repositorioSprites) {
+    public RenderizadorEstrella(CatalogoSprites repositorioSprites) {
         this.repositorioSprites = repositorioSprites;
     }
 

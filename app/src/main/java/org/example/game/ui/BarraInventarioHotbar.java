@@ -1,31 +1,26 @@
 package org.example.game.ui;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.game.cuerpo.TipoCuerpo;
-import org.example.game.jugador.TipoRecurso;
 import org.example.game.simulacion.SimulacionSolar;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 /**
- * Barra de inventario inferior (Hotbar) estilo RimWorld.
- * SRP: Gestiona la selección rápida de los 8 tipos de cuerpos y el factor de masa.
+ * Barra de inventario inferior (Hotbar) estilo RimWorld (SRP).
  */
 public class BarraInventarioHotbar extends HBox {
 
-    private final SimulacionSolar simulacion;
-    private final VentanaDescripcionCuerpo ventanaDialogos;
-    private final List<SlotHotbar> slotCards = new ArrayList<>();
-    private TipoCuerpo tipoSeleccionado = null;
-    private boolean retraida = false;
-    private Button btnToggleRetraccion;
-    private Runnable accionAbrirArbol;
+    private static final FormateadorHotbar FORMATEADOR = new FormateadorHotbar();
+    private static final FabricaUI FABRICA_UI = new FabricaUI();
 
     public static final TipoCuerpo[] CUERPOS_HOTBAR = {
             TipoCuerpo.ESTRELLA,
@@ -36,13 +31,35 @@ public class BarraInventarioHotbar extends HBox {
             TipoCuerpo.PLANETA_LAVA
     };
 
-    public BarraInventarioHotbar(SimulacionSolar simulacion) {
-        this(simulacion, new VentanaDescripcionCuerpo());
+    private static class EstadoHotbar {
+        final SimulacionSolar simulacion;
+        final VisualizadorDescripcion ventanaDialogos;
+        final List<SlotHotbar> slotCards = new ArrayList<>();
+        TipoCuerpo tipoSeleccionado = null;
+        boolean retraida = false;
+        Button btnToggleRetraccion;
+        Runnable accionAbrirArbol;
+
+        EstadoHotbar(SimulacionSolar sim, VisualizadorDescripcion dialogos) {
+            this.simulacion = sim;
+            this.ventanaDialogos = dialogos != null ? dialogos : FABRICA_UI.crearVisualizadorDescripcion();
+        }
+
+        void actualizarSeleccionVisual() {
+            for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
+                slotCards.get(i).setSeleccionado(CUERPOS_HOTBAR[i] == tipoSeleccionado);
+            }
+        }
     }
 
-    public BarraInventarioHotbar(SimulacionSolar simulacion, VentanaDescripcionCuerpo ventanaDialogos) {
-        this.simulacion = simulacion;
-        this.ventanaDialogos = ventanaDialogos != null ? ventanaDialogos : new VentanaDescripcionCuerpo();
+    private final EstadoHotbar estado;
+
+    public BarraInventarioHotbar(SimulacionSolar simulacion) {
+        this(simulacion, FABRICA_UI.crearVisualizadorDescripcion());
+    }
+
+    public BarraInventarioHotbar(SimulacionSolar simulacion, VisualizadorDescripcion ventanaDialogos) {
+        this.estado = new EstadoHotbar(simulacion, ventanaDialogos);
 
         setAlignment(Pos.CENTER);
         setPadding(new Insets(6, 12, 6, 12));
@@ -51,158 +68,88 @@ public class BarraInventarioHotbar extends HBox {
         setBorder(TemaUI.BORDE_PANEL_NEGRO);
 
         for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
-            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            int hotkey = i + 1;
-            SlotHotbar slot = new SlotHotbar(tipo, hotkey, this::seleccionarTipo);
-            slotCards.add(slot);
+            SlotHotbar slot = new SlotHotbar(CUERPOS_HOTBAR[i], i + 1, this::seleccionarTipo);
+            estado.slotCards.add(slot);
             getChildren().add(slot);
         }
 
         actualizarBloqueos();
-        this.simulacion.getBusEventos().agregarListenerUI(this::actualizarBloqueos);
+        estado.simulacion.getBusEventos().agregarListenerUI(this::actualizarBloqueos);
     }
 
-    public void setAccionAbrirArbol(Runnable accionAbrirArbol) {
-        this.accionAbrirArbol = accionAbrirArbol;
-    }
+    public void setAccionAbrirArbol(Runnable accionAbrirArbol) { estado.accionAbrirArbol = accionAbrirArbol; }
 
     public Button getBotonToggle() {
-        if (btnToggleRetraccion == null) {
-            btnToggleRetraccion = new Button("Ocultar Planetas");
-            btnToggleRetraccion.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
-            actualizarEstiloBotonToggle();
-            btnToggleRetraccion.setOnAction(e -> alternarRetraccion());
+        if (estado.btnToggleRetraccion == null) {
+            estado.btnToggleRetraccion = new Button("Ocultar Planetas");
+            estado.btnToggleRetraccion.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+            estado.btnToggleRetraccion.setStyle(TemaUI.CSS_BTN_SECUNDARIO);
+            estado.btnToggleRetraccion.setOnAction(e -> alternarRetraccion());
         }
-        return btnToggleRetraccion;
+        return estado.btnToggleRetraccion;
     }
 
-    public void alternarRetraccion() {
-        setRetraida(!retraida);
-    }
+    public void alternarRetraccion() { setRetraida(!estado.retraida); }
 
     public void setRetraida(boolean retraida) {
-        this.retraida = retraida;
+        estado.retraida = retraida;
         setVisible(!retraida);
         setManaged(!retraida);
-        if (btnToggleRetraccion != null) {
-            btnToggleRetraccion.setText(retraida ? "Mostrar Planetas" : "Ocultar Planetas");
-            actualizarEstiloBotonToggle();
+        if (estado.btnToggleRetraccion != null) {
+            estado.btnToggleRetraccion.setText(retraida ? "Mostrar Planetas" : "Ocultar Planetas");
+            estado.btnToggleRetraccion.setStyle(TemaUI.CSS_BTN_SECUNDARIO);
         }
     }
 
-    public boolean isRetraida() {
-        return retraida;
-    }
-
-    private void actualizarEstiloBotonToggle() {
-        if (btnToggleRetraccion == null) return;
-        btnToggleRetraccion.setStyle(TemaUI.CSS_BTN_SECUNDARIO);
-    }
+    public boolean isRetraida() { return estado.retraida; }
 
     public void abrirVentanaColocacion(TipoCuerpo tipo) {
         if (tipo == null) return;
         javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-        ventanaDialogos.abrirParaColocar(tipo, simulacion, owner, () -> marcarSeleccionado(tipo));
+        estado.ventanaDialogos.abrirParaColocar(tipo, estado.simulacion, owner, () -> marcarSeleccionado(tipo));
     }
 
     public void marcarSeleccionado(TipoCuerpo tipo) {
-        this.tipoSeleccionado = tipo;
-        actualizarEstilos();
+        estado.tipoSeleccionado = tipo;
+        estado.actualizarSeleccionVisual();
     }
 
     public void seleccionarTipo(TipoCuerpo tipo) {
-        if (simulacion.getProgresion().estaDesbloqueado(tipo)) {
+        if (estado.simulacion.getProgresion().estaDesbloqueado(tipo)) {
             abrirVentanaColocacion(tipo);
+        } else if (estado.accionAbrirArbol != null) {
+            estado.accionAbrirArbol.run();
         } else {
-            if (accionAbrirArbol != null) {
-                accionAbrirArbol.run();
-            } else {
-                javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-                VentanaProgresion.mostrar(simulacion, owner);
-            }
+            javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+            VentanaProgresion.mostrar(estado.simulacion, owner);
         }
     }
 
     public void actualizarBloqueos() {
-        if (simulacion == null || simulacion.getProgresion() == null) return;
-        var prog = simulacion.getProgresion();
-
+        if (estado.simulacion == null || estado.simulacion.getProgresion() == null) return;
+        var prog = estado.simulacion.getProgresion();
         for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
             TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            SlotHotbar slot = slotCards.get(i);
+            SlotHotbar slot = estado.slotCards.get(i);
             Label lblNom = (Label) slot.getChildren().get(2);
-
             boolean desbloqueado = prog.estaDesbloqueado(tipo);
             slot.setBloqueado(!desbloqueado);
             if (desbloqueado) {
                 lblNom.setText(tipo.nombre.toUpperCase());
                 lblNom.setTextFill(Color.web(tipo.getColorHexString()));
             } else {
-                double costo = obtenerCostoDesbloqueo(tipo);
-                lblNom.setText(tipo.nombre.toUpperCase() + " [BLOQ " + (int) costo + " CIE]");
+                lblNom.setText(tipo.nombre.toUpperCase() + " [BLOQ " + (int) tipo.getCostoDesbloqueoCiencia() + " CIE]");
                 lblNom.setTextFill(TemaUI.COLOR_TEXTO_MUTED);
             }
         }
     }
 
-    private double obtenerCostoDesbloqueo(TipoCuerpo tipo) {
-        return tipo != null ? tipo.getCostoDesbloqueoCiencia() : 0.0;
-    }
-
     public void deseleccionar() {
-        this.tipoSeleccionado = null;
-        actualizarEstilos();
+        estado.tipoSeleccionado = null;
+        estado.actualizarSeleccionVisual();
     }
 
-    private void actualizarEstilos() {
-        for (int i = 0; i < CUERPOS_HOTBAR.length; i++) {
-            SlotHotbar slot = slotCards.get(i);
-            TipoCuerpo tipo = CUERPOS_HOTBAR[i];
-            slot.setSeleccionado(tipo == tipoSeleccionado);
-        }
-    }
-
-    public static String formatearResumenCosto(TipoCuerpo tipo) {
-        Map<TipoRecurso, Double> costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
-        return formatearMapaRecursos("Requiere: ", "%.0f ", costos, "Costo: Gratis");
-    }
-
-    public static String formatearResumenProduccion(TipoCuerpo tipo) {
-        Map<TipoRecurso, Double> prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
-        return formatearMapaRecursos("Da/t: ", "+%.2f ", prod, "Da/t: Ninguno");
-    }
-
-    public static String formatearTooltipDetallado(TipoCuerpo tipo, int hotkey) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("========================================\n");
-        sb.append(tipo.nombre.toUpperCase()).append(" [Tecla ").append(hotkey).append("]\n");
-        sb.append("========================================\n");
-        sb.append("MATERIALES NECESARIOS PARA PONERLO:\n");
-        var costos = org.example.game.jugador.InventarioJugador.getCostosBase(tipo);
-        for (var e : costos.entrySet()) {
-            sb.append("  • ").append(e.getKey().nombre).append(": ").append(String.format("%.0f", e.getValue())).append("\n");
-        }
-        sb.append("\nMATERIALES QUE TE DA POR TICK:\n");
-        var prod = org.example.game.jugador.InventarioJugador.getProduccionBasePorTick(tipo);
-        for (var e : prod.entrySet()) {
-            sb.append("  • ").append(e.getKey().nombre).append(": +").append(String.format("%.2f", e.getValue())).append(" / tick\n");
-        }
-        sb.append("========================================\n");
-        sb.append("• Click: Abrir ventana de configuración y colocación\n");
-        sb.append("  (Personalizar nombre, masa, costos y producción)\n");
-        sb.append("========================================");
-        return sb.toString();
-    }
-
-    private static String formatearMapaRecursos(String prefijo, String formatoValor, Map<TipoRecurso, Double> mapa, String siVacio) {
-        if (mapa == null || mapa.isEmpty()) return siVacio;
-        StringBuilder sb = new StringBuilder(prefijo);
-        int i = 0;
-        for (var e : mapa.entrySet()) {
-            if (i > 0) sb.append(", ");
-            sb.append(String.format(formatoValor, e.getValue())).append(e.getKey().nombre.substring(0, Math.min(3, e.getKey().nombre.length())));
-            i++;
-        }
-        return sb.toString();
-    }
+    public static String formatearResumenCosto(TipoCuerpo tipo) { return FORMATEADOR.formatearResumenCosto(tipo); }
+    public static String formatearResumenProduccion(TipoCuerpo tipo) { return FORMATEADOR.formatearResumenProduccion(tipo); }
+    public static String formatearTooltipDetallado(TipoCuerpo tipo, int hotkey) { return FORMATEADOR.formatearTooltipDetallado(tipo, hotkey); }
 }

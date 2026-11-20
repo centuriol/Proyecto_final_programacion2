@@ -3,7 +3,7 @@ package org.example.game.simulacion;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.SistemaSolar;
 import org.example.game.motor.MotorFisica;
-import org.example.game.motor.TransformadorCuerpos;
+import org.example.game.motor.ProcesadorTransformaciones;
 import org.example.game.colonizacion.GestorColonizacion;
 import org.example.game.efectos.GestorEfectos;
 import org.example.game.jugador.InventarioJugador;
@@ -19,25 +19,27 @@ import java.util.function.Consumer;
  */
 public class CoordinadorPasoSimulacion {
 
+    private static final FabricaSimulacion FABRICA_SIM = new FabricaSimulacion();
+
     private final MotorFisica motorFisica;
     private final SistemaSolar sistemaSolar;
-    private final TransformadorCuerpos transformadorCuerpos;
-    private final GestorEconomia gestorEconomia;
+    private final ProcesadorTransformaciones transformadorCuerpos;
+    private final ControladorEconomia gestorEconomia;
     private final InventarioJugador inventario;
     private final GestorColonizacion gestorColonizacion;
     private final GestorEfectos gestorEfectos;
-    private final GeneradorEventosCosmicos generadorEventosCosmicos;
+    private final GeneradorEventos generadorEventosCosmicos;
     private final SistemaProgresion progresion;
     private final CalculadorAmenazaMeteorito escaladorAmenaza;
 
     public CoordinadorPasoSimulacion(MotorFisica motorFisica,
                                      SistemaSolar sistemaSolar,
-                                     TransformadorCuerpos transformadorCuerpos,
-                                     GestorEconomia gestorEconomia,
+                                     ProcesadorTransformaciones transformadorCuerpos,
+                                     ControladorEconomia gestorEconomia,
                                      InventarioJugador inventario,
                                      GestorColonizacion gestorColonizacion,
                                      GestorEfectos gestorEfectos,
-                                     GeneradorEventosCosmicos generadorEventosCosmicos,
+                                     GeneradorEventos generadorEventosCosmicos,
                                      SistemaProgresion progresion,
                                      CalculadorAmenazaMeteorito escaladorAmenaza) {
         this.motorFisica = motorFisica;
@@ -49,7 +51,7 @@ public class CoordinadorPasoSimulacion {
         this.gestorEfectos = gestorEfectos;
         this.generadorEventosCosmicos = generadorEventosCosmicos;
         this.progresion = progresion;
-        this.escaladorAmenaza = escaladorAmenaza != null ? escaladorAmenaza : new EscaladorAmenazaMeteorito();
+        this.escaladorAmenaza = escaladorAmenaza != null ? escaladorAmenaza : FABRICA_SIM.crearCalculadorAmenaza();
     }
 
     public void ejecutarPaso(long tickActual, double anchoMundo, double altoMundo,
@@ -85,7 +87,7 @@ public class CoordinadorPasoSimulacion {
         org.example.game.civilizacion.SistemaCivilizaciones.getInstancia().actualizarCivilizaciones(cuerpos, emisorEventos);
     }
 
-    public GeneradorEventosCosmicos getGeneradorEventosCosmicos() {
+    public GeneradorEventos getGeneradorEventosCosmicos() {
         return generadorEventosCosmicos;
     }
 }

@@ -4,6 +4,7 @@ import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.guardado.*;
 import org.example.game.jugador.TipoRecurso;
 import org.example.game.motor.Vector2D;
+import org.example.game.progresion.MejoraSecundaria;
 import org.example.game.progresion.RamaProgresion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -51,6 +52,24 @@ class RepositorioYSerializacionPartidaTest {
         DatosPartida restaurada = serializador.deserializar(texto);
         assertEquals(original, restaurada);
         assertEquals(texto, serializador.serializar(restaurada));
+        assertTrue(restaurada.jugador().mejorasSecundarias().contains(MejoraSecundaria.PLANETAS_T1_MINERIA.id()));
+        assertTrue(restaurada.jugador().mejorasSecundarias().contains(MejoraSecundaria.MASA_T2_PRODUCCION.id()));
+    }
+
+    @Test
+    void testRetrocompatibilidadPartidaViejaSinMejorasSecundarias() {
+        SerializadorPartida serializador = new SerializadorPartidaTexto();
+        DatosPartida original = construirPartidaEjemplo("PartidaVieja");
+        String textoModerno = serializador.serializar(original);
+        String textoViejo = textoModerno.lines()
+                .filter(l -> !l.startsWith("progresion.mejorasSecundarias="))
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+
+        DatosPartida restaurada = serializador.deserializar(textoViejo);
+        assertNotNull(restaurada.jugador().mejorasSecundarias());
+        assertTrue(restaurada.jugador().mejorasSecundarias().isEmpty());
+        assertEquals(3, restaurada.jugador().nivelesProgresion().get(RamaProgresion.PLANETAS));
     }
 
     @Test
@@ -135,7 +154,9 @@ class RepositorioYSerializacionPartidaTest {
         ramas.put(RamaProgresion.PLANETAS, 3);
         ramas.put(RamaProgresion.MASA, 2);
         ramas.put(RamaProgresion.CANTIDAD_PLANETAS, 1);
-        EstadoJugadorGuardado jugador = new EstadoJugadorGuardado(recursos, ramas, 2);
+        EstadoJugadorGuardado jugador = new EstadoJugadorGuardado(
+                recursos, ramas, 2,
+                java.util.Set.of(MejoraSecundaria.PLANETAS_T1_MINERIA.id(), MejoraSecundaria.MASA_T2_PRODUCCION.id()));
 
         List<DatosCuerpo> cuerpos = new ArrayList<>();
         cuerpos.add(new DatosCuerpo(

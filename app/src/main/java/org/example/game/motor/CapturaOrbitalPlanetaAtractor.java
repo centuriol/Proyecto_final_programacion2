@@ -8,19 +8,18 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
 
     @Override
     public boolean puedeCapturar(CuerpoCeleste ci, CuerpoCeleste cj, double distReal) {
-        boolean ciEsPlaneta = ci.getTipoCuerpo() != null && ci.getTipoCuerpo().esPlaneta();
-        boolean cjEsPlaneta = cj.getTipoCuerpo() != null && cj.getTipoCuerpo().esPlaneta();
-        CuerpoCeleste planeta = ciEsPlaneta ? ci : (cjEsPlaneta ? cj : null);
+        CuerpoCeleste planeta = esPlaneta(ci) ? ci : (esPlaneta(cj) ? cj : null);
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
-
-        boolean esPlanetaYEstrella = (planeta != null && estrella != null && estrella.getMasa() >= 1e29);
-
-        if (esPlanetaYEstrella) {
-            double radioCapturaPlaneta = Math.max(estrella.getRadioAtraccion() * 7.0, 800.0);
-            double radioMinimoCaptura = estrella.getRadio() + planeta.getRadio() + 5.0;
-            return !planeta.estaOrbitando() && distReal > radioMinimoCaptura && distReal <= radioCapturaPlaneta;
+        if (planeta == null || estrella == null || estrella.getMasa() < 1e29) {
+            return false;
         }
-        return false;
+        double radioCapturaPlaneta = Math.max(estrella.getRadioAtraccion() * 7.0, 800.0);
+        double radioMinimoCaptura = estrella.getRadio() + planeta.getRadio() + 5.0;
+        return !planeta.estaOrbitando() && distReal > radioMinimoCaptura && distReal <= radioCapturaPlaneta;
+    }
+
+    private boolean esPlaneta(CuerpoCeleste c) {
+        return c != null && c.getTipoCuerpo() != null && c.getTipoCuerpo().esPlaneta();
     }
 
     @Override
@@ -30,8 +29,9 @@ public class CapturaOrbitalPlanetaAtractor implements EstrategiaCapturaOrbital {
         CuerpoCeleste estrella = (planeta == ci) ? cj : ci;
 
         double radioOrbita = distReal;
+        double radioZonaLava = TransformadorCuerpos.calcularRadioActivacionPorroLava(planeta, estrella);
         if (estrella.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.ESTRELLA
-                && distReal > org.example.game.simulacion.ConfiguracionSimulacion.RADIO_TRANSFORMACION_PORRO_LAVA) {
+                && distReal > radioZonaLava) {
             radioOrbita = CalculadorOrbital.ajustarARanuraSolar(distReal);
         }
 

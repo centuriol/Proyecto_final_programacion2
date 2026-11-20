@@ -1,38 +1,25 @@
 package org.example.game.motor;
+
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.Meteorito;
-import org.example.game.motor.colision.ContextoColision;
 import org.example.game.motor.colision.ReglaColision;
-import org.example.game.motor.colision.ReglaColisionAbsorcionPorRatio;
-import org.example.game.motor.colision.ReglaColisionAgujeroNegro;
-import org.example.game.motor.colision.ReglaColisionAsimetrica;
-import org.example.game.motor.colision.ReglaColisionColapsoMutuo;
-import org.example.game.motor.colision.ReglaColisionEscudo;
-import org.example.game.motor.colision.ReglaColisionEstrella;
-import org.example.game.motor.colision.ReglaColisionFusionAguaLava;
-import org.example.game.motor.colision.ReglaColisionMeteorito;
 import org.example.game.motor.colision.UtilidadColision;
 import org.example.game.simulacion.MensajeEvento;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+
 /**
- * Resolvedor desacoplado de colisiones e interacciones físicas y destructivas entre cuerpos celestes.
- *
- * Principios SOLID:
- * - SRP: Orquesta la resolución de colisiones despachando a la regla de colisión adecuada.
- * - OCP: Extensible agregando o sustituyendo estrategias ReglaColision sin modificar código existente.
+ * Resolvedor desacoplado de colisiones e interacciones físicas entre cuerpos celestes (SRP / OCP / DIP).
  */
-public class ResolvedorColisiones {
+public class ResolvedorColisiones implements ResolucionColision, ConfiguracionEventosColision {
+
+    private static final FabricaMotorFisica FABRICA = new FabricaMotorFisica();
 
     private final UtilidadColision utilidadColision;
-    private final List<ReglaColision> reglas = new ArrayList<>();
-    private Consumer<String> listenerMensaje;
-    private BiConsumer<String, MensajeEvento.TipoMensaje> listenerNotificacion;
-    private BiConsumer<Vector2D, Double> listenerExplosion;
+    private final MotorReglasColision motorReglas;
 
     public ResolvedorColisiones() {
         this(new UtilidadColision());
@@ -48,9 +35,7 @@ public class ResolvedorColisiones {
 
     public ResolvedorColisiones(UtilidadColision utilidadColision, List<ReglaColision> reglas) {
         this.utilidadColision = utilidadColision != null ? utilidadColision : new UtilidadColision();
-        if (reglas != null) {
-            this.reglas.addAll(reglas);
-        }
+        this.motorReglas = new MotorReglasColision(reglas);
     }
 
     public static List<ReglaColision> crearReglasPorDefecto() {
@@ -58,79 +43,26 @@ public class ResolvedorColisiones {
     }
 
     public static List<ReglaColision> crearReglasPorDefecto(UtilidadColision utilidad) {
-        UtilidadColision u = utilidad != null ? utilidad : new UtilidadColision();
-        return List.of(
-                new ReglaColisionAgujeroNegro(u),
-                new ReglaColisionEstrella(u),
-                new ReglaColisionEscudo(u),
-                new ReglaColisionMeteorito(u),
-                new ReglaColisionFusionAguaLava(u),
-                new ReglaColisionAbsorcionPorRatio(u),
-                new ReglaColisionColapsoMutuo(u),
-                new ReglaColisionAsimetrica(u)
-        );
+        return FABRICA.crearReglasColisionPorDefecto(utilidad);
     }
 
-    public void agregarRegla(ReglaColision regla) {
-        if (regla != null) {
-            this.reglas.add(0, regla);
-        }
-    }
-
-    public void setListenerMensaje(Consumer<String> listener) {
-        this.listenerMensaje = listener;
-    }
-
-    public void setListenerNotificacion(BiConsumer<String, MensajeEvento.TipoMensaje> listener) {
-        this.listenerNotificacion = listener;
-    }
-
-    public void setListenerExplosion(BiConsumer<Vector2D, Double> listener) {
-        this.listenerExplosion = listener;
-    }
-
-    public void setProveedorProgreso(DoubleSupplier proveedorProgreso) {
-        for (ReglaColision regla : reglas) {
-            regla.setProveedorProgreso(proveedorProgreso);
-        }
-    }
+    public void agregarRegla(ReglaColision regla) { motorReglas.agregarRegla(regla); }
+    public void setListenerMensaje(Consumer<String> listener) { motorReglas.setListenerMensaje(listener); }
+    public void setListenerNotificacion(BiConsumer<String, MensajeEvento.TipoMensaje> listener) { motorReglas.setListenerNotificacion(listener); }
+    public void setListenerExplosion(BiConsumer<Vector2D, Double> listener) { motorReglas.setListenerExplosion(listener); }
+    public void setProveedorProgreso(DoubleSupplier proveedorProgreso) { motorReglas.setProveedorProgreso(proveedorProgreso); }
 
     public void resolverColision(CuerpoCeleste a, CuerpoCeleste b, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {
         if (a == null || b == null) return;
-        boolean[] explosionEmitida = {false};
-        BiConsumer<Vector2D, Double> emisorConRegistro = (pos, radio) -> {
-            explosionEmitida[0] = true;
-            if (listenerExplosion != null) {
-                listenerExplosion.accept(pos, radio);
-            }
-        };
-        ContextoColision ctx = new ContextoColision(aEliminar, aAgregar, listenerMensaje, listenerNotificacion, emisorConRegistro);
-
-        for (ReglaColision regla : reglas) {
-            if (regla.aplica(a, b)) {
-                Vector2D posColision = a.getPosicion().sumar(b.getPosicion()).multiplicar(0.5);
-                double radioColision = Math.max(18.0, Math.max(a.getRadio(), b.getRadio()) * 1.8);
-                regla.resolver(a, b, ctx);
-                if (!explosionEmitida[0]) {
-                    ctx.emitirExplosion(posColision, radioColision);
-                }
-                return;
-            }
-        }
+        motorReglas.resolver(a, b, aEliminar, aAgregar);
     }
 
-    // Métodos utilitarios delegados para compatibilidad
     public void absorber(CuerpoCeleste absorbente, CuerpoCeleste victima, Set<CuerpoCeleste> aEliminar) {
         utilidadColision.absorber(absorbente, victima, aEliminar);
     }
 
     public void impactarMeteorito(Meteorito meteorito, CuerpoCeleste objetivo, Set<CuerpoCeleste> aEliminar) {
-        ContextoColision ctx = new ContextoColision(aEliminar, new ArrayList<>(), listenerMensaje, listenerNotificacion, listenerExplosion);
-        ReglaColision reglaMeteorito = reglas.stream()
-                .filter(ReglaColisionMeteorito.class::isInstance)
-                .findFirst()
-                .orElseGet(ReglaColisionMeteorito::new);
-        reglaMeteorito.resolver(meteorito, objetivo, ctx);
+        motorReglas.impactarMeteorito(meteorito, objetivo, aEliminar);
     }
 
     public void generarEscombros(CuerpoCeleste destruido, Set<CuerpoCeleste> aEliminar, List<CuerpoCeleste> aAgregar) {

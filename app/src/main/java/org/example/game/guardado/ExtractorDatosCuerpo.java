@@ -47,9 +47,13 @@ public class ExtractorDatosCuerpo implements VisitanteCuerpo<DatosCuerpo> {
 
     @Override
     public DatosCuerpo visitarPlaneta(Planeta planeta) {
+        boolean transformado = planeta.isTransformadoPorEvento()
+                || RegistroCapacidades.obtenerTransformable(planeta)
+                        .map(Transformable::isTransformadoPorEvento)
+                        .orElse(false);
         DatosCivilizacion datosCiv = null;
         CivilizacionComponent civ = planeta.getCivilizacion();
-        if (civ != null) {
+        if (!transformado && planeta.tieneCivilizacion() && civ != null) {
             datosCiv = new DatosCivilizacion(
                     civ.getPoblacion(),
                     civ.getNivelTecnologico(),
@@ -60,7 +64,7 @@ public class ExtractorDatosCuerpo implements VisitanteCuerpo<DatosCuerpo> {
             );
         }
         DetalleCuerpo detalle = DetalleCuerpo.dePlaneta(
-                planeta.isTransformadoPorEvento(),
+                transformado,
                 planeta.getGolpesEscudoRestantes(),
                 datosCiv
         );

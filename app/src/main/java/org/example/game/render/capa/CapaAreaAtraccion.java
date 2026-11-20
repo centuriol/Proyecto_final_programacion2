@@ -5,25 +5,26 @@ import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.cuerpo.TipoCuerpo;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.render.EstrategiaVisualTipo;
+import org.example.game.render.FabricaRender;
 import org.example.game.render.RegistroEstrategiasVisuales;
 
 import java.util.List;
 
 /**
- * Capa de renderizado para radios y áreas de atracción gravitacional de cuerpos (SRP).
+ * Capa de renderizado para radios y áreas de atracción gravitacional de cuerpos (SRP / DIP).
  */
 public class CapaAreaAtraccion {
 
+    private static final FabricaRender FABRICA = new FabricaRender();
     private final ConversorCoordenadas conversor;
 
     public CapaAreaAtraccion() {
-        this(new TransformadorCoordenadas());
+        this(FABRICA.crearConversorCoordenadas());
     }
 
     public CapaAreaAtraccion(ConversorCoordenadas conversor) {
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+        this.conversor = conversor != null ? conversor : FABRICA.crearConversorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, List<CuerpoCeleste> cuerpos, double anchoCanvas, double altoCanvas) {

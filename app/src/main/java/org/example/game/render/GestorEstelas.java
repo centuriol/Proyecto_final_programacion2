@@ -3,7 +3,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.example.game.cuerpo.CuerpoCeleste;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -15,19 +14,21 @@ import java.util.Map;
  *
  * Principios SOLID:
  * - SRP: Responsabilidad exclusiva de almacenar puntos historicos y renderizar las colas de estela.
+ * - DIP: Depende de ConversorCoordenadas y delega su creación por defecto a FabricaRender.
  */
 public class GestorEstelas {
 
+    private static final FabricaRender FABRICA = new FabricaRender();
     private final Map<CuerpoCeleste, Deque<Vector2D>> estelas = new HashMap<>();
     private final ConversorCoordenadas conversor;
     private static final int MAX_PUNTOS_ESTELA = 45;
 
     public GestorEstelas() {
-        this(new TransformadorCoordenadas());
+        this(FABRICA.crearConversorCoordenadas());
     }
 
     public GestorEstelas(ConversorCoordenadas conversor) {
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+        this.conversor = conversor != null ? conversor : FABRICA.crearConversorCoordenadas();
     }
 
     public void actualizar(List<CuerpoCeleste> cuerpos) {

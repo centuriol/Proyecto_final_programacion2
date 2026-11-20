@@ -3,13 +3,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.example.game.motor.Vector2D;
-import org.example.game.render.GestorImagenes;
-import org.example.game.render.RepositorioSprites;
+import org.example.game.render.CatalogoSprites;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 /**
- * SRP / DIP: Conjunto decorativo exclusivo del menu principal compuesto por cinco satelites
+ * SRP / ISP / DIP: Conjunto decorativo exclusivo del menu principal compuesto por cinco satelites
  * a la izquierda y cinco a la derecha. Renderiza cada satelite con su sprite pixel art girando
  * sobre su propio eje y gestiona el clic para iniciar su caida gravitatoria fuera de pantalla.
  */
@@ -18,16 +17,17 @@ public class CampoSatelitesMenu {
     public static final int SATELITES_POR_LADO = 5;
     public static final int TOTAL_SATELITES = SATELITES_POR_LADO * 2;
     public static final String NOMBRE_SPRITE_SATELITE = "satelite";
+    private static final FabricaUI FABRICA_UI = new FabricaUI();
 
-    private final RepositorioSprites repositorioSprites;
+    private final CatalogoSprites catalogoSprites;
     private final List<SateliteDecorativoMenu> satelites = new ArrayList<>(TOTAL_SATELITES);
 
     public CampoSatelitesMenu() {
-        this(new GestorImagenes());
+        this(FABRICA_UI.crearRepositorioSprites());
     }
 
-    public CampoSatelitesMenu(RepositorioSprites repositorioSprites) {
-        this.repositorioSprites = repositorioSprites != null ? repositorioSprites : new GestorImagenes();
+    public CampoSatelitesMenu(CatalogoSprites catalogoSprites) {
+        this.catalogoSprites = catalogoSprites != null ? catalogoSprites : FABRICA_UI.crearRepositorioSprites();
         double[][] izquierda = {
                 {0.10, 0.16, 46.0}, {0.23, 0.30, -38.0}, {0.07, 0.50, 54.0}, {0.24, 0.70, -42.0}, {0.11, 0.84, 50.0}
         };
@@ -63,7 +63,7 @@ public class CampoSatelitesMenu {
         if (gc == null || anchoCanvas <= 0.0 || altoCanvas <= 0.0) {
             return;
         }
-        Image sprite = repositorioSprites.obtenerImagenPorNombre(NOMBRE_SPRITE_SATELITE);
+        Image sprite = catalogoSprites.obtenerImagenPorNombre(NOMBRE_SPRITE_SATELITE);
         for (SateliteDecorativoMenu satelite : satelites) {
             if (!satelite.estaFueraDePantalla(altoCanvas)) {
                 dibujarSatelite(gc, satelite, sprite, satelite.calcularCentro(anchoCanvas, altoCanvas));

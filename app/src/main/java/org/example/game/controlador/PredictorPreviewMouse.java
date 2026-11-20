@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Responsable de la predicción y cálculo throttled de trayectorias preview para el cursor del mouse (SRP).
  */
-public class PredictorPreviewMouse {
+public class PredictorPreviewMouse implements PredictorPreview {
 
     private List<Vector2D> trayectoriaPreview = new ArrayList<>();
     private double ultimoPreviewMouseX = Double.NaN;

@@ -1,4 +1,5 @@
 package org.example.game.controlador;
+
 import javafx.scene.Node;
 import org.example.game.guardado.GestorGuardadoPartida;
 import org.example.game.guardado.TemporizadorAutoguardado;
@@ -7,200 +8,128 @@ import org.example.game.simulacion.SimulacionSolar;
 import org.example.game.ui.PantallaGameOver;
 import org.example.game.ui.PantallaMenuPausa;
 import org.example.game.ui.PantallaMenuPrincipal;
+
 import java.nio.file.Path;
 import java.util.Objects;
+
 /**
- * Coordina las transiciones entre el menu principal, la sesion de juego activa,
- * el menu de pausa y la pantalla de derrota.
- *
- * Principios SOLID:
- * - SRP: Orquesta exclusivamente el ciclo de vida de pantallas, autoguardado y reinicio/carga de sesion.
- * - DIP: Recibe la accion de salida y la limpieza de vista mediante abstracciones funcionales.
+ * Coordina las transiciones entre menú principal, sesión activa, pausa y derrota (SRP / DIP).
  */
 public class CoordinadorSesionJuego {
 
-    private final SimulacionSolar simulacion;
-    private final ControlZoom controlZoom;
-    private final GestorGuardadoPartida gestorGuardado;
-    private final TemporizadorAutoguardado autoguardado;
+    private static class ContextoSesion {
+        final SimulacionSolar simulacion;
+        final ControlZoom controlZoom;
+        final GestorGuardadoPartida gestorGuardado;
+        final TemporizadorAutoguardado autoguardado;
+        Runnable accionLimpiarVista = () -> {};
+        Runnable accionSalir = () -> {};
+        boolean enPausaPrevioMenu = false;
 
-    private Runnable accionLimpiarVista = () -> {};
-    private Runnable accionSalir = () -> {};
-    private PantallaMenuPrincipal menuPrincipal;
-    private PantallaMenuPausa menuPausa;
-    private PantallaGameOver pantallaGameOver;
-    private Node overlayJuego;
-    private boolean enPausaPrevioMenu = false;
+        ContextoSesion(SimulacionSolar sim, ControlZoom zoom, GestorGuardadoPartida gestor, TemporizadorAutoguardado auto) {
+            this.simulacion = Objects.requireNonNull(sim, "La simulacion no puede ser null");
+            this.controlZoom = Objects.requireNonNull(zoom, "El control de camara no puede ser null");
+            this.gestorGuardado = Objects.requireNonNull(gestor, "El gestor de guardado no puede ser null");
+            this.autoguardado = auto != null ? auto : new TemporizadorAutoguardado(gestor, sim, zoom);
+        }
 
-    public CoordinadorSesionJuego(SimulacionSolar simulacion,
-                                  ControlZoom controlZoom,
-                                  GestorGuardadoPartida gestorGuardado,
-                                  TemporizadorAutoguardado autoguardado) {
-        this.simulacion = Objects.requireNonNull(simulacion, "La simulacion no puede ser null");
-        this.controlZoom = Objects.requireNonNull(controlZoom, "El control de camara no puede ser null");
-        this.gestorGuardado = Objects.requireNonNull(gestorGuardado, "El gestor de guardado no puede ser null");
-        this.autoguardado = autoguardado != null
-                ? autoguardado
-                : new TemporizadorAutoguardado(gestorGuardado, simulacion, controlZoom);
+        void pausarYDesactivarAutoguardado() {
+            autoguardado.desactivar();
+            simulacion.getReloj().pause();
+        }
+    }
+
+    private final ContextoSesion ctx;
+    private final GestorPantallasSesion pantallas = new GestorPantallasSesion();
+
+    public CoordinadorSesionJuego(SimulacionSolar simulacion, ControlZoom controlZoom,
+                                  GestorGuardadoPartida gestorGuardado, TemporizadorAutoguardado autoguardado) {
+        this.ctx = new ContextoSesion(simulacion, controlZoom, gestorGuardado, autoguardado);
     }
 
     public void configurarCallbacks(Runnable accionLimpiarVista, Runnable accionSalir) {
-        if (accionLimpiarVista != null) {
-            this.accionLimpiarVista = accionLimpiarVista;
-        }
-        if (accionSalir != null) {
-            this.accionSalir = accionSalir;
-        }
+        if (accionLimpiarVista != null) ctx.accionLimpiarVista = accionLimpiarVista;
+        if (accionSalir != null) ctx.accionSalir = accionSalir;
     }
 
-    public void vincularPantallas(PantallaMenuPrincipal menuPrincipal,
-                                  PantallaGameOver pantallaGameOver,
-                                  Node overlayJuego) {
-        this.menuPrincipal = menuPrincipal;
-        this.pantallaGameOver = pantallaGameOver;
-        this.overlayJuego = overlayJuego;
-        this.simulacion.getBusEventos().setOnGameOver(this::manejarDerrota);
+    public void vincularPantallas(PantallaMenuPrincipal menuPrincipal, PantallaGameOver pantallaGameOver, Node overlayJuego) {
+        pantallas.vincularPantallas(menuPrincipal, pantallaGameOver, overlayJuego);
+        ctx.simulacion.getBusEventos().setOnGameOver(() -> {
+            ctx.autoguardado.desactivar();
+            pantallas.mostrarDerrota();
+        });
     }
 
-    public void vincularMenuPausa(PantallaMenuPausa menuPausa) {
-        this.menuPausa = menuPausa;
-    }
+    public void vincularMenuPausa(PantallaMenuPausa menuPausa) { pantallas.vincularMenuPausa(menuPausa); }
 
     public void mostrarMenuInicial() {
-        autoguardado.desactivar();
-        simulacion.getReloj().pause();
-        enPausaPrevioMenu = false;
-        accionLimpiarVista.run();
-        ocultarMenuPausa();
-        if (pantallaGameOver != null) {
-            pantallaGameOver.ocultar();
-        }
-        cambiarVisibilidadOverlay(false);
-        if (menuPrincipal != null) {
-            menuPrincipal.mostrarMenuPrincipal();
-        }
+        ctx.pausarYDesactivarAutoguardado();
+        ctx.enPausaPrevioMenu = false;
+        ctx.accionLimpiarVista.run();
+        pantallas.mostrarMenuInicial();
     }
 
     public void iniciarNuevaPartida() {
-        simulacion.reiniciar();
-        controlZoom.resetear();
-        gestorGuardado.seleccionarRanuraParaNuevaPartida();
-        accionLimpiarVista.run();
+        ctx.simulacion.reiniciar();
+        ctx.controlZoom.resetear();
+        ctx.gestorGuardado.seleccionarRanuraParaNuevaPartida();
+        ctx.accionLimpiarVista.run();
         entrarEnJuegoActivo();
     }
 
     public void abrirMenuPausa() {
-        if (!esPartidaEnCurso() || isEnMenuPausa()) {
-            return;
-        }
-        enPausaPrevioMenu = simulacion.getReloj().isEnPausa();
-        autoguardado.desactivar();
-        simulacion.getReloj().pause();
-        if (menuPausa != null) {
-            menuPausa.mostrar();
-        }
+        if (!esPartidaEnCurso() || isEnMenuPausa()) return;
+        ctx.enPausaPrevioMenu = ctx.simulacion.getReloj().isEnPausa();
+        ctx.pausarYDesactivarAutoguardado();
+        pantallas.mostrarPausa();
     }
 
     public void reanudarDesdePausa() {
-        ocultarMenuPausa();
-        if (!enPausaPrevioMenu) {
-            simulacion.getReloj().play();
-        }
-        enPausaPrevioMenu = false;
-        if (esPartidaEnCurso()) {
-            autoguardado.activar();
-        }
+        pantallas.ocultarPausa();
+        if (!ctx.enPausaPrevioMenu) ctx.simulacion.getReloj().play();
+        ctx.enPausaPrevioMenu = false;
+        if (esPartidaEnCurso()) ctx.autoguardado.activar();
     }
 
     public boolean guardarDesdePausa() {
-        boolean pausadoPorMenu = isEnMenuPausa() && !enPausaPrevioMenu;
-        if (pausadoPorMenu) {
-            simulacion.getReloj().play();
-        }
-        Path archivo = gestorGuardado.guardarPartidaRapida(simulacion, controlZoom);
-        if (isEnMenuPausa()) {
-            simulacion.getReloj().pause();
-        }
+        if (isEnMenuPausa() && !ctx.enPausaPrevioMenu) ctx.simulacion.getReloj().play();
+        Path archivo = ctx.gestorGuardado.guardarPartidaRapida(ctx.simulacion, ctx.controlZoom);
+        if (isEnMenuPausa()) ctx.simulacion.getReloj().pause();
         return archivo != null;
     }
 
-    public boolean cargarDesdePausa() {
-        return volverAlUltimoGuardado();
-    }
+    public boolean cargarDesdePausa() { return volverAlUltimoGuardado(); }
 
     public boolean cargarRanura(int numeroRanura) {
-        boolean exito = gestorGuardado.cargarRanura(numeroRanura, simulacion, controlZoom);
-        if (exito) {
-            entrarEnJuegoActivo();
-        }
+        boolean exito = ctx.gestorGuardado.cargarRanura(numeroRanura, ctx.simulacion, ctx.controlZoom);
+        if (exito) entrarEnJuegoActivo();
         return exito;
     }
 
     public boolean volverAlUltimoGuardado() {
-        boolean exito = gestorGuardado.cargarUltimoGuardado(simulacion, controlZoom);
-        if (exito && !simulacion.estaPerdida()) {
+        boolean exito = ctx.gestorGuardado.cargarUltimoGuardado(ctx.simulacion, ctx.controlZoom);
+        if (exito && !ctx.simulacion.estaPerdida()) {
             entrarEnJuegoActivo();
             return true;
         }
         return false;
     }
 
-    public void volverAlMenuPrincipal() {
-        mostrarMenuInicial();
-    }
+    public void volverAlMenuPrincipal() { mostrarMenuInicial(); }
 
     public void salir() {
-        autoguardado.desactivar();
-        simulacion.getReloj().pause();
-        ocultarMenuPausa();
-        accionSalir.run();
+        ctx.pausarYDesactivarAutoguardado();
+        pantallas.ocultarPausa();
+        ctx.accionSalir.run();
     }
 
-    public boolean esPartidaEnCurso() {
-        boolean menuVisible = menuPrincipal != null && menuPrincipal.isVisible();
-        boolean derrotaVisible = pantallaGameOver != null && pantallaGameOver.isVisible();
-        return !menuVisible && !derrotaVisible;
-    }
-
-    public boolean isEnMenuPausa() {
-        return menuPausa != null && menuPausa.isVisible();
-    }
-
-    public TemporizadorAutoguardado getAutoguardado() {
-        return autoguardado;
-    }
+    public boolean esPartidaEnCurso() { return pantallas.esPartidaEnCurso(); }
+    public boolean isEnMenuPausa() { return pantallas.isEnMenuPausa(); }
+    public TemporizadorAutoguardado getAutoguardado() { return ctx.autoguardado; }
 
     private void entrarEnJuegoActivo() {
-        enPausaPrevioMenu = false;
-        ocultarMenuPausa();
-        if (menuPrincipal != null) {
-            menuPrincipal.ocultar();
-        }
-        if (pantallaGameOver != null) {
-            pantallaGameOver.ocultar();
-        }
-        cambiarVisibilidadOverlay(true);
-        autoguardado.activar();
-    }
-
-    private void manejarDerrota() {
-        autoguardado.desactivar();
-        ocultarMenuPausa();
-        if (pantallaGameOver != null) {
-            pantallaGameOver.mostrar();
-        }
-    }
-
-    private void ocultarMenuPausa() {
-        if (menuPausa != null) {
-            menuPausa.ocultar();
-        }
-    }
-
-    private void cambiarVisibilidadOverlay(boolean visible) {
-        if (overlayJuego != null) {
-            overlayJuego.setVisible(visible);
-            overlayJuego.setManaged(visible);
-        }
+        ctx.enPausaPrevioMenu = false;
+        pantallas.entrarEnJuegoActivo();
+        ctx.autoguardado.activar();
     }
 }

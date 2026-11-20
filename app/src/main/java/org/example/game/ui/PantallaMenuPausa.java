@@ -1,4 +1,5 @@
 package org.example.game.ui;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -8,9 +9,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.util.function.BooleanSupplier;
+
 /**
- * Menu modal de pausa invocado con la tecla Escape durante la partida.
- * Ofrece las cuatro acciones requeridas: Continuar, Guardar, Cargar y Salir al menu principal (SRP / DIP).
+ * Menú modal de pausa invocado con la tecla Escape durante la partida (SRP / DIP).
  */
 public class PantallaMenuPausa extends StackPane {
 
@@ -23,11 +24,46 @@ public class PantallaMenuPausa extends StackPane {
             + "-fx-border-width: 1.4px; -fx-background-radius: 4px; -fx-border-radius: 4px; "
             + "-fx-padding: 10 22 10 22; -fx-cursor: hand;";
 
-    private final Button btnContinuar;
-    private final Button btnGuardar;
-    private final Button btnCargar;
-    private final Button btnSalirMenu;
-    private final Label lblEstado = new Label("");
+    private static class ControlesPausa {
+        final Button btnContinuar;
+        final Button btnGuardar;
+        final Button btnCargar;
+        final Button btnSalirMenu;
+        final Label lblEstado = new Label("");
+
+        ControlesPausa(Runnable onContinuar, Runnable onGuardar, Runnable onCargar, Runnable onSalir) {
+            this.btnContinuar = fabricarBoton("Continuar", ESTILO_OPCION_PAUSA, onContinuar);
+            this.btnGuardar = fabricarBoton("Guardar", ESTILO_OPCION_PAUSA, onGuardar);
+            this.btnCargar = fabricarBoton("Cargar", ESTILO_OPCION_PAUSA, onCargar);
+            this.btnSalirMenu = fabricarBoton("Salir al menú principal", ESTILO_OPCION_SALIR, onSalir);
+            this.lblEstado.setFont(Font.font("Monospace", FontWeight.BOLD, 11.5));
+            limpiarEstado();
+        }
+
+        private static Button fabricarBoton(String etiqueta, String estilo, Runnable accion) {
+            Button boton = new Button(etiqueta);
+            boton.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
+            boton.setMaxWidth(Double.MAX_VALUE);
+            boton.setStyle(estilo);
+            boton.setOnAction(evento -> accion.run());
+            return boton;
+        }
+
+        void mostrarEstado(String texto, Color color) {
+            lblEstado.setText(texto);
+            lblEstado.setTextFill(color);
+            lblEstado.setVisible(true);
+            lblEstado.setManaged(true);
+        }
+
+        void limpiarEstado() {
+            lblEstado.setText("");
+            lblEstado.setVisible(false);
+            lblEstado.setManaged(false);
+        }
+    }
+
+    private final ControlesPausa controles;
 
     public PantallaMenuPausa(Runnable onContinuar,
                              BooleanSupplier onGuardar,
@@ -39,24 +75,13 @@ public class PantallaMenuPausa extends StackPane {
         setVisible(false);
         setManaged(false);
 
-        this.btnContinuar = fabricarBoton("Continuar", ESTILO_OPCION_PAUSA, () -> {
-            if (onContinuar != null) onContinuar.run();
-        });
-        this.btnGuardar = fabricarBoton("Guardar", ESTILO_OPCION_PAUSA, () -> ejecutarGuardado(onGuardar));
-        this.btnCargar = fabricarBoton("Cargar", ESTILO_OPCION_PAUSA, () -> ejecutarCarga(onCargar));
-        this.btnSalirMenu = fabricarBoton("Salir al menú principal", ESTILO_OPCION_SALIR, () -> {
-            ocultar();
-            if (onSalirMenu != null) onSalirMenu.run();
-        });
-
-        configurarEtiquetaEstado();
+        this.controles = new ControlesPausa(
+                () -> { if (onContinuar != null) onContinuar.run(); },
+                () -> ejecutarGuardado(onGuardar),
+                () -> ejecutarCarga(onCargar),
+                () -> { ocultar(); if (onSalirMenu != null) onSalirMenu.run(); }
+        );
         getChildren().add(ensamblarTarjeta());
-    }
-
-    private void configurarEtiquetaEstado() {
-        lblEstado.setFont(Font.font("Monospace", FontWeight.BOLD, 11.5));
-        lblEstado.setVisible(false);
-        lblEstado.setManaged(false);
     }
 
     private VBox ensamblarTarjeta() {
@@ -71,51 +96,32 @@ public class PantallaMenuPausa extends StackPane {
         encabezado.setFont(Font.font("Monospace", FontWeight.BOLD, 24));
         encabezado.setTextFill(TemaUI.COLOR_ACENTO_CYAN);
 
-        VBox listaBotones = new VBox(10, btnContinuar, btnGuardar, btnCargar, btnSalirMenu);
+        VBox listaBotones = new VBox(10, controles.btnContinuar, controles.btnGuardar, controles.btnCargar, controles.btnSalirMenu);
         listaBotones.setAlignment(Pos.CENTER);
         listaBotones.setFillWidth(true);
 
-        tarjeta.getChildren().addAll(encabezado, lblEstado, listaBotones);
+        tarjeta.getChildren().addAll(encabezado, controles.lblEstado, listaBotones);
         return tarjeta;
-    }
-
-    private Button fabricarBoton(String etiqueta, String estilo, Runnable accion) {
-        Button boton = new Button(etiqueta);
-        boton.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
-        boton.setMaxWidth(Double.MAX_VALUE);
-        boton.setStyle(estilo);
-        boton.setOnAction(evento -> accion.run());
-        return boton;
     }
 
     private void ejecutarGuardado(BooleanSupplier onGuardar) {
         boolean ok = onGuardar != null && onGuardar.getAsBoolean();
-        mostrarMensajeEstado(
+        controles.mostrarEstado(
                 ok ? "Partida guardada correctamente." : "Error al guardar la partida.",
                 ok ? TemaUI.COLOR_VERDE_EXITO : TemaUI.COLOR_ROJO_PELIGRO
         );
     }
 
     private void ejecutarCarga(BooleanSupplier onCargar) {
-        boolean cargado = onCargar != null && onCargar.getAsBoolean();
-        if (cargado) {
+        if (onCargar != null && onCargar.getAsBoolean()) {
             ocultar();
         } else {
-            mostrarMensajeEstado("No hay partidas guardadas disponibles.", TemaUI.COLOR_ORO);
+            controles.mostrarEstado("No hay partidas guardadas disponibles.", TemaUI.COLOR_ORO);
         }
     }
 
-    private void mostrarMensajeEstado(String texto, Color color) {
-        lblEstado.setText(texto);
-        lblEstado.setTextFill(color);
-        lblEstado.setVisible(true);
-        lblEstado.setManaged(true);
-    }
-
     public void mostrar() {
-        lblEstado.setText("");
-        lblEstado.setVisible(false);
-        lblEstado.setManaged(false);
+        controles.limpiarEstado();
         setVisible(true);
         setManaged(true);
         toFront();
@@ -126,9 +132,9 @@ public class PantallaMenuPausa extends StackPane {
         setManaged(false);
     }
 
-    public Button getBtnContinuar() { return btnContinuar; }
-    public Button getBtnGuardar() { return btnGuardar; }
-    public Button getBtnCargar() { return btnCargar; }
-    public Button getBtnSalirMenu() { return btnSalirMenu; }
-    public Label getLblEstado() { return lblEstado; }
+    public Button getBtnContinuar() { return controles.btnContinuar; }
+    public Button getBtnGuardar() { return controles.btnGuardar; }
+    public Button getBtnCargar() { return controles.btnCargar; }
+    public Button getBtnSalirMenu() { return controles.btnSalirMenu; }
+    public Label getLblEstado() { return controles.lblEstado; }
 }

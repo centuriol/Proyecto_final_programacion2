@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * SRP: Algoritmo de exploración y búsqueda de órbitas seguras libres de solapamiento.
  */
-public class BuscadorOrbitaLibre {
+public class BuscadorOrbitaLibre implements BuscadorOrbita {
 
     private static final BuscadorOrbitaLibre INSTANCIA_POR_DEFECTO = new BuscadorOrbitaLibre();
 
@@ -48,6 +48,7 @@ public class BuscadorOrbitaLibre {
 
         for (CuerpoCeleste otro : cuerpos) {
             if (otro == cuerpo || !otro.esSimulado()) continue;
+            if (otro.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.SATELITE || otro.estaOrbitando(cuerpo)) continue;
             double dist = pos.distanciaA(otro.getPosicion());
             double distMinimaSegura = radioCuerpo + otro.getRadio() + margen;
             if (dist < distMinimaSegura) {

@@ -3,25 +3,26 @@ package org.example.game.render.capa;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.StrokeLineCap;
 import org.example.game.motor.ConversorCoordenadas;
-import org.example.game.motor.TransformadorCoordenadas;
 import org.example.game.motor.Vector2D;
+import org.example.game.render.FabricaRender;
 import org.example.game.render.UtilidadRender;
 
 import java.util.List;
 
 /**
- * Capa de renderizado para trayectorias proyectadas y predicciones de órbita (SRP).
+ * Capa de renderizado para trayectorias proyectadas y predicciones de órbita (SRP / DIP).
  */
 public class CapaTrayectorias {
 
+    private static final FabricaRender FABRICA = new FabricaRender();
     private final ConversorCoordenadas conversor;
 
     public CapaTrayectorias() {
-        this(new TransformadorCoordenadas());
+        this(FABRICA.crearConversorCoordenadas());
     }
 
     public CapaTrayectorias(ConversorCoordenadas conversor) {
-        this.conversor = conversor != null ? conversor : new TransformadorCoordenadas();
+        this.conversor = conversor != null ? conversor : FABRICA.crearConversorCoordenadas();
     }
 
     public void dibujar(GraphicsContext gc, List<Vector2D> trayectoria, double anchoCanvas, double altoCanvas) {

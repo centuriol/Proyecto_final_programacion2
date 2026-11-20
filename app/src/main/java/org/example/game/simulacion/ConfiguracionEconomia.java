@@ -111,6 +111,38 @@ public final class ConfiguracionEconomia {
     public static final double COSTO_CIENCIA_NIVEL_4 = 4200.0;
     public static final double COSTO_CIENCIA_NIVEL_5 = 9500.0;
 
+    // ===== Costos de mini-mejoras secundarias por tier (menores al nodo principal de su tier) =====
+    public static final double COSTO_SECUNDARIA_TIER_1 = 90.0;
+    public static final double COSTO_SECUNDARIA_TIER_2 = 300.0;
+    public static final double COSTO_SECUNDARIA_TIER_3 = 850.0;
+    public static final double COSTO_SECUNDARIA_TIER_4 = 2000.0;
+    public static final double COSTO_SECUNDARIA_TIER_5 = 4500.0;
+
+    // ===== Valores de efecto de mini-mejoras secundarias por rama =====
+    // Rama PLANETAS: +% produccion minerales/ciencia de planetas, -% costo planetas/lunas, -% costo activar escudo
+    public static final double BONUS_PRODUCCION_PLANETAS_T1 = 0.12;
+    public static final double DESCUENTO_COSTO_PLANETAS_LUNAS_T2 = 0.12;
+    public static final double BONUS_PRODUCCION_PLANETAS_T3 = 0.18;
+    public static final double DESCUENTO_COSTO_ESCUDO_T4 = 0.25;
+    public static final double BONUS_PRODUCCION_PLANETAS_T5 = 0.25;
+    public static final double DESCUENTO_COSTO_PLANETAS_LUNAS_T5 = 0.18;
+
+    // Rama MASA: -% costo/exponente por masa extra, +% produccion por masa, -% costo de satelites
+    public static final double DESCUENTO_COSTO_MASA_T1 = 0.10;
+    public static final double BONUS_PRODUCCION_MASA_T2 = 0.15;
+    public static final double DESCUENTO_COSTO_SATELITE_T3 = 0.20;
+    public static final double DESCUENTO_COSTO_MASA_T4 = 0.15;
+    public static final double BONUS_PRODUCCION_MASA_T5 = 0.25;
+    public static final double DESCUENTO_COSTO_SATELITE_T5 = 0.20;
+
+    // Rama CANTIDAD_PLANETAS: +% poblacion maxima, +% crecimiento poblacional, -% costo colonizar/poblar
+    public static final double BONUS_POBLACION_MAXIMA_T1 = 0.15;
+    public static final double BONUS_CRECIMIENTO_POBLACION_T2 = 0.15;
+    public static final double DESCUENTO_COSTO_COLONIZAR_T3 = 0.20;
+    public static final double BONUS_POBLACION_MAXIMA_T4 = 0.25;
+    public static final double BONUS_CRECIMIENTO_POBLACION_T5 = 0.25;
+    public static final double DESCUENTO_COSTO_COLONIZAR_T5 = 0.20;
+
     private static final double[] COSTOS_PROGRESION_CIENCIA = {
             0.0,
             COSTO_CIENCIA_NIVEL_1,
@@ -118,6 +150,15 @@ public final class ConfiguracionEconomia {
             COSTO_CIENCIA_NIVEL_3,
             COSTO_CIENCIA_NIVEL_4,
             COSTO_CIENCIA_NIVEL_5
+    };
+
+    private static final double[] COSTOS_SECUNDARIA_CIENCIA = {
+            0.0,
+            COSTO_SECUNDARIA_TIER_1,
+            COSTO_SECUNDARIA_TIER_2,
+            COSTO_SECUNDARIA_TIER_3,
+            COSTO_SECUNDARIA_TIER_4,
+            COSTO_SECUNDARIA_TIER_5
     };
 
     public static double costoProgresionNivel(int nivel) {
@@ -128,5 +169,15 @@ public final class ConfiguracionEconomia {
             return COSTOS_PROGRESION_CIENCIA[nivel];
         }
         return COSTOS_PROGRESION_CIENCIA[COSTOS_PROGRESION_CIENCIA.length - 1];
+    }
+
+    public static double costoSecundariaTier(int tier) {
+        if (tier <= 0) {
+            return 0.0;
+        }
+        if (tier < COSTOS_SECUNDARIA_CIENCIA.length) {
+            return COSTOS_SECUNDARIA_CIENCIA[tier];
+        }
+        return COSTOS_SECUNDARIA_CIENCIA[COSTOS_SECUNDARIA_CIENCIA.length - 1];
     }
 }

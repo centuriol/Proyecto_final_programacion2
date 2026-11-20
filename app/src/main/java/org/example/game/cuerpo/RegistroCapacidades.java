@@ -15,6 +15,44 @@ import java.util.Optional;
  */
 public class RegistroCapacidades {
 
+    private static final VisitanteCuerpo<Void> VISITANTE_REGISTRO = new VisitanteCuerpo<>() {
+        @Override
+        public Void visitarPlaneta(Planeta planeta) {
+            registrarPlaneta(planeta);
+            return null;
+        }
+
+        @Override
+        public Void visitarSatelite(Satelite satelite) {
+            registrarSatelite(satelite);
+            return null;
+        }
+
+        @Override
+        public Void visitarMeteorito(Meteorito meteorito) {
+            registrarMeteorito(meteorito);
+            return null;
+        }
+
+        @Override
+        public Void visitarEstrella(Estrella estrella) {
+            registrarEstrella(estrella);
+            return null;
+        }
+
+        @Override
+        public Void visitarAgujeroNegro(AgujeroNegro agujeroNegro) {
+            registrarAgujeroNegro(agujeroNegro);
+            return null;
+        }
+    };
+
+    public static void registrar(CuerpoCeleste cuerpo) {
+        if (cuerpo != null) {
+            cuerpo.aceptar(VISITANTE_REGISTRO);
+        }
+    }
+
     public static void registrarPlaneta(Planeta planeta) {
         if (planeta == null) return;
         SistemaCivilizaciones.getInstancia().registrar(planeta, planeta);

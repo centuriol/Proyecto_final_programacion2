@@ -14,7 +14,7 @@ import java.util.List;
  * Principios SOLID:
  * - SRP: Descompone el analisis de habitabilidad en evaluadores especificos (estelar, agujero negro, orbita).
  */
-public class EvaluadorHabitabilidad {
+public class EvaluadorHabitabilidad implements AnalisisHabitabilidad {
 
     private record AstrosRelevantes(CuerpoCeleste estrella, double distEstrella, CuerpoCeleste agujero, double distAgujero) {}
     private record EvaluacionEstelar(double distIdeal, double ratioZona, boolean enZona, double flujo) {}
@@ -52,23 +52,34 @@ public class EvaluadorHabitabilidad {
         double distAgujeroMin = Double.MAX_VALUE;
 
         for (CuerpoCeleste otro : cuerpos) {
-            if (otro == planeta) {
-                continue;
-            }
+            if (!esAstroCandidato(planeta, otro)) continue;
             double dist = planeta.getPosicion().distanciaA(otro.getPosicion());
-            if (otro.getMasa() >= 1e29 && otro.getMasa() < 1e31) {
-                if (dist < distEstrellaMin) {
-                    distEstrellaMin = dist;
-                    estrellaMasCercana = otro;
-                }
-            } else if (otro.getMasa() >= 1e31) {
-                if (dist < distAgujeroMin) {
-                    distAgujeroMin = dist;
-                    agujeroMasCercano = otro;
-                }
+            boolean esAgujero = esAgujeroNegro(otro);
+            if (esEstrella(otro, esAgujero) && dist < distEstrellaMin) {
+                distEstrellaMin = dist;
+                estrellaMasCercana = otro;
+            } else if (esAgujero && dist < distAgujeroMin) {
+                distAgujeroMin = dist;
+                agujeroMasCercano = otro;
             }
         }
         return new AstrosRelevantes(estrellaMasCercana, distEstrellaMin, agujeroMasCercano, distAgujeroMin);
+    }
+
+    private boolean esAstroCandidato(Planeta planeta, CuerpoCeleste otro) {
+        return otro != planeta && otro != null && otro.esSimulado();
+    }
+
+    private boolean esAgujeroNegro(CuerpoCeleste otro) {
+        TipoCuerpo tipo = otro.getTipoCuerpo();
+        return tipo == TipoCuerpo.AGUJERO_NEGRO
+                || tipo == TipoCuerpo.AGUJERO_NEGRO_SUPERMASIVO
+                || org.example.game.motor.GestorAgujeroNegro.esAgujeroNegro(otro);
+    }
+
+    private boolean esEstrella(CuerpoCeleste otro, boolean esAgujero) {
+        return otro.getTipoCuerpo() == TipoCuerpo.ESTRELLA
+                || (!esAgujero && otro.getMasa() >= 1e29 && otro.getMasa() < 1e31);
     }
 
     private EvaluacionEstelar calcularCondicionesEstelares(CuerpoCeleste estrella, double distEstrella) {

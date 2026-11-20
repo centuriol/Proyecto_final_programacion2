@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * - LSP: Aplica atraccion y absorcion polimorficamente sin discriminar planetas protegidos por escudo.
  * - DIP: Desacoplado y configurable mediante callbacks.
  */
-public class GestorAgujeroNegro {
+public class GestorAgujeroNegro implements ProcesadorAgujeroNegro {
 
     public static final double FACTOR_RADIO_INFLUENCIA = 4.0;
     private static final Set<AgujeroNegro> agujerosRegistrados = java.util.concurrent.ConcurrentHashMap.newKeySet();
@@ -94,22 +94,22 @@ public class GestorAgujeroNegro {
     }
 
     private static double calcularProximidadNormalizada(CuerpoCeleste c, List<CuerpoCeleste> todos) {
-        if (c == null || todos == null || esAgujeroNegro(c)) {
-            return 1.0;
-        }
+        if (c == null || todos == null || esAgujeroNegro(c)) return 1.0;
         double minT = 1.0;
         for (CuerpoCeleste otro : todos) {
-            if (otro != null && otro.esSimulado() && esAgujeroNegro(otro)) {
-                double rHorizonte = otro.getRadio();
-                double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
-                double dist = otro.getPosicion().distanciaA(c.getPosicion());
-                if (dist < rInfluencia) {
-                    double t = Math.max(0.0, (dist - rHorizonte) / (rInfluencia - rHorizonte));
-                    if (t < minT) minT = t;
-                }
-            }
+            double t = calcularProximidadConAstro(c, otro);
+            if (t < minT) minT = t;
         }
         return minT;
+    }
+
+    private static double calcularProximidadConAstro(CuerpoCeleste c, CuerpoCeleste otro) {
+        if (otro == null || !otro.esSimulado() || !esAgujeroNegro(otro)) return 1.0;
+        double rHorizonte = otro.getRadio();
+        double rInfluencia = rHorizonte * FACTOR_RADIO_INFLUENCIA;
+        double dist = otro.getPosicion().distanciaA(c.getPosicion());
+        if (dist >= rInfluencia) return 1.0;
+        return Math.max(0.0, (dist - rHorizonte) / (rInfluencia - rHorizonte));
     }
 
     public static double calcularFactorEscala(CuerpoCeleste c, List<CuerpoCeleste> todos) {

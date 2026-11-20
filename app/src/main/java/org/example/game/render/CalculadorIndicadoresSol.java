@@ -78,10 +78,11 @@ public class CalculadorIndicadoresSol {
     }
 
     private static boolean esSolActivo(CuerpoCeleste cuerpo) {
-        return cuerpo != null
-                && cuerpo.esSimulado()
-                && cuerpo.getMasa() >= 1e29
-                && cuerpo.getMasa() < 1e31;
+        if (cuerpo == null || !cuerpo.esSimulado()) return false;
+        if (cuerpo.getTipoCuerpo() == TipoCuerpo.ESTRELLA) return true;
+        return cuerpo.getMasa() >= 1e29
+                && cuerpo.getMasa() < 1e31
+                && !org.example.game.motor.GestorAgujeroNegro.esAgujeroNegro(cuerpo);
     }
 
     private static double acotar(double valor, double min, double max) {

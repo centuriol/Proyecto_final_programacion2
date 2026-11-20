@@ -55,7 +55,7 @@ public class TrayectoriaPredictor {
             // Calcular aceleración gravitacional de los cuerpos del sistema sin crear instancias intermedias
             for (int i = 0; i < cuerposSistema.size(); i++) {
                 CuerpoCeleste c = cuerposSistema.get(i);
-                if (c == null) continue;
+                if (c == null || c.getTipoCuerpo() == org.example.game.cuerpo.TipoCuerpo.SATELITE) continue;
 
                 Vector2D posC = c.getPosicion();
                 double rx = posC.x() - px;

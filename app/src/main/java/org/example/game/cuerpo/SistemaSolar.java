@@ -15,6 +15,9 @@ public class SistemaSolar {
     }
 
     public void agregarCuerpo(CuerpoCeleste cuerpo) {
+        if (cuerpo != null) {
+            RegistroCapacidades.registrar(cuerpo);
+        }
         cuerpos.add(cuerpo);
     }
 

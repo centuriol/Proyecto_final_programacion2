@@ -4,171 +4,69 @@ import org.example.game.motor.CuerpoFisico;
 import org.example.game.motor.Vector2D;
 
 /**
- * SRP: Guarda datos básicos del cuerpo celeste y estado dinámico para simulación física.
+ * SRP: Guarda datos básicos del cuerpo celeste delegando estado cinemático y orbital a EstadoCinematicoCuerpo.
  * OCP: Subclases definen su propia representación y comportamiento específico.
  *
  * Contrato público acotado a un máximo de 25 métodos (cumpliendo límites de interfaz).
  */
 public abstract class CuerpoCeleste implements Masivo, CuerpoFisico {
-    private String nombre;
-    private double masa;
-    private Vector2D posicion;
-    private Vector2D velocidad = Vector2D.cero();
-    private Vector2D fuerza = Vector2D.cero();
-    private boolean simulado = true;
 
     private final TipoCuerpo tipoCuerpo;
-    private CuerpoCeleste cuerpoOrbitado;
-    private double radioOrbita;
+    private final EstadoCinematicoCuerpo estado;
 
     public CuerpoCeleste(String nombre, double masa, double posicionX, double posicionY, TipoCuerpo tipoCuerpo) {
-        this.nombre = nombre;
-        this.masa = masa;
-        this.posicion = new Vector2D(posicionX, posicionY);
         this.tipoCuerpo = tipoCuerpo;
-        this.radioOrbita = 0;
+        this.estado = new EstadoCinematicoCuerpo(nombre, masa, posicionX, posicionY);
     }
 
     // 1
-    @Override
-    public double getMasa() {
-        return masa;
-    }
-
+    @Override public double getMasa() { return estado.getMasa(); }
     // 2
-    @Override
-    public void setMasa(double masa) {
-        this.masa = masa;
-    }
-
+    @Override public void setMasa(double masa) { estado.setMasa(masa); }
     // 3
-    @Override
-    public String getNombre() {
-        return nombre;
-    }
-
+    @Override public String getNombre() { return estado.getNombre(); }
     // 4
-    public void setNombre(String nombre) {
-        if (nombre != null && !nombre.isBlank()) {
-            this.nombre = nombre.trim();
-        }
-    }
-
+    public void setNombre(String nombre) { estado.setNombre(nombre); }
     // 5
-    @Override
-    public Vector2D getPosicion() {
-        return posicion;
-    }
-
+    @Override public Vector2D getPosicion() { return estado.getPosicion(); }
     // 6
-    @Override
-    public void setPosicion(Vector2D pos) {
-        this.posicion = pos != null ? pos : Vector2D.cero();
-    }
-
+    @Override public void setPosicion(Vector2D pos) { estado.setPosicion(pos); }
     // 7
-    @Override
-    public Vector2D getVelocidad() {
-        return velocidad;
-    }
-
+    @Override public Vector2D getVelocidad() { return estado.getVelocidad(); }
     // 8
-    @Override
-    public void setVelocidad(Vector2D velocidad) {
-        this.velocidad = velocidad != null ? velocidad : Vector2D.cero();
-    }
-
+    @Override public void setVelocidad(Vector2D velocidad) { estado.setVelocidad(velocidad); }
     // 9
-    @Override
-    public Vector2D getFuerza() {
-        return fuerza;
-    }
-
+    @Override public Vector2D getFuerza() { return estado.getFuerza(); }
     // 10
-    @Override
-    public void aplicarFuerza(Vector2D fuerza) {
-        if (fuerza == null) {
-            this.fuerza = Vector2D.cero();
-        } else {
-            this.fuerza = this.fuerza.sumar(fuerza);
-        }
-    }
-
+    @Override public void aplicarFuerza(Vector2D fuerza) { estado.aplicarFuerza(fuerza); }
     // 11
-    @Override
-    public boolean esSimulado() {
-        return simulado;
-    }
-
+    @Override public boolean esSimulado() { return estado.isSimulado(); }
+    // 12
+    @Override public void setSimulado(boolean simulado) { estado.setSimulado(simulado); }
     // 13
-    @Override
-    public void setSimulado(boolean simulado) {
-        this.simulado = simulado;
-    }
-
+    @Override public TipoCuerpo getTipoCuerpo() { return tipoCuerpo; }
     // 14
-    @Override
-    public TipoCuerpo getTipoCuerpo() {
-        return tipoCuerpo;
-    }
-
+    @Override public abstract double getRadio();
     // 15
-    @Override
-    public abstract double getRadio();
-
+    @Override public double getRadioAtraccion() { return estado.calcularRadioAtraccion(getTipoCuerpo()); }
     // 16
-    @Override
-    public double getRadioAtraccion() {
-        TipoCuerpo tipoActual = getTipoCuerpo();
-        if (tipoActual == null) return 20.0;
-        double factorMasa = (tipoActual.masaBase > 0) ? Math.max(0.01, masa / tipoActual.masaBase) : 1.0;
-        return Math.max(tipoActual.getRadioAtraccionMin(), tipoActual.getRadioAtraccionMax() * Math.sqrt(factorMasa));
-    }
-
-    // 17
     public abstract String getColorHex();
-
-    // 18
+    // 17
     public abstract String describir();
-
+    // 18
+    public CuerpoCeleste getCuerpoOrbitado() { return estado.getCuerpoOrbitado(); }
     // 19
-    public CuerpoCeleste getCuerpoOrbitado() {
-        return cuerpoOrbitado;
-    }
-
+    public void setCuerpoOrbitado(CuerpoCeleste cuerpoOrbitado) { estado.setCuerpoOrbitado(cuerpoOrbitado); }
     // 20
-    public void setCuerpoOrbitado(CuerpoCeleste cuerpoOrbitado) {
-        this.cuerpoOrbitado = cuerpoOrbitado;
-    }
-
+    public boolean estaOrbitando(CuerpoCeleste... objetivo) { return estado.estaOrbitando(objetivo); }
     // 21
-    public boolean estaOrbitando(CuerpoCeleste... objetivo) {
-        if (objetivo == null || objetivo.length == 0) {
-            return cuerpoOrbitado != null;
-        }
-        return cuerpoOrbitado != null && cuerpoOrbitado == objetivo[0];
-    }
-
+    public double getRadioOrbita() { return estado.getRadioOrbita(); }
     // 22
-    public double getRadioOrbita() {
-        return radioOrbita;
-    }
-
+    public void setRadioOrbita(double radioOrbita) { estado.setRadioOrbita(radioOrbita); }
     // 23
-    public void setRadioOrbita(double radioOrbita) {
-        this.radioOrbita = radioOrbita;
-    }
-
-    // 23
-    public boolean esInteractuablePorUsuario() {
-        return true;
-    }
-
+    public boolean esInteractuablePorUsuario() { return true; }
     // 24
-    public boolean permiteReembolso() {
-        return true;
-    }
-
+    public boolean permiteReembolso() { return true; }
     // 25
     public abstract <R> R aceptar(VisitanteCuerpo<R> visitante);
 }

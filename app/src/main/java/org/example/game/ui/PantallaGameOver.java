@@ -1,4 +1,5 @@
 package org.example.game.ui;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -10,9 +11,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import org.example.game.simulacion.SimulacionSolar;
 import java.util.function.BooleanSupplier;
+
 /**
  * Pantalla superpuesta de derrota con dos opciones:
- * volver al ultimo guardado o volver al menu principal (SRP / DIP).
+ * volver al último guardado o volver al menú principal (SRP / DIP).
  */
 public class PantallaGameOver extends StackPane {
 
@@ -25,9 +27,41 @@ public class PantallaGameOver extends StackPane {
             + "-fx-border-width: 1.5px; -fx-cursor: hand; -fx-padding: 10 22 10 22; "
             + "-fx-background-radius: 4px; -fx-border-radius: 4px;";
 
-    private final Button btnVolverUltimoGuardado = new Button("Volver al último guardado");
-    private final Button btnVolverMenu = new Button("Volver al menú");
-    private final Label lblEstadoAccion = new Label("");
+    private static class ControlesGameOver {
+        final Button btnVolverUltimoGuardado = new Button("Volver al último guardado");
+        final Button btnVolverMenu = new Button("Volver al menú");
+        final Label lblEstadoAccion = new Label("");
+
+        void configurar(Runnable onUltimoGuardado, Runnable onMenu) {
+            lblEstadoAccion.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
+            lblEstadoAccion.setTextFill(TemaUI.COLOR_ORO);
+            limpiarEstado();
+
+            btnVolverUltimoGuardado.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
+            btnVolverUltimoGuardado.setMaxWidth(Double.MAX_VALUE);
+            btnVolverUltimoGuardado.setStyle(ESTILO_BTN_ACCION);
+            btnVolverUltimoGuardado.setOnAction(e -> onUltimoGuardado.run());
+
+            btnVolverMenu.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
+            btnVolverMenu.setMaxWidth(Double.MAX_VALUE);
+            btnVolverMenu.setStyle(ESTILO_BTN_MENU);
+            btnVolverMenu.setOnAction(e -> onMenu.run());
+        }
+
+        void mostrarSinGuardados() {
+            lblEstadoAccion.setText("No hay partidas guardadas disponibles.");
+            lblEstadoAccion.setVisible(true);
+            lblEstadoAccion.setManaged(true);
+        }
+
+        void limpiarEstado() {
+            lblEstadoAccion.setText("");
+            lblEstadoAccion.setVisible(false);
+            lblEstadoAccion.setManaged(false);
+        }
+    }
+
+    private final ControlesGameOver controles = new ControlesGameOver();
 
     public PantallaGameOver(SimulacionSolar simulacion) {
         this(() -> {
@@ -45,30 +79,11 @@ public class PantallaGameOver extends StackPane {
         setPickOnBounds(true);
         setVisible(false);
         setManaged(false);
-        configurarControles(accionVolverUltimoGuardado, accionVolverMenu);
+        controles.configurar(
+                () -> ejecutarVolverUltimoGuardado(accionVolverUltimoGuardado),
+                () -> { ocultar(); if (accionVolverMenu != null) accionVolverMenu.run(); }
+        );
         getChildren().add(construirPanelCentral());
-    }
-
-    private void configurarControles(BooleanSupplier accionVolverUltimoGuardado, Runnable accionVolverMenu) {
-        lblEstadoAccion.setFont(Font.font("Monospace", FontWeight.BOLD, 12));
-        lblEstadoAccion.setTextFill(TemaUI.COLOR_ORO);
-        lblEstadoAccion.setVisible(false);
-        lblEstadoAccion.setManaged(false);
-
-        btnVolverUltimoGuardado.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
-        btnVolverUltimoGuardado.setMaxWidth(Double.MAX_VALUE);
-        btnVolverUltimoGuardado.setStyle(ESTILO_BTN_ACCION);
-        btnVolverUltimoGuardado.setOnAction(e -> ejecutarVolverUltimoGuardado(accionVolverUltimoGuardado));
-
-        btnVolverMenu.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
-        btnVolverMenu.setMaxWidth(Double.MAX_VALUE);
-        btnVolverMenu.setStyle(ESTILO_BTN_MENU);
-        btnVolverMenu.setOnAction(e -> {
-            ocultar();
-            if (accionVolverMenu != null) {
-                accionVolverMenu.run();
-            }
-        });
     }
 
     private VBox construirPanelCentral() {
@@ -89,28 +104,23 @@ public class PantallaGameOver extends StackPane {
         lblSubtitulo.setWrapText(true);
         lblSubtitulo.setTextAlignment(TextAlignment.CENTER);
 
-        VBox cajaBotones = new VBox(10, btnVolverUltimoGuardado, btnVolverMenu);
+        VBox cajaBotones = new VBox(10, controles.btnVolverUltimoGuardado, controles.btnVolverMenu);
         cajaBotones.setAlignment(Pos.CENTER);
         cajaBotones.setFillWidth(true);
-        panel.getChildren().addAll(lblTitulo, lblSubtitulo, lblEstadoAccion, cajaBotones);
+        panel.getChildren().addAll(lblTitulo, lblSubtitulo, controles.lblEstadoAccion, cajaBotones);
         return panel;
     }
 
     private void ejecutarVolverUltimoGuardado(BooleanSupplier accionVolverUltimoGuardado) {
-        boolean restaurado = accionVolverUltimoGuardado != null && accionVolverUltimoGuardado.getAsBoolean();
-        if (restaurado) {
+        if (accionVolverUltimoGuardado != null && accionVolverUltimoGuardado.getAsBoolean()) {
             ocultar();
         } else {
-            lblEstadoAccion.setText("No hay partidas guardadas disponibles.");
-            lblEstadoAccion.setVisible(true);
-            lblEstadoAccion.setManaged(true);
+            controles.mostrarSinGuardados();
         }
     }
 
     public void mostrar() {
-        lblEstadoAccion.setText("");
-        lblEstadoAccion.setVisible(false);
-        lblEstadoAccion.setManaged(false);
+        controles.limpiarEstado();
         setVisible(true);
         setManaged(true);
         toFront();
@@ -121,7 +131,7 @@ public class PantallaGameOver extends StackPane {
         setManaged(false);
     }
 
-    public Button getBtnVolverUltimoGuardado() { return btnVolverUltimoGuardado; }
-    public Button getBtnVolverMenu() { return btnVolverMenu; }
-    public Label getLblEstadoAccion() { return lblEstadoAccion; }
+    public Button getBtnVolverUltimoGuardado() { return controles.btnVolverUltimoGuardado; }
+    public Button getBtnVolverMenu() { return controles.btnVolverMenu; }
+    public Label getLblEstadoAccion() { return controles.lblEstadoAccion; }
 }
